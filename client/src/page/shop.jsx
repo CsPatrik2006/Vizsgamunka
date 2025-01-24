@@ -25,7 +25,7 @@ const Shop = () => {
       .catch((error) => console.error('Error fetching products:', error));
   }, []); 
 
-  const handleProductClick = (itazonoso) => {
+  const handleProductClick = (azonosito) => {
     navigate(`/order/${azonosito}`);
   };
 
