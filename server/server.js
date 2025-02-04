@@ -1,6 +1,6 @@
 const express = require("express");
 const sequelize = require("./config/config");
-const productRoutes = require("./routes/productRoutes");
+const productRoutes = require("./routes/inventoryRoutes");
 const usersRoutes = require("./routes/usersRoutes");
 
 
