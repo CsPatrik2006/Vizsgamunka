@@ -10,7 +10,7 @@ const Szerviz = sequelize.define(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: false,
     },
     location: {
@@ -18,7 +18,7 @@ const Szerviz = sequelize.define(
       allowNull: false,
     },
     contact_info: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(150),
       allowNull: true,
     },
   },
