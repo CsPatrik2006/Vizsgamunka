@@ -1,14 +1,14 @@
 const express = require("express");
 const sequelize = require("./config/config");
 const productRoutes = require("./routes/productRoutes");
-const partnerRoutes = require("./routes/partnerRoutes");
+const usersRoutes = require("./routes/usersRoutes");
 
 
 const app = express();
 app.use(express.json());
 
 app.use("/products", productRoutes);
-app.use("/partners", partnerRoutes);
+app.use("/users", usersRoutes);
 
 
 
