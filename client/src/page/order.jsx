@@ -38,7 +38,7 @@ const ProductOrder = () => {
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/products/${id}`)  
+    fetch(`http://localhost:3000/api/inventory/${id}`)  
       .then((response) => response.json())
       .then((data) => setProduct(data))
       .catch((error) => console.error('Error fetching product:', error));
@@ -48,8 +48,8 @@ const ProductOrder = () => {
     return <p>Loading product...</p>;
   }
 
-  const { boritokep, images2, images3, nev, ar, meret } = product;
-
+  const { item_name, unit_price, quantity } = product;
+  
   return (
     <Layout>
       <Content style={{ padding: '50px 0', background: '#fff' }}>
@@ -61,9 +61,9 @@ const ProductOrder = () => {
                 src={boritokep} 
                 style={{ width: '100%', borderRadius: '10px', marginBottom: '20px' }}
               />
-              <Title level={2}>{nev}</Title>
-              <Paragraph style={{ fontSize: '22px' }}><strong>Price:</strong> ${ar}</Paragraph>
-              <Paragraph style={{ fontSize: '18px' }}><strong>Material:</strong> {meret}</Paragraph>
+              <Title level={2}>{item_name}</Title>
+              <Paragraph style={{ fontSize: '22px' }}><strong>Price:</strong> ${unit_price}</Paragraph>
+              <Paragraph style={{ fontSize: '18px' }}><strong>Quantity:</strong> {quantity}</Paragraph>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '20px' }}>
                 <img 
                   alt="additional image 1" 

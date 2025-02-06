@@ -19,14 +19,14 @@ const Shop = () => {
   ];
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/products') 
+    fetch('http://localhost:3000/api/inventory') 
       .then((response) => response.json())     
       .then((data) => setProducts(data))      
       .catch((error) => console.error('Error fetching products:', error));
   }, []); 
 
-  const handleProductClick = (azonosito) => {
-    navigate(`/order/${azonosito}`);
+  const handleProductClick = (id) => {
+    navigate(`/order/${id}`);
   };
 
   return (
@@ -44,7 +44,7 @@ const Shop = () => {
         <Row gutter={[4, 4]} justify="space-between">
           {products.length > 0 ? (
             products.map((product) => (
-              <Col span={6} key={product.azonosito}>
+              <Col span={6} key={product.id}>
                 <div 
                   style={{
                     borderRadius: '0px', 
@@ -52,12 +52,12 @@ const Shop = () => {
                     width: '100%',  
                     backgroundColor: '#F8F8F8' 
                   }}
-                  onClick={() => handleProductClick(product.azonosito)} 
+                  onClick={() => handleProductClick(product.id)} 
                 >
                   <img alt="product" src={product.boritokep} style={{ width: '100%' }} />
                   <div style={{ padding: '16px' }}>
-                    <h4><b>{product.nev}</b></h4>
-                    <p style={{ color: '#888' }}>${product.ar}</p>
+                    <h4><b>{product.item_name}</b></h4>
+                    <p style={{ color: '#888' }}>${product.unit_price}</p>
                   </div>
                 </div>
               </Col>
