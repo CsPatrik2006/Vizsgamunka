@@ -20,6 +20,7 @@ app.use("/work_orders", work_ordersRoutes);
 app.use("/appointments", appointmentsRoutes);
 app.use("/services", servicesRoutes);
 app.use("/vehicles", vehiclesRoutes);
+app.use("/api/", usersRoutes);
 //app.use("/")
 
 

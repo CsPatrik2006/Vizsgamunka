@@ -35,7 +35,7 @@ exports.authenticateUser = async (req, res) => {
     if (!email || !password) return res.status(400).json({ message: "Hiányzó bejelentkezési adatok!" });
 
     const user = await Felhasznalo.findOne({ where: { email } });
-    if (!user) return res.status(401).json({ message: "Hibás email vagy jelszó!" });
+    if (!user) return res.status(401).json({ message: "Hibás email!" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Hibás email vagy jelszó!" });
