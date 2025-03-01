@@ -1,10 +1,10 @@
-const Szerviz = require("../model/garages");
+const Garage = require("../model/garages");
 
 // Get all garages
 exports.getAllGarages = async (req, res) => {
   try {
-    const garages = await Szerviz.findAll({
-      attributes: ["id", "name", "location", "contact_info"],
+    const garages = await Garage.findAll({
+      attributes: ["id", "owner_id", "name", "location", "contact_info"],
     });
     res.json(garages);
   } catch (error) {
@@ -15,7 +15,7 @@ exports.getAllGarages = async (req, res) => {
 // Get a garage by ID
 exports.getGarageById = async (req, res) => {
   try {
-    const garage = await Szerviz.findByPk(req.params.id);
+    const garage = await Garage.findByPk(req.params.id);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
@@ -28,13 +28,14 @@ exports.getGarageById = async (req, res) => {
 // Create a new garage
 exports.createGarage = async (req, res) => {
   try {
-    const { name, location, contact_info } = req.body;
+    const { owner_id, name, location, contact_info } = req.body;
 
-    if (!name || !location) {
-      return res.status(400).json({ message: "Missing required fields (name, location)" });
+    if (!owner_id || !name || !location) {
+      return res.status(400).json({ message: "Missing required fields (owner_id, name, location)" });
     }
 
-    const newGarage = await Szerviz.create({
+    const newGarage = await Garage.create({
+      owner_id,
       name,
       location,
       contact_info,
@@ -49,14 +50,14 @@ exports.createGarage = async (req, res) => {
 // Update an existing garage
 exports.updateGarage = async (req, res) => {
   try {
-    const { name, location, contact_info } = req.body;
-    const garage = await Szerviz.findByPk(req.params.id);
+    const { owner_id, name, location, contact_info } = req.body;
+    const garage = await Garage.findByPk(req.params.id);
 
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
 
-    await garage.update({ name, location, contact_info });
+    await garage.update({ owner_id, name, location, contact_info });
 
     res.json(garage);
   } catch (error) {
@@ -67,7 +68,7 @@ exports.updateGarage = async (req, res) => {
 // Delete a garage
 exports.deleteGarage = async (req, res) => {
   try {
-    const garage = await Szerviz.findByPk(req.params.id);
+    const garage = await Garage.findByPk(req.params.id);
     
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });

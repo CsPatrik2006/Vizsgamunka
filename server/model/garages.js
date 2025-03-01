@@ -1,16 +1,26 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/config");
+const User = require("../model/users");
 
-const Szerviz = sequelize.define(
-  "Szerviz",
+const Garage = sequelize.define(
+  "Garage",
   {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
+    owner_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: User,
+        key: "id",
+      },
+      onDelete: "CASCADE",
+    },
     name: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     location: {
@@ -18,14 +28,14 @@ const Szerviz = sequelize.define(
       allowNull: false,
     },
     contact_info: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(255),
       allowNull: true,
     },
   },
   {
-    tableName: "Szervizek",
+    tableName: "garages",
     timestamps: true,
   }
 );
 
-module.exports = Szerviz;
+module.exports = Garage;

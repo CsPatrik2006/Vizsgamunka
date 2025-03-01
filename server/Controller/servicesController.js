@@ -1,9 +1,9 @@
-const Szolgaltatasok = require("../model/services");
+const Services = require("../model/services");
 
 // Get all services
 exports.getAllServices = async (req, res) => {
   try {
-    const services = await Szolgaltatasok.findAll({
+    const services = await Services.findAll({
       attributes: ["id", "name", "description", "price", "duration", "garage_id"],
     });
     res.json(services);
@@ -15,7 +15,7 @@ exports.getAllServices = async (req, res) => {
 // Get a service by ID
 exports.getServiceById = async (req, res) => {
   try {
-    const service = await Szolgaltatasok.findByPk(req.params.id);
+    const service = await Services.findByPk(req.params.id);
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -34,7 +34,7 @@ exports.createService = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields (name, price, duration, garage_id)" });
     }
 
-    const newService = await Szolgaltatasok.create({
+    const newService = await Services.create({
       name,
       description,
       price,
@@ -52,7 +52,7 @@ exports.createService = async (req, res) => {
 exports.updateService = async (req, res) => {
   try {
     const { name, description, price, duration, garage_id } = req.body;
-    const service = await Szolgaltatasok.findByPk(req.params.id);
+    const service = await Services.findByPk(req.params.id);
 
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
@@ -69,7 +69,7 @@ exports.updateService = async (req, res) => {
 // Delete a service
 exports.deleteService = async (req, res) => {
   try {
-    const service = await Szolgaltatasok.findByPk(req.params.id);
+    const service = await Services.findByPk(req.params.id);
     
     if (!service) {
       return res.status(404).json({ message: "Service not found" });

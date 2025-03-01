@@ -5,5 +5,7 @@ const garagesController = require("../Controller/garagesController");
 router.get("/", garagesController.getAllGarages);
 router.get("/:id", garagesController.getGarageById);
 router.post("/", garagesController.createGarage);
+router.put("/:id", garagesController.updateGarage);
+router.delete("/:id", garagesController.deleteGarage);
 
 module.exports = router;
