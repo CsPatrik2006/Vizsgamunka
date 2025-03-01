@@ -1,8 +1,9 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/config");
+const Garages = require("../model/garages");
 
-const Keszlet = sequelize.define(
-  "Keszlet",
+const Inventory = sequelize.define(
+  "Inventory",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,9 +13,18 @@ const Keszlet = sequelize.define(
     garage_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: Garages,
+        key: "id",
+      },
+      onDelete: "CASCADE",
     },
     item_name: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    vehicle_type: {
+      type: DataTypes.ENUM('car', 'motorcycle', 'truck'),
       allowNull: false,
     },
     quantity: {
@@ -28,9 +38,9 @@ const Keszlet = sequelize.define(
     },
   },
   {
-    tableName: "Keszlet",
+    tableName: "inventory",
     timestamps: true,
   }
 );
 
-module.exports = Keszlet;
+module.exports = Inventory;

@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/config");
-const Garages = require("../model/garages")
+const Garages = require("../model/garages");
 
 const Services = sequelize.define(
   "Services",
