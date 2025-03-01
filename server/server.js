@@ -7,7 +7,6 @@ const garagesRoutes = require("./routes/garagesRoutes");
 const work_ordersRoutes = require("./routes/work_ordersRoutes");
 const appointmentsRoutes = require("./routes/appointmentsRoutes");
 const servicesRoutes = require("./routes/servicesRoutes");
-const vehiclesRoutes = require("./routes/vehiclesRoutes");
 
 const app = express();
 app.use(cors());
@@ -19,7 +18,6 @@ app.use("/garages", garagesRoutes);
 app.use("/work_orders", work_ordersRoutes);
 app.use("/appointments", appointmentsRoutes);
 app.use("/services", servicesRoutes);
-app.use("/vehicles", vehiclesRoutes);
 app.use("/api/", usersRoutes);
 //app.use("/")
 

@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const Felhasznalo = require("../model/users");
+const User = require("../model/users");
 
 // Regisztráció (Felhasználó létrehozása)
 exports.createUser = async (req, res) => {
@@ -14,12 +14,12 @@ exports.createUser = async (req, res) => {
     // Jelszó titkosítása
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await Felhasznalo.create({
+    const newUser = await User.create({
       name,
       email,
       phone,
       role,
-      password: hashedPassword, // Mentjük a titkosított jelszót
+      password_hash: hashedPassword, // Mentjük a titkosított jelszót
     });
 
     res.status(201).json({ message: "Felhasználó sikeresen létrehozva!", user: newUser });
@@ -34,10 +34,10 @@ exports.authenticateUser = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Hiányzó bejelentkezési adatok!" });
 
-    const user = await Felhasznalo.findOne({ where: { email } });
-    if (!user) return res.status(401).json({ message: "Hibás email!" });
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(401).json({ message: "Hibás email vagy jelszó!" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) return res.status(401).json({ message: "Hibás email vagy jelszó!" });
 
     // JWT generálás
@@ -56,8 +56,8 @@ exports.authenticateUser = async (req, res) => {
 // Összes felhasználó lekérése
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await Felhasznalo.findAll({
-      attributes: ["id", "name", "email", "phone", "role"], // Jelszót nem adjuk vissza!
+    const users = await User.findAll({
+      attributes: ["id", "name", "email", "phone", "role"],
     });
     res.json(users);
   } catch (error) {
@@ -68,13 +68,11 @@ exports.getAllUsers = async (req, res) => {
 // Felhasználó lekérése ID alapján
 exports.getUserById = async (req, res) => {
   try {
-    const user = await Felhasznalo.findByPk(req.params.id, {
-      attributes: { exclude: ["password"] }, // Jelszót kizárjuk a válaszból
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ["password_hash"] },
     });
 
-    if (!user) {
-      return res.status(404).json({ message: "Felhasználó nem található!" });
-    }
+    if (!user) return res.status(404).json({ message: "Felhasználó nem található!" });
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Szerverhiba felhasználó lekérésekor!", error: error.message });
@@ -87,12 +85,12 @@ exports.updateUser = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Ha a jelszó is frissül, titkosítjuk
     if (updates.password) {
-      updates.password = await bcrypt.hash(updates.password, 10);
+      updates.password_hash = await bcrypt.hash(updates.password, 10);
+      delete updates.password;
     }
 
-    const [updated] = await Felhasznalo.update(updates, { where: { id } });
+    const [updated] = await User.update(updates, { where: { id } });
     if (!updated) return res.status(404).json({ message: "Felhasználó nem található!" });
 
     res.json({ message: "Felhasználó sikeresen frissítve!" });
@@ -105,7 +103,7 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Felhasznalo.destroy({ where: { id } });
+    const deleted = await User.destroy({ where: { id } });
 
     if (!deleted) return res.status(404).json({ message: "Felhasználó nem található!" });
 

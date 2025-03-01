@@ -2,8 +2,8 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/config");
 const bcrypt = require("bcrypt");
 
-const Felhasznalo = sequelize.define(
-  "Felhasznalo",
+const User = sequelize.define(
+  "User",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -11,35 +11,35 @@ const Felhasznalo = sequelize.define(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     email: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(255),
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true, // Ellenőrzi, hogy helyes e-mail formátum-e
+        isEmail: true,
       },
     },
     phone: {
       type: DataTypes.STRING(20),
       allowNull: true,
     },
-    password: {
-      type: DataTypes.STRING,
+    password_hash: {
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM("admin", "user", "worker"),
+      type: DataTypes.ENUM("customer", "garage_owner", "admin"),
       allowNull: false,
-      defaultValue: "user",
+      defaultValue: "customer",
     },
   },
   {
-    tableName: "felhasznalok",
+    tableName: "users",
     timestamps: true,
   }
 );
 
-module.exports = Felhasznalo;
+module.exports = User;
