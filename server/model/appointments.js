@@ -1,8 +1,10 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/config");
+const User = require("../model/users");
+const Garage = require("../model/garages");
 
-const Idopontok = sequelize.define(
-  "Idopontok",
+const Appointments = sequelize.define(
+  "Appointments",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,10 +14,20 @@ const Idopontok = sequelize.define(
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: User, // Reference the 'users' table
+        key: "id", // The primary key in the 'users' table
+      },
+      onDelete: "CASCADE", // Ensure deletion of appointments if user is deleted
     },
     garage_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: Garage, // Reference the 'garages' table
+        key: "id", // The primary key in the 'garages' table
+      },
+      onDelete: "CASCADE", // Ensure deletion of appointments if garage is deleted
     },
     appointment_time: {
       type: DataTypes.DATE,
@@ -26,11 +38,20 @@ const Idopontok = sequelize.define(
       allowNull: false,
       defaultValue: "pending",
     },
+    order_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "orders", // Reference the 'orders' table
+        key: "id", // The primary key in the 'orders' table
+      },
+      onDelete: "CASCADE", // Ensure deletion of appointments if order is deleted
+    },
   },
   {
-    tableName: "Idopontok",
-    timestamps: true,
+    tableName: "appointments", // Changed the table name to 'appointments'
+    timestamps: true, // Automatically add createdAt and updatedAt
   }
 );
 
-module.exports = Idopontok;
+module.exports = Appointments;
