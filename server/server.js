@@ -7,6 +7,9 @@ const garagesRoutes = require("./routes/garagesRoutes");
 const appointmentsRoutes = require("./routes/appointmentsRoutes");
 const servicesRoutes = require("./routes/servicesRoutes");
 const ordersRoutes = require("./routes/ordersRoutes");
+const cartRoutes = require("./routes/cartRoutes");
+const cartItemsRoutes = require("./routes/cartItemsRoutes");
+const orderItemsRoutes = require("./routes/orderItemsRoutes");
 
 const app = express();
 app.use(cors());
@@ -19,6 +22,9 @@ app.use("/appointments", appointmentsRoutes);
 app.use("/services", servicesRoutes);
 app.use("/api/", usersRoutes);
 app.use("/orders", ordersRoutes);
+app.use("/cart", cartRoutes);
+app.use("/cartItems", cartItemsRoutes);
+app.use("/orderItems", orderItemsRoutes);
 //app.use("/")
 
 
