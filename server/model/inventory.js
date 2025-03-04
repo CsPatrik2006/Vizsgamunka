@@ -36,6 +36,11 @@ const Inventory = sequelize.define(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    cover_img: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: "URL to the cover image of the inventory item",
+    },
   },
   {
     tableName: "inventory",
