@@ -1,4 +1,5 @@
 @import url('https://rsms.me/inter/inter.css');
+@import "tailwindcss";
 
 * {
   box-sizing: border-box;

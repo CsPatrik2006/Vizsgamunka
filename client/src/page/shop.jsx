@@ -1,10 +1,5 @@
-import { Layout, Menu, Row, Col } from 'antd';
-import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom'; 
-import "../../styles.css";
-
-const { Header, Content } = Layout;
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -14,8 +9,8 @@ const Shop = () => {
     { label: 'Home', key: '1' },
     { label: 'Products', key: '2' },
     { label: 'Categories', key: '3' },
-    { label: 'Cart', key: '4', icon: <ShoppingCartOutlined /> },
-    { label: 'Account', key: '5', icon: <UserOutlined /> },
+    { label: 'Cart', key: '4' },
+    { label: 'Account', key: '5' },
   ];
 
   useEffect(() => {
@@ -30,44 +25,42 @@ const Shop = () => {
   };
 
   return (
-    <Layout>
-      <Header style={{ position: 'fixed', zIndex: 1, width: '100%', height: '60px', padding: '0 20px', background: '#fff' }}>
-        <Menu
-          mode="horizontal"
-          style={{ float: 'right', lineHeight: '60px' }}
-          defaultSelectedKeys={['1']}
-          items={menuItems}
-        />
-      </Header>
+    <div className="min-h-screen bg-gray-100">
+      {/* Navbar */}
+      <header className="bg-white shadow-md fixed w-full top-0 z-10">
+        <nav className="container mx-auto flex justify-between items-center p-4">
+          <h1 className="text-xl font-bold">Shop</h1>
+          <ul className="flex space-x-6">
+            {menuItems.map((item) => (
+              <li key={item.key} className="cursor-pointer hover:text-blue-500">{item.label}</li>
+            ))}
+          </ul>
+        </nav>
+      </header>
 
-      <Content style={{ padding: '50px 0', background: '#F0EEE5', marginTop: '60px' }}>
-        <Row gutter={[4, 4]} justify="space-between">
+      {/* Content Section */}
+      <main className="container mx-auto pt-20 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.length > 0 ? (
             products.map((product) => (
-              <Col span={6} key={product.id}>
-                <div 
-                  style={{
-                    borderRadius: '0px', 
-                    overflow: 'hidden', 
-                    width: '100%',  
-                    backgroundColor: '#F8F8F8' 
-                  }}
-                  onClick={() => handleProductClick(product.id)} 
-                >
-                  <img alt="product" src={product.boritokep} style={{ width: '100%' }} />
-                  <div style={{ padding: '16px' }}>
-                    <h4><b>{product.item_name}</b></h4>
-                    <p style={{ color: '#888' }}>${product.unit_price}</p>
-                  </div>
+              <div 
+                key={product.id} 
+                className="bg-white shadow-md rounded-lg overflow-hidden cursor-pointer"
+                onClick={() => handleProductClick(product.id)} 
+              >
+                <img alt="product" src={product.boritokep} className="w-full h-40 object-cover" />
+                <div className="p-4">
+                  <h4 className="text-lg font-bold">{product.item_name}</h4>
+                  <p className="text-gray-600">${product.unit_price}</p>
                 </div>
-              </Col>
+              </div>
             ))
           ) : (
-            <p>Loading products...</p>  
+            <p className="text-center col-span-full">Loading products...</p>  
           )}
-        </Row>
-      </Content>
-    </Layout>
+        </div>
+      </main>
+    </div>
   );
 };
 
