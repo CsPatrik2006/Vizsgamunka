@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Shop from "./page/shop"; 
 import ProductOrder from "./page/order";
 import HomePage from "./page/home";
+import RegisterForm from "./page/register";
+import LoginForm from "./page/login";
 
 function App() {
   return (
@@ -10,6 +12,8 @@ function App() {
         <Route path="/" element={<Shop />}/>
         <Route path="/home" element={<HomePage />}/> 
         <Route path="/order/:id" element={<ProductOrder />} />
+        <Route path="/register" element={<RegisterForm />}/>
+        <Route path="/login" element={<LoginForm />}/>
       </Routes>
     </Router>
   );
