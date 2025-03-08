@@ -4,12 +4,13 @@ import ProductOrder from "./page/order";
 import HomePage from "./page/home";
 import RegisterForm from "./page/register";
 import LoginForm from "./page/login";
+import TyreShopHomepage from "./page/main";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Shop />}/>
+        <Route path="/" element={<TyreShopHomepage />}/>
         <Route path="/home" element={<HomePage />}/> 
         <Route path="/order/:id" element={<ProductOrder />} />
         <Route path="/register" element={<RegisterForm />}/>
