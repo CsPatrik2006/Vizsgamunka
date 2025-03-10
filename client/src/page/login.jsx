@@ -29,7 +29,7 @@ const LoginForm = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful', data);
-        navigate('/home');
+        navigate('/');
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Invalid email or password');
