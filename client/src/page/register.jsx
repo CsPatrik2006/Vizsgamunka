@@ -44,24 +44,30 @@ const RegisterForm = () => {
     }
   };
 
-  // State to manage the card's visibility with animation effect
   const [isVisible, setIsVisible] = useState(false);
 
-  // Using useEffect to trigger animation on component mount (including page refresh)
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsVisible(true); // Trigger the animation after a slight delay to allow render
-    }, 100); // Adjust the delay if needed
-    return () => clearTimeout(timer); // Clean up the timeout
+      setIsVisible(true);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div
-        className={`bg-white p-8 rounded-lg shadow-md w-full max-w-md transition-all duration-1000 transform ${
+        className={`relative bg-white p-8 rounded-lg shadow-md w-full max-w-md transition-all duration-1000 transform ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
+        {/* Home Button in the top right corner */}
+        <Link
+          to="/"
+          className="absolute top-3 right-3 bg-gray-200 px-3 py-1 rounded-full text-sm text-gray-700 hover:bg-gray-300 transition"
+        >
+          Mégse
+        </Link>
+
         <h2 className="text-2xl font-bold text-center mb-6">Regisztráció</h2>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,8 +75,8 @@ const RegisterForm = () => {
             <label className="block text-gray-700">Felhasználónév</label>
             <input 
               type="text" 
-              name="name" 
-              value={formData.name} 
+              name="username" 
+              value={formData.username} 
               onChange={handleChange} 
               className="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
               required 
@@ -135,7 +141,6 @@ const RegisterForm = () => {
           </button>
         </form>
         
-        {/* Added the "Van már fiókod? Bejelentkezés" link */}
         <p className="mt-4 text-center">
           Van már fiókod?{' '}
           <Link to="/login" className="text-blue-500 underline">
