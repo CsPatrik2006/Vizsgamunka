@@ -11,9 +11,19 @@ const Header = ({
   logo_light 
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [closing, setClosing] = useState(false); // New state for closing animation
 
   const handleDropdownToggle = () => {
-    setDropdownOpen((prevState) => !prevState);
+    if (dropdownOpen) {
+      setClosing(true); // Trigger closing animation
+      setTimeout(() => {
+        setDropdownOpen(false);
+        setClosing(false); // Reset after closing animation
+      }, 300); // Match the transition duration
+    } else {
+      setDropdownOpen(true);
+      setClosing(false); // Reset when opening
+    }
   };
 
   return (
@@ -66,12 +76,20 @@ const Header = ({
 
           {/* Dropdown for User (only when toggled) */}
           {dropdownOpen && (
-            <div className="absolute right-0.5 mt-30 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 z-50 transform translate-y-2 opacity-100 transition-opacity duration-300 ease-in-out">
+            <div
+              className={`absolute right-0.5 mt-30 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 z-50 transform transition-all duration-300 ease-out ${
+                closing ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0 delay-100'
+              }`}
+            >
               <a href="/login">
-                <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer">Bejelentkezés</button>
+                <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer">
+                  Bejelentkezés
+                </button>
               </a>
               <a href="/register">
-                <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg cursor-pointer">Regisztráció</button>
+                <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg cursor-pointer">
+                  Regisztráció
+                </button>
               </a>
             </div>
           )}
