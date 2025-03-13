@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -61,7 +60,7 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className={`relative ${darkMode ? 'bg-[#252830]' : 'bg-white'} p-8 rounded-lg shadow-xl w-full max-w-md`}
+            className={`relative ${darkMode ? 'bg-[#252830]' : 'bg-[#f8fafc]'} p-8 rounded-lg shadow-xl w-full max-w-md`}
           >
             <button
               onClick={onClose}
@@ -80,9 +79,12 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode }) => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
-                  }`}
+                  className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 
+                    ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                    ${darkMode 
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                      : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
+                    }`}
                   required
                 />
               </div>
@@ -93,15 +95,17 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode }) => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
-                  }`}
+                  className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 
+                    ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                    ${darkMode 
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                      : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
+                    }`}
                   required
                 />
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-2 top-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                  type="button" onClick={() => setShowPassword(!showPassword)}
+                  className={`absolute right-2 top-9.5 focus:outline-none cursor-pointer ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
