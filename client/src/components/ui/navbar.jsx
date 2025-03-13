@@ -1,33 +1,29 @@
 import React, { useState } from "react";
 import { Button } from "./button";
 
-const Header = ({ 
-  darkMode, 
-  toggleTheme, 
-  searchQuery, 
-  setSearchQuery, 
-  onSearch, 
-  logo_dark, 
-  logo_light 
+const Header = ({
+  darkMode,
+  toggleTheme,
+  searchQuery,
+  setSearchQuery,
+  onSearch,
+  logo_dark,
+  logo_light,
+  setIsLoginOpen
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [closing, setClosing] = useState(false); // New state for closing animation
 
   const handleDropdownToggle = () => {
-    if (dropdownOpen) {
-      setClosing(true); // Trigger closing animation
-      setTimeout(() => {
-        setDropdownOpen(false);
-        setClosing(false); // Reset after closing animation
-      }, 300); // Match the transition duration
-    } else {
-      setDropdownOpen(true);
-      setClosing(false); // Reset when opening
-    }
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleLoginClick = () => {
+    setIsLoginOpen(true);
+    setDropdownOpen(false);
   };
 
   return (
-    <header 
+    <header
       className={`px-6 py-4 ${darkMode ? "bg-[#030507] text-white" : "bg-[#f8fafc] text-black"} shadow-md sticky top-0 z-20 overflow-visible`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -74,25 +70,26 @@ const Header = ({
             </svg>
           </Button>
 
-          {/* Dropdown for User (only when toggled) */}
-          {dropdownOpen && (
-            <div
-              className={`absolute right-0.5 mt-30 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 z-50 transform transition-all duration-300 ease-out ${
-                closing ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0 delay-100'
-              }`}
+          {/* Dropdown for User */}
+          <div
+            className={`absolute right-0.5 mt-35 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 z-50 transition-all duration-300 ease-in-out origin-top
+            ${dropdownOpen
+              ? 'opacity-100 scale-y-100 translate-y-0'
+              : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none'
+            }`}
+          >
+            <button 
+              onClick={handleLoginClick}
+              className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer transition-colors duration-200"
             >
-              <a href="/login">
-                <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer">
-                  Bejelentkezés
-                </button>
-              </a>
-              <a href="/register">
-                <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg cursor-pointer">
-                  Regisztráció
-                </button>
-              </a>
-            </div>
-          )}
+              Bejelentkezés
+            </button>
+            <a href="/register">
+              <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg cursor-pointer transition-colors duration-200">
+                Regisztráció
+              </button>
+            </a>
+          </div>
 
           {/* Dark Mode Toggle */}
           <Button onClick={toggleTheme} className={`${darkMode ? "text-white" : "text-black"}`}>

@@ -5,18 +5,17 @@ import ColorStripe from "../components/ui/navbarStripe";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import LoginForm from './login';
 
 export default function TyreShopHomepage() {
-  // State for managing theme and search query
   const [darkMode, setDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  // Toggle dark mode
   const toggleTheme = () => {
     setDarkMode(!darkMode);
   };
 
-  // Effect to load the saved theme from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -24,7 +23,6 @@ export default function TyreShopHomepage() {
     }
   }, []);
 
-  // Effect to save theme to localStorage
   useEffect(() => {
     if (darkMode) {
       localStorage.setItem("theme", "dark");
@@ -35,7 +33,6 @@ export default function TyreShopHomepage() {
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-[#030507] text-[#f9fafc]" : "bg-[#f8fafc] text-black"} font-inter`}>
-      {/* Header with Navbar */}
       <Header
         darkMode={darkMode}
         toggleTheme={toggleTheme}
@@ -43,11 +40,12 @@ export default function TyreShopHomepage() {
         setSearchQuery={setSearchQuery}
         logo_dark={logo_dark}
         logo_light={logo_light}
+        setIsLoginOpen={setIsLoginOpen}
       />
-      {/* Render ColorStripe below the header */}
       <div className="z-10 sticky top-36.5">
         <ColorStripe />
       </div>
+
 
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center py-20 px-5">
@@ -185,6 +183,7 @@ export default function TyreShopHomepage() {
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
         </div>
       </footer>
+      <LoginForm isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>
   );
 }
