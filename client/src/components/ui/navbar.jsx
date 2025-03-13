@@ -9,7 +9,8 @@ const Header = ({
   onSearch,
   logo_dark,
   logo_light,
-  setIsLoginOpen
+  setIsLoginOpen,
+  setIsRegisterOpen
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -19,6 +20,11 @@ const Header = ({
 
   const handleLoginClick = () => {
     setIsLoginOpen(true);
+    setDropdownOpen(false);
+  };
+
+  const handleRegisterClick = () => {
+    setIsRegisterOpen(true);
     setDropdownOpen(false);
   };
 
@@ -36,7 +42,7 @@ const Header = ({
 
         {/* Search Bar */}
         <div className="flex-grow mx-6">
-          <div className="flex items-center bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="flex items-center bg-[#252830] dark:bg-[#252830] rounded-full overflow-hidden">
             <input
               type="text"
               placeholder="Szervízek böngészése..."
@@ -63,7 +69,6 @@ const Header = ({
             </svg>
           </Button>
 
-          {/* User Icon with Dropdown */}
           <Button onClick={handleDropdownToggle} className={`${darkMode ? "text-white" : "text-black"}`}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -72,7 +77,7 @@ const Header = ({
 
           {/* Dropdown for User */}
           <div
-            className={`absolute right-0.5 mt-35 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 z-50 transition-all duration-300 ease-in-out origin-top
+            className={`absolute right-0.5 mt-35 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-[#252830] dark:border-[#252830] z-50 transition-all duration-300 ease-in-out origin-top
             ${dropdownOpen
               ? 'opacity-100 scale-y-100 translate-y-0'
               : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none'
@@ -80,15 +85,16 @@ const Header = ({
           >
             <button 
               onClick={handleLoginClick}
-              className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer transition-colors duration-200"
+              className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors duration-200"
             >
               Bejelentkezés
             </button>
-            <a href="/register">
-              <button className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg cursor-pointer transition-colors duration-200">
-                Regisztráció
-              </button>
-            </a>
+            <button 
+              onClick={handleRegisterClick}
+              className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors duration-200"
+            >
+              Regisztráció
+            </button>
           </div>
 
           {/* Dark Mode Toggle */}
