@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "./button";
+import { Link } from "react-router-dom";
 
 const Header = ({
   darkMode,
@@ -10,7 +11,10 @@ const Header = ({
   logo_dark,
   logo_light,
   setIsLoginOpen,
-  setIsRegisterOpen
+  setIsRegisterOpen,
+  isLoggedIn,
+  userData,
+  handleLogout
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -28,17 +32,24 @@ const Header = ({
     setDropdownOpen(false);
   };
 
+  const handleUserLogout = () => {
+    handleLogout();
+    setDropdownOpen(false);
+  };
+
   return (
     <header
       className={`px-6 py-4 ${darkMode ? "bg-[#030507] text-white" : "bg-[#f8fafc] text-black"} shadow-md sticky top-0 z-20 overflow-visible`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Logo */}
+        <Link to="/" className="cursor-pointer">
         <img
           src={darkMode ? logo_dark : logo_light}
           alt="Gumizz Logo"
           className="w-52 h-auto"
         />
+        </Link>
 
         {/* Search Bar */}
         <div className="flex-grow mx-6">
@@ -68,35 +79,104 @@ const Header = ({
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
             </svg>
           </Button>
-
-          <Button onClick={handleDropdownToggle} className={`${darkMode ? "text-white" : "text-black"}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-            </svg>
-          </Button>
-
-          {/* Dropdown for User */}
+            <Button onClick={handleDropdownToggle} className={`${darkMode ? "text-white" : "text-black"} flex items-center relative`}>
+              {isLoggedIn && userData ? (
+                <div className="relative flex items-center justify-center w-6 h-6 overflow-visible">
+                  <div className="absolute w-7 h-7 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-sm transform scale-110">
+                    {userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                </div>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+              )}
+            </Button>
+          {/* Conditional Dropdown based on login status */}
           <div
-            className={`absolute right-0.5 mt-35 w-40 bg-white shadow-lg rounded-lg border border-gray-200 dark:bg-[#252830] dark:border-[#252830] z-50 transition-all duration-300 ease-in-out origin-top
+            className={`absolute transform -translate-x-1/2 left-1/2 top-12 shadow-lg rounded-lg border 
+            ${darkMode 
+              ? "bg-[#252830] border-[#252830] text-white" 
+              : "bg-white border-gray-200 text-gray-800"
+            } z-50 transition-all duration-300 ease-in-out origin-top
+            ${isLoggedIn && userData ? "w-48" : "w-32"}
             ${dropdownOpen
               ? 'opacity-100 scale-y-100 translate-y-0'
               : 'opacity-0 scale-y-0 -translate-y-2 pointer-events-none'
             }`}
           >
-            <button 
-              onClick={handleLoginClick}
-              className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg cursor-pointer transition-colors duration-200"
-            >
-              Bejelentkezés
-            </button>
-            <button 
-              onClick={handleRegisterClick}
-              className="w-full text-center px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg cursor-pointer transition-colors duration-200"
-            >
-              Regisztráció
-            </button>
+            {isLoggedIn && userData ? (
+              // Logged-in user dropdown
+              <>
+                <div className={`px-4 py-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                  <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
+                    {userData.name || "User"}
+                  </p>
+                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} truncate`}>
+                    {userData.email}
+                  </p>
+                </div>
+                <a 
+                  href="/profile" 
+                  className={`block px-4 py-2 text-sm ${darkMode 
+                    ? "text-white hover:bg-gray-700" 
+                    : "text-gray-700 hover:bg-gray-100"
+                  } cursor-pointer`}
+                >
+                  Profilom
+                </a>
+                <a 
+                  href="/appointments" 
+                  className={`block px-4 py-2 text-sm ${darkMode 
+                    ? "text-white hover:bg-gray-700" 
+                    : "text-gray-700 hover:bg-gray-100"
+                  } cursor-pointer`}
+                >
+                  Időpontjaim
+                </a>
+                <a 
+                  href="/orders" 
+                  className={`block px-4 py-2 text-sm ${darkMode 
+                    ? "text-white hover:bg-gray-700" 
+                    : "text-gray-700 hover:bg-gray-100"
+                  } cursor-pointer`}
+                >
+                  Rendeléseim
+                </a>
+                <button 
+                  onClick={handleUserLogout}
+                  className={`block w-full text-left px-4 py-2 text-sm text-red-600 ${darkMode 
+                    ? "hover:bg-gray-700" 
+                    : "hover:bg-gray-100"
+                  } cursor-pointer rounded-b-lg`}
+                >
+                  Kijelentkezés
+                </button>
+              </>
+            ) : (
+              // Non-logged-in user dropdown
+              <>
+                <button 
+                  onClick={handleLoginClick}
+                  className={`w-full text-left px-4 py-2 text-sm ${darkMode 
+                    ? "text-white hover:bg-gray-700" 
+                    : "text-gray-700 hover:bg-gray-100"
+                  } rounded-t-lg cursor-pointer`}
+                >
+                  Bejelentkezés
+                </button>
+                <button 
+                  onClick={handleRegisterClick}
+                  className={`w-full text-left px-4 py-2 text-sm ${darkMode 
+                    ? "text-white hover:bg-gray-700" 
+                    : "text-gray-700 hover:bg-gray-100"
+                  } rounded-b-lg cursor-pointer`}
+                >
+                  Regisztráció
+                </button>
+              </>
+            )}
           </div>
-
           {/* Dark Mode Toggle */}
           <Button onClick={toggleTheme} className={`${darkMode ? "text-white" : "text-black"}`}>
             {darkMode ? (

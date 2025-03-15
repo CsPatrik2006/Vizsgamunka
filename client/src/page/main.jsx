@@ -13,11 +13,35 @@ export default function TyreShopHomepage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  
+  // Add authentication state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
   };
 
+  // Handle user logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    setIsLoggedIn(false);
+    setUserData(null);
+  };
+
+  // Check if user is logged in on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUserData = localStorage.getItem('userData');
+    
+    if (token && storedUserData) {
+      setIsLoggedIn(true);
+      setUserData(JSON.parse(storedUserData));
+    }
+  }, []);
+
+  // Load theme preference on initial render
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -25,13 +49,19 @@ export default function TyreShopHomepage() {
     }
   }, []);
 
+  // Save theme preference whenever it changes
   useEffect(() => {
-    if (darkMode) {
-      localStorage.setItem("theme", "dark");
-    } else {
-      localStorage.setItem("theme", "light");
-    }
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
+
+  // Handle successful login
+  const handleLoginSuccess = (userData, token) => {
+    setIsLoggedIn(true);
+    setUserData(userData);
+    localStorage.setItem('token', token);
+    localStorage.setItem('userData', JSON.stringify(userData));
+    setIsLoginOpen(false);
+  };
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-[#030507] text-[#f9fafc]" : "bg-[#f8fafc] text-black"} font-inter`}>
@@ -44,6 +74,9 @@ export default function TyreShopHomepage() {
         logo_light={logo_light}
         setIsLoginOpen={setIsLoginOpen}
         setIsRegisterOpen={setIsRegisterOpen}
+        isLoggedIn={isLoggedIn}
+        userData={userData}
+        handleLogout={handleLogout}
       />
       <div className="z-10 sticky top-36.5">
         <ColorStripe />
@@ -75,7 +108,7 @@ export default function TyreShopHomepage() {
           viewport={{ once: true, amount: 0.2 }}
         >
           <Button className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-2xl text-lg shadow-lg">
-            További információ
+            Tovább a webshopra
           </Button>
         </motion.div>
       </section>
@@ -176,9 +209,15 @@ export default function TyreShopHomepage() {
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> | 
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
               </div>
-            </footer>
+                      </footer>
 
-            <LoginForm isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} setIsRegisterOpen={setIsRegisterOpen} darkMode={darkMode}/>
+                      <LoginForm 
+                        isOpen={isLoginOpen} 
+                        onClose={() => setIsLoginOpen(false)} 
+                        setIsRegisterOpen={setIsRegisterOpen} 
+                        darkMode={darkMode}
+                        onLoginSuccess={handleLoginSuccess}
+                      />
             <RegisterForm isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} setIsLoginOpen={setIsLoginOpen} darkMode={darkMode} />
     </div>
   );

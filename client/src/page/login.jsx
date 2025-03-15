@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode }) => {
+const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -32,6 +33,12 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode }) => {
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful', data);
+        
+        // Call the onLoginSuccess function with user data and token
+        if (onLoginSuccess && data.user && data.token) {
+          onLoginSuccess(data.user, data.token);
+        }
+        
         navigate('/');
         onClose();
       } else {
@@ -42,9 +49,7 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode }) => {
       console.error('Error:', error);
       setError('Something went wrong. Please try again.');
     }
-  };
-
-  return (
+  };  return (
     <AnimatePresence>
       {isOpen && (
         <motion.div 

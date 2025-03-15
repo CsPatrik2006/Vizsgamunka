@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
     phone: '',
@@ -17,32 +17,34 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setError('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+      try {
+        const response = await fetch('http://localhost:3000/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
 
-    try {
-      const response = await fetch('http://localhost:3000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        onClose();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Sikertelen Regisztráció!');
+        if (response.ok) {
+          // Close the register modal
+          onClose();
+          
+          // Open the login modal without passing email
+          setIsLoginOpen(true);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.message || 'Sikertelen Regisztráció!');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setError('Valami hiba történt. Kérjük, próbálja újra.');
       }
-    } catch (error) {
-      console.error('Error:', error);
-      setError('Valami hiba történt. Kérjük, próbálja újra.');
-    }
-  };
-
+    };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -76,8 +78,8 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
               <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Felhasználónév</label>
               <input 
                 type="text" 
-                name="username" 
-                value={formData.username} 
+                name="name" 
+                value={formData.name} 
                 onChange={handleChange} 
                 className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
                   ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}

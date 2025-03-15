@@ -44,7 +44,7 @@ exports.authenticateUser = async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       "secretkey",
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
     res.json({ message: "Sikeres bejelentkezés!", token, user });
