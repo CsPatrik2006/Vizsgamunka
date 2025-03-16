@@ -1,0 +1,122 @@
+import React, { useEffect, useState } from "react";
+import { useTheme } from '../../context/ThemeContext';
+import { Button } from "./button";
+
+const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
+  const { darkMode } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [animationClass, setAnimationClass] = useState("translate-x-full");
+
+  // Handle animation mounting
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      // Small delay to ensure DOM is ready before animation starts
+      setTimeout(() => {
+        setAnimationClass("translate-x-0");
+      }, 10);
+    } else {
+      setAnimationClass("translate-x-full");
+      const timer = setTimeout(() => {
+        setMounted(false);
+      }, 300); // Match transition duration
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Don't render anything if not mounted
+  if (!mounted && !isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-black z-30 transition-opacity duration-300 ${
+          isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+
+      {/* Cart Sidebar */}
+      <div 
+        className={`fixed top-0 right-0 h-full w-80 z-40 transform transition-transform duration-300 ease-in-out ${animationClass} 
+        ${darkMode ? "bg-[#252830] text-white" : "bg-white text-gray-800"} shadow-xl`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"} flex justify-between items-center`}>
+            <h2 className="text-xl font-semibold">Kosár</h2>
+            <Button onClick={onClose} className={darkMode ? "text-white" : "text-black"}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </div>
+
+          {/* Cart Items */}
+          <div className="flex-grow overflow-y-auto p-4">
+            {cartItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 text-gray-400 mb-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                </svg>
+                <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-600"}`}>A kosár üres</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className={`p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"} flex justify-between items-center`}
+                  >
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                        {item.product_type === "service" ? "Szolgáltatás" : "Termék"}
+                      </p>
+                      <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                        Mennyiség: {item.quantity}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">{item.price} Ft</p>
+                      <button 
+                        className="text-red-500 text-sm mt-1"
+                        onClick={() => console.log("Remove item", item.id)}
+                      >
+                        Eltávolítás
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className={`p-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+            <div className="flex justify-between mb-4">
+              <span className="font-medium">Összesen:</span>
+              <span className="font-bold">
+                {cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)} Ft
+              </span>
+            </div>
+            <button 
+              className={`w-full py-2 rounded-lg ${
+                cartItems.length === 0 
+                  ? "bg-gray-400 cursor-not-allowed" 
+                  : "bg-[#4e77f4] hover:bg-[#3a5fc7]"
+              } text-white font-medium transition-colors`}
+              disabled={cartItems.length === 0}
+              onClick={() => console.log("Proceed to checkout")}
+            >
+              Tovább a fizetéshez
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default CartSidebar;
