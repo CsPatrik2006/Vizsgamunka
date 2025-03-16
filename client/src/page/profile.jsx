@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import Header from "../components/ui/navbar";
-import ColorStripe from "../components/ui/navbarStripe";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -47,9 +46,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
         userData={userData}
         handleLogout={handleLogout}
       />
-      <div className="z-10 sticky top-36.5">
-        <ColorStripe />
-      </div>
 
       <section className="max-w-4xl mx-auto py-12 px-4">
         <motion.div
