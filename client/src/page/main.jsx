@@ -5,69 +5,37 @@ import ColorStripe from "../components/ui/navbarStripe";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
-import LoginForm from './login';
-import RegisterForm from './register';
+import { useTheme } from '../context/ThemeContext';
 
-export default function TyreShopHomepage() {
-  const [darkMode, setDarkMode] = useState(false);
+export default function TyreShopHomepage({
+  setIsLoginOpen,
+  setIsRegisterOpen,
+  isLoggedIn,
+  userData,
+  handleLogout
+}) {
+  const { darkMode, themeLoaded } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  
-  // Add authentication state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState(null);
-
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-  };
-
-  // Handle user logout
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    setIsLoggedIn(false);
-    setUserData(null);
-  };
-
-  // Check if user is logged in on component mount
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUserData = localStorage.getItem('userData');
-    
-    if (token && storedUserData) {
-      setIsLoggedIn(true);
-      setUserData(JSON.parse(storedUserData));
-    }
-  }, []);
-
-  // Load theme preference on initial render
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setDarkMode(savedTheme === "dark");
-    }
-  }, []);
-
-  // Save theme preference whenever it changes
-  useEffect(() => {
-    localStorage.setItem("theme", darkMode ? "dark" : "light");
-  }, [darkMode]);
 
   // Handle successful login
   const handleLoginSuccess = (userData, token) => {
-    setIsLoggedIn(true);
-    setUserData(userData);
     localStorage.setItem('token', token);
     localStorage.setItem('userData', JSON.stringify(userData));
     setIsLoginOpen(false);
   };
 
+  // Don't render until theme is loaded
+  if (!themeLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
+        <div className="text-xl">Betöltés...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen ${darkMode ? "bg-[#030507] text-[#f9fafc]" : "bg-[#f8fafc] text-black"} font-inter`}>
       <Header
-        darkMode={darkMode}
-        toggleTheme={toggleTheme}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         logo_dark={logo_dark}
@@ -206,19 +174,10 @@ export default function TyreShopHomepage() {
       <footer className={`py-6 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
         <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
         <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> | 
+          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-              </div>
-                      </footer>
-
-                      <LoginForm 
-                        isOpen={isLoginOpen} 
-                        onClose={() => setIsLoginOpen(false)} 
-                        setIsRegisterOpen={setIsRegisterOpen} 
-                        darkMode={darkMode}
-                        onLoginSuccess={handleLoginSuccess}
-                      />
-            <RegisterForm isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} setIsLoginOpen={setIsLoginOpen} darkMode={darkMode} />
+        </div>
+      </footer>
     </div>
   );
 }

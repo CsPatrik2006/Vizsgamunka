@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
-const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
+const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
+  const { darkMode, themeLoaded } = useTheme();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,38 +19,43 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      setError('');
 
-      try {
-        const response = await fetch('http://localhost:3000/api/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-        if (response.ok) {
-          // Close the register modal
-          onClose();
-          
-          // Open the login modal without passing email
-          setIsLoginOpen(true);
-        } else {
-          const errorData = await response.json();
-          setError(errorData.message || 'Sikertelen Regisztráció!');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        setError('Valami hiba történt. Kérjük, próbálja újra.');
+    try {
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        // Close the register modal
+        onClose();
+
+        // Open the login modal without passing email
+        setIsLoginOpen(true);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Sikertelen Regisztráció!');
       }
-    };
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Valami hiba történt. Kérjük, próbálja újra.');
+    }
+  };
+
+  // Don't render until theme is loaded
+  if (!themeLoaded) return null;
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -72,70 +79,70 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
 
             <h2 className={`text-2xl font-bold text-center mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Regisztráció</h2>
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Felhasználónév</label>
-              <input 
-                type="text" 
-                name="name" 
-                value={formData.name} 
-                onChange={handleChange} 
-                className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
-                  ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
-                  ${darkMode 
-                    ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
-                    : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
-                  }`}
-                required 
-              />
-            </div>
               <div>
-                <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Email</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  value={formData.email} 
-                  onChange={handleChange} 
+                <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Felhasználónév</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
-                    ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
-                    ${darkMode 
-                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                  ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                  ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
-                  required 
+                  required
+                />
+              </div>
+              <div>
+                <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
+                    ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                    ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
+                      : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
+                    }`}
+                  required
                 />
               </div>
               <div>
                 <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Telefonszám</label>
-                <input 
-                  type="text" 
-                  name="phone" 
-                  value={formData.phone} 
-                  onChange={handleChange} 
+                <input
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
                   className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
                     ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
-                    ${darkMode 
-                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                    ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
-                  required 
+                  required
                 />
               </div>
               <div className="relative">
                 <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Jelszó</label>
-                <input 
+                <input
                   type={showPassword ? "text" : "password"}
-                  name="password" 
-                  value={formData.password} 
-                  onChange={handleChange} 
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
                     ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
-                    ${darkMode 
-                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                    ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
-                  required 
+                  required
                 />
                 <button
                   type="button"
@@ -157,7 +164,7 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
               <div>
                 <div className="flex items-center justify-center mt-2">
                   <span className={`mr-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Szervíztulajdonos vagyok</span>
-                  <div 
+                  <div
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer
                       ${formData.role === 'garage_owner' ? 'bg-[#4e77f4]' : darkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
                     onClick={() => setFormData({
@@ -191,15 +198,15 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen, darkMode }) => {
                 </Button>
               </div>
             </form>
-            
-            <p className="mt-4 text-center">
+
+            <p className={`mt-4 text-center ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Van már fiókod?{' '}
               <button
                 onClick={() => {
                   onClose();
                   setIsLoginOpen(true);
                 }}
-                className="text-[#88a0e8] underline cursor-pointer"
+                className="text-[#88a0e8] underline cursor-pointer hover:opacity-80"
               >
                 Bejelentkezés
               </button>

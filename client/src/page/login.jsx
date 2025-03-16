@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
-const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSuccess }) => {
+const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
+  const { darkMode, themeLoaded } = useTheme();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  
+
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -33,12 +35,12 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful', data);
-        
+
         // Call the onLoginSuccess function with user data and token
         if (onLoginSuccess && data.user && data.token) {
           onLoginSuccess(data.user, data.token);
         }
-        
+
         navigate('/');
         onClose();
       } else {
@@ -49,10 +51,15 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
       console.error('Error:', error);
       setError('Something went wrong. Please try again.');
     }
-  };  return (
+  };
+
+  // Don't render until theme is loaded
+  if (!themeLoaded) return null;
+
+  return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -69,7 +76,7 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
           >
             <button
               onClick={onClose}
-              className={`absolute top-3 right-3 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-3 py-1 rounded-full text-sm transition cursor-pointer`}
+              className={`absolute top-3 right-3 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-3 py-1 rounded-full text-sm transition cursor-pointer`}
             >
               Mégse
             </button>
@@ -85,9 +92,9 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
                   value={formData.email}
                   onChange={handleChange}
                   className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 
-                    ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
-                    ${darkMode 
-                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                                  ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                                  ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
@@ -101,9 +108,9 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
                   value={formData.password}
                   onChange={handleChange}
                   className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 
-                    ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
-                    ${darkMode 
-                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]' 
+                                  ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                                  ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
@@ -124,7 +131,7 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
                   )}
                 </button>
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-12">
                 <Button
                   type="submit"
                   className="px-8"
@@ -134,14 +141,14 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, darkMode, onLoginSucces
               </div>
             </form>
 
-            <p className="mt-4 text-center">
+            <p className={`mt-4 text-center ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Még nincs fiókod?{' '}
               <button
                 onClick={() => {
                   onClose();
                   setIsRegisterOpen(true);
                 }}
-                className="text-[#88a0e8] underline cursor-pointer"
+                className="text-[#88a0e8] underline cursor-pointer hover:opacity-80"
               >
                 Regisztrálj Itt!
               </button>

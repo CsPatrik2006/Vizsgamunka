@@ -6,78 +6,39 @@ import ColorStripe from "../components/ui/navbarStripe";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import { useTheme } from '../context/ThemeContext';
 
-const ProfilePage = () => {
-  const [darkMode, setDarkMode] = useState(false);
+const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
+  const { darkMode, themeLoaded } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Toggle theme function
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-  };
-
-  // Handle user logout
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    setIsLoggedIn(false);
-    setUserData(null);
-    navigate('/');
-  };
 
   // Check if user is logged in on component mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUserData = localStorage.getItem('userData');
-    
+
     if (token && storedUserData) {
-      setIsLoggedIn(true);
-      setUserData(JSON.parse(storedUserData));
       setLoading(false);
     } else {
       // Redirect to home if not logged in
       navigate('/');
     }
   }, [navigate]);
-    // Add this state to track if theme is loaded
-    const [themeLoaded, setThemeLoaded] = useState(false);
 
-    // Load theme preference
-    useEffect(() => {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme) {
-        setDarkMode(savedTheme === "dark");
-      }
-      setThemeLoaded(true);
-    }, []);
-
-    // Save theme preference whenever it changes
-    useEffect(() => {
-      localStorage.setItem("theme", darkMode ? "dark" : "light");
-    }, [darkMode]);
-
-    // Only render the UI once theme is loaded
-    if (!themeLoaded) {
-      return null; // Or a loading indicator
-    }
-
-    if (loading) {
-      return (
-        <div className={`min-h-screen flex items-center justify-center ${darkMode ? "bg-[#030507] text-[#f9fafc]" : "bg-[#f8fafc] text-black"}`}>
-          <div className="text-xl">Betöltés...</div>
-        </div>
-      );
-    }
-
+  // Wait for both theme and user data to load
+  if (!themeLoaded || loading) {
     return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
+        <div className="text-xl">Betöltés...</div>
+      </div>
+    );
+  }
+
+  return (
     <div className={`min-h-screen ${darkMode ? "bg-[#030507] text-[#f9fafc]" : "bg-[#f8fafc] text-black"} font-inter`}>
       <Header
-        darkMode={darkMode}
-        toggleTheme={toggleTheme}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         logo_dark={logo_dark}
@@ -176,7 +137,7 @@ const ProfilePage = () => {
                   </Button>
                 </div>
               </div>
-              
+
               <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-[#f8fafc]"}`}>
                 <div className="flex justify-between items-center">
                   <div>
@@ -196,7 +157,7 @@ const ProfilePage = () => {
       <footer className={`py-6 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
         <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
         <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> | 
+          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
         </div>
       </footer>
