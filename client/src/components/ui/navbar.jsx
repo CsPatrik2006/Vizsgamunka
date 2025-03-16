@@ -3,6 +3,7 @@ import { Button } from "./button";
 import { Link } from "react-router-dom";
 import { useTheme } from '../../context/ThemeContext';
 import CartSidebar from "./CartSidebar"; // Import the new component
+import ColorStripe from "./navbarStripe";
 
 const Header = ({
   searchQuery,
@@ -68,9 +69,9 @@ const Header = ({
   }
 
   return (
-    <>
+    <div className="sticky top-0 z-20">
       <header
-        className={`px-6 py-4 ${darkMode ? "bg-[#030507] text-white" : "bg-[#f8fafc] text-black"} shadow-md sticky top-0 z-20 overflow-visible`}
+        className={`px-6 py-4 ${darkMode ? "bg-[#030507] text-white" : "bg-[#f8fafc] text-black"} shadow-md overflow-visible`}
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Logo */}
@@ -237,14 +238,14 @@ const Header = ({
           </div>
         </div>
       </header>
-
+      <ColorStripe />
       {/* Cart Sidebar */}
       <CartSidebar 
         isOpen={cartOpen} 
         onClose={() => setCartOpen(false)} 
         cartItems={cartItems} 
       />
-    </>
+    </div>
   );
 };
 

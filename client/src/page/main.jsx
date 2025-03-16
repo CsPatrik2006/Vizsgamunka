@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import Header from "../components/ui/navbar";
-import ColorStripe from "../components/ui/navbarStripe";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -46,9 +45,6 @@ export default function TyreShopHomepage({
         userData={userData}
         handleLogout={handleLogout}
       />
-      <div className="z-10 sticky top-36.5">
-        <ColorStripe />
-      </div>
 
       <section className="flex flex-col items-center justify-center text-center py-20 px-5">
         <motion.h1
