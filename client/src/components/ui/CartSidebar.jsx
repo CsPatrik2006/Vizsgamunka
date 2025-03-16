@@ -39,7 +39,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
 
       {/* Cart Sidebar */}
       <div 
-        className={`fixed top-0 right-0 h-full w-80 z-40 transform transition-transform duration-300 ease-in-out ${animationClass} 
+        className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out ${animationClass} 
         ${darkMode ? "bg-[#252830] text-white" : "bg-white text-gray-800"} shadow-xl`}
       >
         <div className="flex flex-col h-full">
