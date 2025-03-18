@@ -31,7 +31,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-black z-30 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}

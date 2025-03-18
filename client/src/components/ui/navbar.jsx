@@ -83,15 +83,14 @@ const Header = ({
             />
           </Link>
 
-          {/* Search Bar */}
           <div className="flex-grow mx-6">
-            <div className="flex items-center bg-[#252830] dark:bg-[#252830] rounded-full overflow-hidden">
+            <div className={`flex items-center ${darkMode ? "bg-[#252830]" : "bg-gray-200"} rounded-full overflow-hidden`}>
               <input
                 type="text"
                 placeholder="Szervízek böngészése..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full p-2 rounded-l-full text-black dark:text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-[#4e77f4]"
+                className={`w-full p-2 rounded-l-full ${darkMode ? "text-white" : "text-black"} bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-[#4e77f4] ${darkMode ? "placeholder-gray-400" : "placeholder-gray-500"}`}
               />
               <button
                 className="p-2 bg-[#5671c2] text-white rounded-r-full cursor-pointer"
@@ -103,6 +102,8 @@ const Header = ({
               </button>
             </div>
           </div>
+
+
 
           {/* Icons (User, Cart, Dark Mode) - Swapped user and cart positions */}
           <div className="flex items-center space-x-6 relative">
@@ -128,7 +129,7 @@ const Header = ({
                 ${darkMode
                     ? "bg-[#252830] border-[#252830] text-white"
                     : "bg-white border-gray-200 text-gray-800"
-                  } z-50 transition-all duration-300 ease-in-out origin-top
+                  } z-30 transition-all duration-300 ease-in-out origin-top
                 ${isLoggedIn && userData ? "w-48" : "w-32"}
                 ${dropdownOpen
                     ? 'opacity-100 scale-y-100 translate-y-0'
@@ -210,8 +211,8 @@ const Header = ({
             </div>
 
             {/* Cart Button - Now second */}
-            <Button 
-              onClick={handleCartToggle} 
+            <Button
+              onClick={handleCartToggle}
               className={`${darkMode ? "text-white" : "text-black"} relative`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -240,10 +241,10 @@ const Header = ({
       </header>
       <ColorStripe />
       {/* Cart Sidebar */}
-      <CartSidebar 
-        isOpen={cartOpen} 
-        onClose={() => setCartOpen(false)} 
-        cartItems={cartItems} 
+      <CartSidebar
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+        cartItems={cartItems}
       />
     </div>
   );

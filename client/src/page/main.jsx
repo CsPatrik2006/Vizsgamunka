@@ -78,7 +78,7 @@ export default function TyreShopHomepage({
       </section>
 
       <section className="py-16 px-5">
-        <h2 className="text-3xl font-semibold text-center mb-8">Kiemelet ajánlatok</h2>
+        <h2 className="text-3xl font-semibold text-center mb-8">Kiemelt ajánlatok</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {[1, 2, 3].map((_, index) => (
             <motion.div
