@@ -5,6 +5,7 @@ import RegisterForm from "./page/register";
 import LoginForm from "./page/login";
 import TyreShopHomepage from "./page/main";
 import ProfilePage from "./page/profile";
+import ShopPage from "./page/shop"; // Import the new shop page
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -73,6 +74,20 @@ function App() {
             path="/"
             element={
               <TyreShopHomepage
+                setIsLoginOpen={setIsLoginOpen}
+                setIsRegisterOpen={setIsRegisterOpen}
+                isLoggedIn={isLoggedIn}
+                userData={userData}
+                handleLogout={handleLogout}
+              />
+            }
+          />
+
+          {/* New Shop Route */}
+          <Route
+            path="/shop"
+            element={
+              <ShopPage
                 setIsLoginOpen={setIsLoginOpen}
                 setIsRegisterOpen={setIsRegisterOpen}
                 isLoggedIn={isLoggedIn}

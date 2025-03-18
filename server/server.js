@@ -15,6 +15,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/images', express.static('images'));
+
+
 app.use("/inventory", inventoryRoutes);
 app.use("/users", usersRoutes);
 app.use("/garages", garagesRoutes);
@@ -25,7 +28,7 @@ app.use("/orders", ordersRoutes);
 app.use("/cart", cartRoutes);
 app.use("/cartItems", cartItemsRoutes);
 app.use("/orderItems", orderItemsRoutes);
-//app.use("/")
+
 
 
 
