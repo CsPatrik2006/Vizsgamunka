@@ -5,13 +5,20 @@ import RegisterForm from "./page/register";
 import LoginForm from "./page/login";
 import TyreShopHomepage from "./page/main";
 import ProfilePage from "./page/profile";
-import ShopPage from "./page/shop"; // Import the new shop page
-
+import ShopPage from "./page/shop";
+import MyGaragesPage from "./page/MyGaragesPage";
+import GarageInventoryPage from "./page/GarageInventoryPage";
 // Protected route component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requiredRole }) => {
   const isAuthenticated = localStorage.getItem('token') !== null;
-
+  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  
   if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  // If a specific role is required, check if user has that role
+  if (requiredRole && userData.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }
 
@@ -83,7 +90,7 @@ function App() {
             }
           />
 
-          {/* New Shop Route */}
+          {/* Shop Route */}
           <Route
             path="/shop"
             element={
@@ -111,7 +118,34 @@ function App() {
             }
           />
 
-          {/* Add other protected routes as needed */}
+          {/* Garage Owner Routes */}
+          <Route
+            path="/my-garages"
+            element={
+              <ProtectedRoute requiredRole="garage_owner">
+                <MyGaragesPage
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/my-garages/:garageId/inventory"
+            element={
+              <ProtectedRoute requiredRole="garage_owner">
+                <GarageInventoryPage
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Other protected routes */}
           <Route
             path="/appointments"
             element={
