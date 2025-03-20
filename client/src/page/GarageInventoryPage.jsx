@@ -20,10 +20,69 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     item_name: "",
     vehicle_type: "car",
     quantity: 0,
-    unit_price: "",
-    cover_img: ""
+    unit_price: ""
   });
+
+  // Add a new state for the file
+  const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Add the getImageUrl helper function
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    return `http://localhost:3000${imagePath}`;
+  };
+
+  // Add drag and drop event handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      // Check if the file is an image
+      if (file.type.match('image.*')) {
+        setSelectedFile(file);
+
+        // Create a synthetic event object to reuse the existing handleInputChange
+        const syntheticEvent = {
+          target: {
+            name: 'image',
+            type: 'file',
+            files: [file]
+          }
+        };
+        handleInputChange(syntheticEvent);
+      }
+    }
+  };
 
   useEffect(() => {
     // Check if user is logged in and is a garage owner
@@ -72,20 +131,24 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       }
 
       // Fetch inventory items for this garage
+      console.log("Requesting inventory for garage_id:", garageId);
+
       const inventoryResponse = await axios.get(`http://localhost:3000/inventory?garage_id=${garageId}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
       });
 
-      console.log("Inventory response:", inventoryResponse.data);
+      console.log("Inventory API request URL:", `http://localhost:3000/inventory?garage_id=${garageId}`);
+      console.log("Inventory response status:", inventoryResponse.status);
+      console.log("Inventory response data:", inventoryResponse.data);
 
-      // Handle different response formats for inventory
-      const inventoryData = inventoryResponse.data && typeof inventoryResponse.data === 'object' && 'data' in inventoryResponse.data
-        ? inventoryResponse.data.data
-        : Array.isArray(inventoryResponse.data)
-          ? inventoryResponse.data
-          : [];
+      // Filter the inventory items to ensure they match the current garage
+      const inventoryData = Array.isArray(inventoryResponse.data)
+        ? inventoryResponse.data.filter(item => item.garage_id === parseInt(garageId, 10))
+        : [];
+
+      console.log("Filtered inventory data:", inventoryData);
 
       setInventory(inventoryData);
       setLoading(false);
@@ -97,11 +160,16 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewItem({
-      ...newItem,
-      [name]: name === "unit_price" || name === "quantity" ? parseFloat(value) : value
-    });
+    const { name, value, type } = e.target;
+
+    if (type === 'file') {
+      setSelectedFile(e.target.files[0]);
+    } else {
+      setNewItem({
+        ...newItem,
+        [name]: name === "unit_price" || name === "quantity" ? parseFloat(value) : value
+      });
+    }
   };
 
   const handleAddItem = async (e) => {
@@ -109,27 +177,35 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     try {
       const token = localStorage.getItem("token");
 
+      const formData = new FormData();
+      formData.append('garage_id', parseInt(garageId));
+      formData.append('item_name', newItem.item_name);
+      formData.append('vehicle_type', newItem.vehicle_type);
+      formData.append('quantity', newItem.quantity);
+      formData.append('unit_price', newItem.unit_price);
+
+      if (selectedFile) {
+        formData.append('image', selectedFile);
+      }
+
       await axios.post(
         'http://localhost:3000/inventory',
-        {
-          ...newItem,
-          garage_id: parseInt(garageId)
-        },
+        formData,
         {
           headers: {
-            ...(token && { Authorization: `Bearer ${token}` })
+            ...(token && { Authorization: `Bearer ${token}` }),
+            'Content-Type': 'multipart/form-data'
           }
         }
       );
 
-      // Reset form and fetch updated inventory
       setNewItem({
         item_name: "",
         vehicle_type: "car",
         quantity: 0,
         unit_price: "",
-        cover_img: ""
       });
+      setSelectedFile(null);
       setShowAddItemForm(false);
       fetchGarageAndInventory();
     } catch (err) {
@@ -152,7 +228,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
           }
         );
 
-        // Refresh inventory list
         fetchGarageAndInventory();
       } catch (err) {
         setError("Hiba történt a termék törlése közben: " + (err.response?.data?.message || err.message));
@@ -299,15 +374,87 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block mb-2 text-sm font-medium">Kép URL</label>
-                      <input
-                        type="text"
-                        name="cover_img"
-                        value={newItem.cover_img}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
-                        placeholder="https://example.com/image.jpg"
-                      />
+                      <label className="block mb-2 text-sm font-medium">Termék képe</label>
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-4 transition-all 
+                          ${isDragging ? "border-[#4e77f4] bg-blue-50" : ""} 
+                          ${darkMode
+                            ? `${isDragging ? "bg-[#1e2129] border-[#4e77f4]" : "border-[#3a3f4b] bg-[#252830]"}`
+                            : `${isDragging ? "bg-blue-50 border-[#4e77f4]" : "border-gray-300 bg-gray-50"}`} 
+                          hover:border-[#4e77f4]`}
+                        onDragEnter={handleDragEnter}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          {selectedFile ? (
+                            <div className="w-full">
+                              <div className="flex items-center justify-center mb-4">
+                                <img
+                                  src={URL.createObjectURL(selectedFile)}
+                                  alt="Preview"
+                                  className="h-40 object-contain rounded-md"
+                                />
+                              </div>
+                              <p className="text-sm text-center mb-2 text-green-500">
+                                <span className="font-medium">{selectedFile.name}</span> ({(selectedFile.size / 1024).toFixed(1)} KB)
+                              </p>
+                              <div className="flex justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedFile(null)}
+                                  className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                >
+                                  Kép eltávolítása
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <svg
+                                className={`w-10 h-10 mb-3 ${isDragging ? "text-[#4e77f4]" : darkMode ? "text-gray-400" : "text-gray-500"}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                ></path>
+                              </svg>
+                              <p className={`mb-2 text-sm ${isDragging ? "text-[#4e77f4] font-medium" : darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                                {isDragging
+                                  ? <span className="font-semibold">Engedd el a fájlt a feltöltéshez</span>
+                                  : <span><span className="font-semibold">Kattints a feltöltéshez</span> vagy húzd ide a fájlt</span>
+                                }
+                              </p>
+                              <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-500"}`}>
+                                PNG, JPG vagy WEBP (Max. 5MB)
+                              </p>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            name="image"
+                            id="file-upload"
+                            className="hidden"
+                            onChange={handleInputChange}
+                            accept="image/*"
+                          />
+                          {!selectedFile && (
+                            <label
+                              htmlFor="file-upload"
+                              className="mt-4 px-4 py-2 bg-[#4e77f4] text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-[#5570c2] transition-colors"
+                            >
+                              Kép kiválasztása
+                            </label>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
@@ -387,11 +534,11 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                                 <div className="flex-shrink-0 h-10 w-10 mr-4">
                                   <img
                                     className="h-10 w-10 rounded-full object-cover border-2 border-[#4e77f4]"
-                                    src={item.cover_img}
+                                    src={getImageUrl(item.cover_img)}
                                     alt={item.item_name}
                                     onError={(e) => {
                                       e.target.onerror = null;
-                                      e.target.src = "https://via.placeholder.com/40?text=No+Image";
+                                      e.target.src = "https://placehold.co/40x40/gray/white?text=No+Image";
                                     }}
                                   />
                                 </div>
@@ -403,10 +550,10 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.vehicle_type === 'car'
-                                ? 'bg-blue-100 text-blue-800'
-                                : item.vehicle_type === 'motorcycle'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-blue-100 text-blue-800'
+                              : item.vehicle_type === 'motorcycle'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
                               }`}>
                               {getVehicleTypeLabel(item.vehicle_type)}
                             </span>

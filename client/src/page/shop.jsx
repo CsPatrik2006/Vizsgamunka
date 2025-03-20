@@ -6,45 +6,54 @@ import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
+  export default function ShopPage({
+    setIsLoginOpen,
+    setIsRegisterOpen,
+    isLoggedIn,
+    userData,
+    handleLogout
+  }) {
+    const { darkMode, themeLoaded } = useTheme();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [garages, setGarages] = useState([]);
+    const [inventoryItems, setInventoryItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedGarage, setSelectedGarage] = useState(null);
+    const [filteredItems, setFilteredItems] = useState([]);
 
-export default function ShopPage({
-  setIsLoginOpen,
-  setIsRegisterOpen,
-  isLoggedIn,
-  userData,
-  handleLogout
-}) {
-  const { darkMode, themeLoaded } = useTheme();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [garages, setGarages] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedGarage, setSelectedGarage] = useState(null);
-  const [filteredItems, setFilteredItems] = useState([]);
-
-  // Fetch garages and inventory items
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch garages
-        const garagesResponse = await axios.get('http://localhost:3000/garages');
-        setGarages(garagesResponse.data);
-        
-        // Fetch inventory items
-        const inventoryResponse = await axios.get('http://localhost:3000/inventory');
-        setInventoryItems(inventoryResponse.data);
-        setFilteredItems(inventoryResponse.data); // Initially show all items
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
+    // Add the getImageUrl helper function here
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return null;
+    
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
       }
+    
+      return `http://localhost:3000${imagePath}`;
     };
 
-    fetchData();
-  }, []);
+    // Fetch garages and inventory items
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          // Fetch garages
+          const garagesResponse = await axios.get('http://localhost:3000/garages');
+          setGarages(garagesResponse.data);
+        
+          // Fetch inventory items
+          const inventoryResponse = await axios.get('http://localhost:3000/inventory');
+          setInventoryItems(inventoryResponse.data);
+          setFilteredItems(inventoryResponse.data); // Initially show all items
+        
+          setLoading(false);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          setLoading(false);
+        }
+      };
 
+      fetchData();
+    }, []);
   // Filter inventory items by garage
   const filterByGarage = (garageId) => {
     setSelectedGarage(garageId);
@@ -144,9 +153,13 @@ export default function ShopPage({
                 <div className="h-48 bg-gray-700 relative overflow-hidden">
                   {item.cover_img ? (
                     <img 
-                      src={item.cover_img} 
+                      src={getImageUrl(item.cover_img)} 
                       alt={item.item_name} 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.src = "https://placehold.co/400x300/gray/white?text=No+Image"
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white">

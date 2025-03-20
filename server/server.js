@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require('cors');
+const path = require('path');
 const sequelize = require("./config/config");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const usersRoutes = require("./routes/usersRoutes");
@@ -16,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/images', express.static('images'));
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/inventory", inventoryRoutes);
 app.use("/users", usersRoutes);
