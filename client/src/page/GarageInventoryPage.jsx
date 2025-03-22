@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "../context/ThemeContext";
 import Header from "../components/ui/navbar";
+import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -238,7 +239,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
 
   const getVehicleTypeLabel = (type) => {
     switch (type) {
-      case 'car': return 'Autó';
+      case 'car': return 'Személygépkocsi';
       case 'motorcycle': return 'Motor';
       case 'truck': return 'Teherautó';
       default: return type;
@@ -283,7 +284,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate("/my-garages")}
-                  className="text-[#4e77f4] hover:text-[#5570c2] mb-2 flex items-center font-medium cursor-pointer"
+                  className="text-[#88a0e8] mb-2 flex items-center font-medium cursor-pointer"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -292,14 +293,9 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                 </motion.button>
                 <h1 className="text-3xl font-bold">{garage.name} - Készlet</h1>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowAddItemForm(!showAddItemForm)}
-                className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-4 py-2 rounded-lg font-medium cursor-pointer"
-              >
+              <Button onClick={() => setShowAddItemForm(!showAddItemForm)}>
                 {showAddItemForm ? "Mégse" : "Új termék hozzáadása"}
-              </motion.button>
+              </Button>
             </div>
 
             {error && (
@@ -343,7 +339,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
                         required
                       >
-                        <option value="car">Autó</option>
+                        <option value="car">Személygépkocsi</option>
                         <option value="motorcycle">Motor</option>
                         <option value="truck">Teherautó</option>
                       </select>
@@ -458,14 +454,9 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="submit"
-                      className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-lg font-medium cursor-pointer"
-                    >
+                    <Button type="submit">
                       Termék mentése
-                    </motion.button>
+                    </Button>
                   </div>
                 </form>
               </motion.div>
@@ -481,15 +472,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto mb-4 text-[#88a0e8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <p className="text-xl mb-6 text-[#88a0e8]">Még nincs termék a készletben.</p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowAddItemForm(true)}
-                  className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-lg font-medium cursor-pointer"
-                >
-                  Új termék hozzáadása
-                </motion.button>
+                <p className="text-xl text-[#88a0e8]">Még nincs termék a készletben.</p>
               </motion.div>
             ) : (
               <motion.div
@@ -567,22 +550,18 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                             {new Intl.NumberFormat('hu-HU', { style: 'currency', currency: 'HUF' }).format(item.unit_price)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                            <button
                               onClick={() => navigate(`/my-garages/${garageId}/inventory/${item.id}/edit`)}
-                              className="text-[#4e77f4] hover:text-[#5570c2] font-medium mr-4"
+                              className="text-[#4e77f4] hover:text-[#5570c2] font-medium mr-4 cursor-pointer"
                             >
                               Szerkesztés
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                            </button>
+                            <button
                               onClick={() => handleDeleteItem(item.id)}
-                              className="text-red-500 hover:text-red-700 font-medium"
+                              className="text-red-500 hover:text-red-700 font-medium cursor-pointer"
                             >
                               Törlés
-                            </motion.button>
+                            </button>
                           </td>
                         </motion.tr>
                       ))}

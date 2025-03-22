@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "../context/ThemeContext";
 import Header from "../components/ui/navbar";
+import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -162,16 +163,9 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
         >
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Garázsaim</h1>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowAddGarageForm(!showAddGarageForm)}
-              className={`px-4 py-2 rounded-lg cursor-pointer ${darkMode
-                ? "bg-[#4e77f4] hover:bg-[#5570c2] text-white"
-                : "bg-[#4e77f4] hover:bg-[#5570c2] text-white"}`}
-            >
+            <Button onClick={() => setShowAddGarageForm(!showAddGarageForm)}>
               {showAddGarageForm ? "Mégse" : "Új garázs hozzáadása"}
-            </motion.button>
+            </Button>
           </div>
 
           {error && (
@@ -251,14 +245,9 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="submit"
-                    className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-lg font-medium cursor-pointer"
-                  >
+                  <Button type="submit">
                     Garázs mentése
-                  </motion.button>
+                  </Button>
                 </div>
               </form>
             </motion.div>
@@ -278,15 +267,7 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto mb-4 text-[#88a0e8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
-              <p className="text-xl mb-6 text-[#88a0e8]">Még nincs garázsod.</p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowAddGarageForm(true)}
-                className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-lg font-medium"
-              >
-                Új garázs hozzáadása
-              </motion.button>
+              <p className="text-xl text-[#88a0e8]">Még nincs garázsod.</p>
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -312,7 +293,7 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                           {garage.contact_info}
                         </div>
                       )}
-                      {garage.opening_hours && (
+                                            {garage.opening_hours && (
                         <div className="flex items-center text-sm">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-[#88a0e8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -325,22 +306,12 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <p className="mb-6 text-sm line-clamp-3">{garage.description || "Nincs leírás"}</p>
 
                     <div className="flex justify-between">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigateToInventory(garage.id)}
-                        className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                      >
+                      <Button onClick={() => navigateToInventory(garage.id)}>
                         Készlet kezelése
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate(`/my-garages/${garage.id}/edit`)}
-                        className="bg-[#252830] hover:bg-[#3a3f4b] text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                      >
+                      </Button>
+                      <Button onClick={() => navigate(`/my-garages/${garage.id}/edit`)}>
                         Szerkesztés
-                      </motion.button>
+                      </Button>
                     </div>
                   </div>
                 </motion.div>

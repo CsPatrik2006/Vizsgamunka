@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from '../../context/ThemeContext';
+import { useCart } from '../../context/CartContext';
 import { Button } from "./button";
 
 const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
   const { darkMode } = useTheme();
+  const { removeFromCart } = useCart();
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [animationClass, setAnimationClass] = useState("translate-x-full");
 
@@ -24,21 +28,31 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
     }
   }, [isOpen]);
 
+  // Handle item removal
+  const handleRemoveItem = (itemId) => {
+    removeFromCart(itemId);
+  };
+
+  // Handle checkout
+  const handleCheckout = () => {
+    onClose(); // Close the cart sidebar
+    navigate('/checkout'); // Navigate to the checkout page
+  };
+
   // Don't render anything if not mounted
   if (!mounted && !isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
-          isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
-        }`}
+      <div
+        className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       {/* Cart Sidebar */}
-      <div 
+      <div
         className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out ${animationClass} 
         ${darkMode ? "bg-[#252830] text-white" : "bg-white text-gray-800"} shadow-xl`}
       >
@@ -65,8 +79,8 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
             ) : (
               <div className="space-y-4">
                 {cartItems.map((item) => (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     className={`p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"} flex justify-between items-center`}
                   >
                     <div>
@@ -80,9 +94,9 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
                     </div>
                     <div className="text-right">
                       <p className="font-bold">{item.price} Ft</p>
-                      <button 
-                        className="text-red-500 text-sm mt-1"
-                        onClick={() => console.log("Remove item", item.id)}
+                      <button
+                        className="text-red-500 text-sm mt-1 cursor-pointer"
+                        onClick={() => handleRemoveItem(item.id)}
                       >
                         Eltávolítás
                       </button>
@@ -101,14 +115,13 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
                 {cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)} Ft
               </span>
             </div>
-            <button 
-              className={`w-full py-2 rounded-lg ${
-                cartItems.length === 0 
-                  ? "bg-gray-400 cursor-not-allowed" 
+            <button
+              className={`w-full py-2 rounded-lg ${cartItems.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#4e77f4] hover:bg-[#3a5fc7]"
-              } text-white font-medium transition-colors`}
+                } text-white font-medium transition-colors cursor-pointer`}
               disabled={cartItems.length === 0}
-              onClick={() => console.log("Proceed to checkout")}
+              onClick={handleCheckout}
             >
               Tovább a fizetéshez
             </button>

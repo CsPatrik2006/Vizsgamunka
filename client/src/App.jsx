@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { ThemeProvider } from './context/ThemeContext';
+import { CartProvider } from './context/CartContext';
 import RegisterForm from "./page/register";
 import LoginForm from "./page/login";
 import TyreShopHomepage from "./page/main";
@@ -8,6 +9,9 @@ import ProfilePage from "./page/profile";
 import ShopPage from "./page/shop";
 import MyGaragesPage from "./page/MyGaragesPage";
 import GarageInventoryPage from "./page/GarageInventoryPage";
+import Checkout from "./page/Checkout";
+import CheckoutSuccess from "./page/CheckoutSuccess";
+
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
   const isAuthenticated = localStorage.getItem('token') !== null;
@@ -58,6 +62,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <CartProvider>
       <Router>
         {isLoginOpen && (
           <LoginForm
@@ -101,6 +106,33 @@ function App() {
                 userData={userData}
                 handleLogout={handleLogout}
               />
+            }
+          />
+
+          {/* Checkout Routes */}
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/checkout/success"
+            element={
+              <ProtectedRoute>
+                <CheckoutSuccess
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              </ProtectedRoute>
             }
           />
 
@@ -164,6 +196,7 @@ function App() {
           />
         </Routes>
       </Router>
+      </CartProvider>
     </ThemeProvider>
   );
 }
