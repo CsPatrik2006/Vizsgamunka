@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import Header from "../components/ui/navbar";
 import { motion } from "framer-motion";
@@ -16,6 +17,7 @@ export default function ShopPage({
   userData,
   handleLogout
 }) {
+  const navigate = useNavigate();
   const { darkMode, themeLoaded } = useTheme();
   const { addToCart, cartItems, initializeCart } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
@@ -179,6 +181,7 @@ return (
           // Display inventory items
           filteredItems.map(item => (
             <motion.div
+              onClick={() => navigate(`/item/${item.id}`)}
               key={item.id}
               className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"} hover:shadow-lg transition-shadow cursor-pointer`}
               initial={{ opacity: 0, y: 20 }}

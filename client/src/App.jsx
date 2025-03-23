@@ -7,6 +7,7 @@ import LoginForm from "./page/login";
 import TyreShopHomepage from "./page/main";
 import ProfilePage from "./page/profile";
 import ShopPage from "./page/shop";
+import ItemDetailsPage from "./page/itemDetails";
 import MyGaragesPage from "./page/MyGaragesPage";
 import GarageInventoryPage from "./page/GarageInventoryPage";
 import Checkout from "./page/Checkout";
@@ -16,11 +17,11 @@ import CheckoutSuccess from "./page/CheckoutSuccess";
 const ProtectedRoute = ({ children, requiredRole }) => {
   const isAuthenticated = localStorage.getItem('token') !== null;
   const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  
+
   // If a specific role is required, check if user has that role
   if (requiredRole && userData.role !== requiredRole) {
     return <Navigate to="/" replace />;
@@ -63,142 +64,156 @@ function App() {
   return (
     <ThemeProvider>
       <CartProvider>
-      <Router>
-        {isLoginOpen && (
-          <LoginForm
-            isOpen={isLoginOpen}
-            onClose={() => setIsLoginOpen(false)}
-            setIsRegisterOpen={setIsRegisterOpen}
-            onLoginSuccess={handleLoginSuccess}
-          />
-        )}
+        <Router>
+          {isLoginOpen && (
+            <LoginForm
+              isOpen={isLoginOpen}
+              onClose={() => setIsLoginOpen(false)}
+              setIsRegisterOpen={setIsRegisterOpen}
+              onLoginSuccess={handleLoginSuccess}
+            />
+          )}
 
-        {isRegisterOpen && (
-          <RegisterForm
-            isOpen={isRegisterOpen}
-            onClose={() => setIsRegisterOpen(false)}
-            setIsLoginOpen={setIsLoginOpen}
-          />
-        )}
+          {isRegisterOpen && (
+            <RegisterForm
+              isOpen={isRegisterOpen}
+              onClose={() => setIsRegisterOpen(false)}
+              setIsLoginOpen={setIsLoginOpen}
+            />
+          )}
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <TyreShopHomepage
-                setIsLoginOpen={setIsLoginOpen}
-                setIsRegisterOpen={setIsRegisterOpen}
-                isLoggedIn={isLoggedIn}
-                userData={userData}
-                handleLogout={handleLogout}
-              />
-            }
-          />
-
-          {/* Shop Route */}
-          <Route
-            path="/shop"
-            element={
-              <ShopPage
-                setIsLoginOpen={setIsLoginOpen}
-                setIsRegisterOpen={setIsRegisterOpen}
-                isLoggedIn={isLoggedIn}
-                userData={userData}
-                handleLogout={handleLogout}
-              />
-            }
-          />
-
-          {/* Checkout Routes */}
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <Checkout
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <TyreShopHomepage
+                  setIsLoginOpen={setIsLoginOpen}
+                  setIsRegisterOpen={setIsRegisterOpen}
                   isLoggedIn={isLoggedIn}
                   userData={userData}
                   handleLogout={handleLogout}
                 />
-              </ProtectedRoute>
-            }
-          />
-          
-          <Route
-            path="/checkout/success"
-            element={
-              <ProtectedRoute>
-                <CheckoutSuccess
-                  isLoggedIn={isLoggedIn}
-                  userData={userData}
-                  handleLogout={handleLogout}
-                />
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
 
-          {/* Protected Profile Route */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage
+            {/* Shop Route */}
+            <Route
+              path="/shop"
+              element={
+                <ShopPage
+                  setIsLoginOpen={setIsLoginOpen}
+                  setIsRegisterOpen={setIsRegisterOpen}
                   isLoggedIn={isLoggedIn}
                   userData={userData}
                   handleLogout={handleLogout}
                 />
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
 
-          {/* Garage Owner Routes */}
-          <Route
-            path="/my-garages"
-            element={
-              <ProtectedRoute requiredRole="garage_owner">
-                <MyGaragesPage
+            <Route
+              path="/item/:itemId"
+              element={
+                <ItemDetailsPage
+                  setIsLoginOpen={setIsLoginOpen}
+                  setIsRegisterOpen={setIsRegisterOpen}
                   isLoggedIn={isLoggedIn}
                   userData={userData}
                   handleLogout={handleLogout}
                 />
-              </ProtectedRoute>
-            }
-          />
-          
-          <Route
-            path="/my-garages/:garageId/inventory"
-            element={
-              <ProtectedRoute requiredRole="garage_owner">
-                <GarageInventoryPage
-                  isLoggedIn={isLoggedIn}
-                  userData={userData}
-                  handleLogout={handleLogout}
-                />
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
 
-          {/* Other protected routes */}
-          <Route
-            path="/appointments"
-            element={
-              <ProtectedRoute>
-                <div>Appointments Page (Coming Soon)</div>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <div>Orders Page (Coming Soon)</div>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Router>
+            {/* Checkout Routes */}
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <Checkout
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/checkout/success"
+              element={
+                <ProtectedRoute>
+                  <CheckoutSuccess
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Profile Route */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Garage Owner Routes */}
+            <Route
+              path="/my-garages"
+              element={
+                <ProtectedRoute requiredRole="garage_owner">
+                  <MyGaragesPage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/my-garages/:garageId/inventory"
+              element={
+                <ProtectedRoute requiredRole="garage_owner">
+                  <GarageInventoryPage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Other protected routes */}
+            <Route
+              path="/appointments"
+              element={
+                <ProtectedRoute>
+                  <div>Appointments Page (Coming Soon)</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <div>Orders Page (Coming Soon)</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
       </CartProvider>
     </ThemeProvider>
   );
 }
+
 
 export default App;

@@ -36,6 +36,11 @@ const Inventory = sequelize.define(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Detailed description of the inventory item",
+    },
     cover_img: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -47,5 +52,9 @@ const Inventory = sequelize.define(
     timestamps: true,
   }
 );
+
+// Define associations
+Inventory.belongsTo(Garages, { foreignKey: 'garage_id' });
+Garages.hasMany(Inventory, { foreignKey: 'garage_id' });
 
 module.exports = Inventory;
