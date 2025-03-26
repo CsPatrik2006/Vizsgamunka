@@ -17,7 +17,7 @@ export default function TyreShopHomepage({
   const { darkMode, themeLoaded } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate(); // Initialize useNavigate hook
-  
+
   // Handle navigation to shop page
   const handleShopNavigation = () => {
     navigate('/shop'); // Navigate to the shop page
@@ -79,7 +79,7 @@ export default function TyreShopHomepage({
           viewport={{ once: true, amount: 0.2 }}
         >
           {/* Changed to onClick handler instead of Link for better animation control */}
-          <Button 
+          <Button
             className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-2xl text-lg shadow-lg"
             onClick={handleShopNavigation}
           >
