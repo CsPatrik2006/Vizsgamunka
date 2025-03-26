@@ -13,6 +13,12 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Add this useEffect after your existing useEffect
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array means it only runs once when component mounts
+
   // Check if user is logged in on component mount
   useEffect(() => {
     const token = localStorage.getItem('token');

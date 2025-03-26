@@ -85,6 +85,12 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
+  // Add this useEffect after your existing useEffects
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, [garageId]); // Dependency on garageId ensures it runs when the garage changes
+
   useEffect(() => {
     // Check if user is logged in and is a garage owner
     if (!userData || userData.role !== "garage_owner") {

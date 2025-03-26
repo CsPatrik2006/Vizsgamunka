@@ -24,6 +24,12 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Add this useEffect after your existing useEffect
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array means it only runs once when component mounts
+
   useEffect(() => {
     if (!userData || userData.role !== "garage_owner") {
       navigate("/");
@@ -293,7 +299,7 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                           {garage.contact_info}
                         </div>
                       )}
-                                            {garage.opening_hours && (
+                      {garage.opening_hours && (
                         <div className="flex items-center text-sm">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-[#88a0e8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

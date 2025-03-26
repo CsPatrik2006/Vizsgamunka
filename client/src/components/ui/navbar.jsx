@@ -315,15 +315,6 @@ const Header = ({
                     >
                       Profilom
                     </a>
-                    <a
-                      href="/appointments"
-                      className={`block px-4 py-2 text-sm ${darkMode
-                        ? "text-white hover:bg-gray-700"
-                        : "text-gray-700 hover:bg-gray-100"
-                        } cursor-pointer`}
-                    >
-                      Időpontjaim
-                    </a>
                     {userData.role === "garage_owner" && (
                       <Link
                         to="/my-garages"
@@ -335,15 +326,6 @@ const Header = ({
                         Garázsaim
                       </Link>
                     )}
-                    <a
-                      href="/orders"
-                      className={`block px-4 py-2 text-sm ${darkMode
-                        ? "text-white hover:bg-gray-700"
-                        : "text-gray-700 hover:bg-gray-100"
-                        } cursor-pointer`}
-                    >
-                      Rendeléseim
-                    </a>
                     <button
                       onClick={handleUserLogout}
                       className={`block w-full text-left px-4 py-2 text-sm text-red-600 ${darkMode

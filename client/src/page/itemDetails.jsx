@@ -58,6 +58,12 @@ export default function ItemDetailsPage({
     setIsCartOpen(true); // Open cart sidebar when item is added
   };
 
+  // Add this useEffect to the itemDetails.jsx component
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, [itemId]); // Dependency on itemId ensures it runs when the product changes
+
   // Fetch item details
   useEffect(() => {
     const fetchItemDetails = async () => {
@@ -178,14 +184,14 @@ export default function ItemDetailsPage({
             transition={{ duration: 0.5 }}
           >
             <div className="flex flex-col md:flex-row">
-              {/* Product Image - Enhanced Version */}
+              {/* Product Image - Enhanced Version with improved loading */}
               <div className="w-full md:w-1/2 p-6">
                 <div
                   className="h-96 flex items-center justify-center relative"
                   onClick={() => item.cover_img && setIsZoomed(true)}
                 >
-                  {/* Loading skeleton */}
-                  {!imageLoaded && (
+                  {/* Loading skeleton - only show when an image is expected but not yet loaded */}
+                  {!imageLoaded && item.cover_img && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-10 h-10 border-4 border-[#4e77f4] border-t-transparent rounded-full animate-spin"></div>
                     </div>

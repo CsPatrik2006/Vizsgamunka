@@ -6,6 +6,7 @@ import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
 import { useTheme } from '../context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
+import axios from 'axios'; // Import axios for API calls
 
 export default function TyreShopHomepage({
   setIsLoginOpen,
@@ -17,10 +18,63 @@ export default function TyreShopHomepage({
   const { darkMode, themeLoaded } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate(); // Initialize useNavigate hook
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Add this useEffect near the top of the component with other useEffects
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array means it only runs once when component mounts
+
+  // Fetch random products for featured section
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:3000/inventory');
+
+        // Get random 3 products if there are enough products
+        if (response.data.length > 0) {
+          const shuffled = [...response.data].sort(() => 0.5 - Math.random());
+          const selected = shuffled.slice(0, 3);
+          setFeaturedProducts(selected);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching featured products:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
+
+  // Helper function to get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    return `http://localhost:3000${imagePath}`;
+  };
+
+  // Format price with thousand separator
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('hu-HU').format(price);
+  };
 
   // Handle navigation to shop page
   const handleShopNavigation = () => {
     navigate('/shop'); // Navigate to the shop page
+  };
+
+  // Handle navigation to product details
+  const handleProductNavigation = (productId) => {
+    navigate(`/item/${productId}`);
   };
 
   // Handle successful login
@@ -91,23 +145,88 @@ export default function TyreShopHomepage({
       <section className="py-16 px-5">
         <h2 className="text-3xl font-semibold text-center mb-8">Kiemelt ajánlatok</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {[1, 2, 3].map((_, index) => (
-            <motion.div
-              key={index}
-              className={`p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform ${darkMode ? "bg-[#252830]" : "bg-[#f1f5f9]"}`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ delay: index * 0.2 }}
-            >
-              <div className="h-40 bg-gray-700 rounded-xl mb-4"></div>
-              <h3 className="text-xl font-semibold mb-2">Tyre Model {index + 1}</h3>
-              <p className="text-[#88a0e8] mb-8">High-performance, durable tyres for your needs.</p>
-              <Button className="mt-4 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-4 py-2 rounded-xl">
-                Adatlap
-              </Button>
-            </motion.div>
-          ))}
+          {loading ? (
+            // Loading placeholders
+            [1, 2, 3].map((_, index) => (
+              <motion.div
+                key={index}
+                className={`p-6 rounded-2xl shadow-lg ${darkMode ? "bg-[#252830]" : "bg-[#f1f5f9]"}`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="h-40 bg-gray-700 rounded-xl mb-4 animate-pulse"></div>
+                <div className="h-6 bg-gray-700 rounded w-3/4 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-700 rounded w-1/2 mb-4 animate-pulse"></div>
+                <div className="h-10 bg-gray-700 rounded w-1/3 mb-4 animate-pulse"></div>
+                <div className="h-10 bg-gray-700 rounded w-1/2 animate-pulse"></div>
+              </motion.div>
+            ))
+          ) : featuredProducts.length > 0 ? (
+            // Display featured products
+            featuredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                className={`p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform ${darkMode ? "bg-[#252830]" : "bg-[#f1f5f9]"}`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="h-40 bg-gray-700 rounded-xl mb-4 overflow-hidden">
+                  {product.cover_img ? (
+                    <img
+                      src={getImageUrl(product.cover_img)}
+                      alt={product.item_name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.src = "https://placehold.co/400x300/gray/white?text=No+Image"
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{product.item_name}</h3>
+                <p className="text-[#88a0e8] mb-4">
+                  {product.description || 'Kiváló minőségű termék a járművedhez.'}
+                </p>
+                <p className="text-lg font-bold mb-4">{formatPrice(product.unit_price)} Ft</p>
+                <Button
+                  className="mt-2 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-4 py-2 rounded-xl"
+                  onClick={() => handleProductNavigation(product.id)}
+                >
+                  Adatlap
+                </Button>
+              </motion.div>
+            ))
+          ) : (
+            // Fallback if no products are available
+            [1, 2, 3].map((_, index) => (
+              <motion.div
+                key={index}
+                className={`p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform ${darkMode ? "bg-[#252830]" : "bg-[#f1f5f9]"}`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="h-40 bg-gray-700 rounded-xl mb-4"></div>
+                <h3 className="text-xl font-semibold mb-2">Tyre Model {index + 1}</h3>
+                <p className="text-[#88a0e8] mb-8">High-performance, durable tyres for your needs.</p>
+                <Button
+                  className="mt-4 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-4 py-2 rounded-xl"
+                  onClick={handleShopNavigation}
+                >
+                  Tovább a webshopra
+                </Button>
+              </motion.div>
+            ))
+          )}
         </div>
       </section>
 

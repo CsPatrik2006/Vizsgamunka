@@ -12,6 +12,12 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
   const { orderId, hasAppointment } = location.state || { orderId: null, hasAppointment: false };
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Add this useEffect at the beginning of the component
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array means it only runs once when component mounts
+
   // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
@@ -51,8 +57,8 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </motion.div>
-            
-            <motion.h1 
+
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -60,8 +66,8 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
             >
               Rendelés sikeresen leadva!
             </motion.h1>
-            
-            <motion.p 
+
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -70,7 +76,7 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
               Köszönjük a rendelését! A visszaigazolást elküldtük e-mailben.
               {orderId && <span> Az Ön rendelési azonosítója: <strong>#{orderId}</strong></span>}
             </motion.p>
-            
+
             {hasAppointment && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -90,15 +96,15 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
                 </p>
               </motion.div>
             )}
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6"
             >
-              <Link 
-                to="/" 
+              <Link
+                to="/"
                 className="px-6 py-3 bg-[#4e77f4] hover:bg-[#3a5fc7] text-white rounded-lg transition-colors flex items-center justify-center"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -106,14 +112,13 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
                 </svg>
                 Vissza a főoldalra
               </Link>
-              
-              <Link 
-                to="/profile" 
-                className={`px-6 py-3 rounded-lg transition-colors flex items-center justify-center ${
-                  darkMode 
-                    ? "bg-[#252830] hover:bg-[#1e2129] text-white" 
+
+              <Link
+                to="/profile"
+                className={`px-6 py-3 rounded-lg transition-colors flex items-center justify-center ${darkMode
+                    ? "bg-[#252830] hover:bg-[#1e2129] text-white"
                     : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                }`}
+                  }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
