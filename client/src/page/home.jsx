@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
 import { useTheme } from '../context/ThemeContext';
-import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
-import axios from 'axios'; // Import axios for API calls
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useCart } from '../context/CartContext';
 
 export default function TyreShopHomepage({
   setIsLoginOpen,
@@ -17,24 +18,21 @@ export default function TyreShopHomepage({
 }) {
   const { darkMode, themeLoaded } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { handleCartLogout } = useCart();
 
-  // Add this useEffect near the top of the component with other useEffects
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array means it only runs once when component mounts
+  }, []);
 
-  // Fetch random products for featured section
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
         setLoading(true);
         const response = await axios.get('http://localhost:3000/inventory');
 
-        // Get random 3 products if there are enough products
         if (response.data.length > 0) {
           const shuffled = [...response.data].sort(() => 0.5 - Math.random());
           const selected = shuffled.slice(0, 3);
@@ -51,7 +49,6 @@ export default function TyreShopHomepage({
     fetchFeaturedProducts();
   }, []);
 
-  // Helper function to get image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
 
@@ -62,29 +59,29 @@ export default function TyreShopHomepage({
     return `http://localhost:3000${imagePath}`;
   };
 
-  // Format price with thousand separator
   const formatPrice = (price) => {
     return new Intl.NumberFormat('hu-HU').format(price);
   };
 
-  // Handle navigation to shop page
   const handleShopNavigation = () => {
-    navigate('/shop'); // Navigate to the shop page
+    navigate('/shop');
   };
 
-  // Handle navigation to product details
   const handleProductNavigation = (productId) => {
     navigate(`/item/${productId}`);
   };
 
-  // Handle successful login
   const handleLoginSuccess = (userData, token) => {
     localStorage.setItem('token', token);
     localStorage.setItem('userData', JSON.stringify(userData));
     setIsLoginOpen(false);
   };
 
-  // Don't render until theme is loaded
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
+  };
+
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -104,9 +101,8 @@ export default function TyreShopHomepage({
         setIsRegisterOpen={setIsRegisterOpen}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
       />
-
       <section className="flex flex-col items-center justify-center text-center py-20 px-5">
         <motion.h1
           className="text-5xl font-bold mb-4"

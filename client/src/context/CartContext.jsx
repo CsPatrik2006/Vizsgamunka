@@ -4,9 +4,30 @@ import axios from 'axios';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(null);
-  const [cartItems, setCartItems] = useState([]);
+  // Initialize state from localStorage if available
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : null;
+  });
+  
+  const [cartItems, setCartItems] = useState(() => {
+    const savedCartItems = localStorage.getItem('cartItems');
+    return savedCartItems ? JSON.parse(savedCartItems) : [];
+  });
+  
   const [loading, setLoading] = useState(false);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (cart) {
+      localStorage.setItem('cart', JSON.stringify(cart));
+    }
+  }, [cart]);
+
+  // Save cartItems to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   // Fetch or create a cart for the user
   const initializeCart = async (userId, garageId) => {
@@ -57,6 +78,8 @@ export const CartProvider = ({ children }) => {
       }));
       
       setCartItems(itemsWithDetails);
+      // Save to localStorage
+      localStorage.setItem('cartItems', JSON.stringify(itemsWithDetails));
     } catch (error) {
       console.error('Error fetching cart items:', error);
     } finally {
@@ -86,13 +109,17 @@ export const CartProvider = ({ children }) => {
         });
         
         // Update local state
-        setCartItems(cartItems.map(item => 
+        const updatedCartItems = cartItems.map(item => 
           item.id === existingItem.id ? {
             ...updatedItem.data,
             name: existingItem.name,
             price: existingItem.price
           } : item
-        ));
+        );
+        
+        setCartItems(updatedCartItems);
+        // Save to localStorage
+        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
       } else {
         // Add new item to cart
         const newItem = await axios.post('http://localhost:3000/cartItems', {
@@ -113,7 +140,10 @@ export const CartProvider = ({ children }) => {
         }
         
         // Add to local state
-        setCartItems([...cartItems, { ...newItem.data, ...productDetails }]);
+        const newCartItems = [...cartItems, { ...newItem.data, ...productDetails }];
+        setCartItems(newCartItems);
+        // Save to localStorage
+        localStorage.setItem('cartItems', JSON.stringify(newCartItems));
       }
     } catch (error) {
       console.error('Error adding item to cart:', error);
@@ -127,7 +157,10 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       await axios.delete(`http://localhost:3000/cartItems/${itemId}`);
-      setCartItems(cartItems.filter(item => item.id !== itemId));
+      const updatedCartItems = cartItems.filter(item => item.id !== itemId);
+      setCartItems(updatedCartItems);
+      // Save to localStorage
+      localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
     } catch (error) {
       console.error('Error removing item from cart:', error);
     } finally {
@@ -149,13 +182,17 @@ export const CartProvider = ({ children }) => {
         quantity: quantity
       });
       
-      setCartItems(cartItems.map(item => 
+      const updatedCartItems = cartItems.map(item => 
         item.id === itemId ? {
           ...updatedItem.data,
           name: item.name,
           price: item.price
         } : item
-      ));
+      );
+      
+      setCartItems(updatedCartItems);
+      // Save to localStorage
+      localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
     } catch (error) {
       console.error('Error updating cart item quantity:', error);
     } finally {
@@ -163,7 +200,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Clear cart - new function for checkout
+  // Clear cart - modified to also clear localStorage
   const clearCart = async () => {
     try {
       setLoading(true);
@@ -176,11 +213,25 @@ export const CartProvider = ({ children }) => {
       
       // Clear local state
       setCartItems([]);
+      
+      // Clear localStorage for cart items
+      localStorage.removeItem('cartItems');
     } catch (error) {
       console.error('Error clearing cart:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle logout - clear cart data
+  const handleCartLogout = () => {
+    // Clear cart data from localStorage
+    localStorage.removeItem('cart');
+    localStorage.removeItem('cartItems');
+    
+    // Reset state
+    setCart(null);
+    setCartItems([]);
   };
 
   return (
@@ -193,7 +244,8 @@ export const CartProvider = ({ children }) => {
       removeFromCart,
       updateCartItemQuantity,
       fetchCartItems,
-      clearCart
+      clearCart,
+      handleCartLogout
     }}>
       {children}
     </CartContext.Provider>

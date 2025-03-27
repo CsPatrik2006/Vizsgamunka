@@ -20,7 +20,7 @@ export default function ShopPage({
   const navigate = useNavigate();
   const location = useLocation();
   const { darkMode, themeLoaded } = useTheme();
-  const { addToCart, cartItems, initializeCart } = useCart();
+  const { addToCart, cartItems, initializeCart, handleCartLogout } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [shopSearchQuery, setShopSearchQuery] = useState("");
   const [garages, setGarages] = useState([]);
@@ -34,6 +34,12 @@ export default function ShopPage({
   const [isGarageFilter, setIsGarageFilter] = useState(false);
   const [isServiceFilter, setIsServiceFilter] = useState(false);
   const [filteredServiceId, setFilteredServiceId] = useState(null);
+
+  // Handle logout with cart clear
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
+  };
 
   // Add this useEffect after your existing useEffects
   useEffect(() => {
@@ -90,7 +96,7 @@ export default function ShopPage({
       const defaultGarageId = selectedGarage || (garages.length > 0 ? garages[0].id : 1);
       initializeCart(userData.id, defaultGarageId);
     }
-  }, [isLoggedIn, userData, garages, selectedGarage]);
+  }, [isLoggedIn, userData, garages, selectedGarage, initializeCart]);
 
   // Handle adding item to cart
   const handleAddToCart = (item) => {
@@ -273,7 +279,7 @@ export default function ShopPage({
         setIsRegisterOpen={setIsRegisterOpen}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
         onCartClick={() => setIsCartOpen(true)}
         cartItemsCount={cartItems.length}
       />

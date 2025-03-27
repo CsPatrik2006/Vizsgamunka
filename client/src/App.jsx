@@ -4,7 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
 import RegisterForm from "./page/register";
 import LoginForm from "./page/login";
-import TyreShopHomepage from "./page/main";
+import TyreShopHomepage from "./page/home";
 import ProfilePage from "./page/profile";
 import ShopPage from "./page/shop";
 import ItemDetailsPage from "./page/itemDetails";

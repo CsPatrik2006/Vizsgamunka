@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTheme } from '../context/ThemeContext';
+import { useCart } from '../context/CartContext';
 import Header from "../components/ui/navbar";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
@@ -8,9 +9,16 @@ import logo_dark from '../assets/logo_darkMode.png';
 
 const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
   const { darkMode, themeLoaded } = useTheme();
+  const { handleCartLogout } = useCart();
   const location = useLocation();
   const { orderId, hasAppointment } = location.state || { orderId: null, hasAppointment: false };
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Handle logout with cart clear
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
+  };
 
   // Add this useEffect at the beginning of the component
   useEffect(() => {
@@ -36,7 +44,7 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
         logo_light={logo_light}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
       />
 
       <section className="max-w-4xl mx-auto py-16 px-4">

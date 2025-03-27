@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "../context/ThemeContext";
+import { useCart } from '../context/CartContext';
 import Header from "../components/ui/navbar";
 import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
@@ -11,6 +12,7 @@ import logo_dark from '../assets/logo_darkMode.png';
 const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const { garageId } = useParams();
   const { darkMode, themeLoaded } = useTheme();
+  const { handleCartLogout } = useCart();
   const navigate = useNavigate();
   const [garage, setGarage] = useState(null);
   const [inventory, setInventory] = useState([]);
@@ -83,6 +85,11 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         handleInputChange(syntheticEvent);
       }
     }
+  };
+
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
   };
 
   // Add this useEffect after your existing useEffects
@@ -270,7 +277,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         logo_light={logo_light}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
       />
 
       <section className="max-w-7xl mx-auto py-12 px-4">

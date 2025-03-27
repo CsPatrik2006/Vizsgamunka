@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
 import { useTheme } from '../context/ThemeContext';
+import { useCart } from '../context/CartContext';
 
 const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const { darkMode, themeLoaded } = useTheme();
+  const { handleCartLogout } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -46,6 +48,11 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     return date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
+  };
+
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
   };
 
   // Add this useEffect after your existing useEffect
@@ -283,7 +290,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
         logo_light={logo_light}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
       />
 
       <section className="max-w-4xl mx-auto py-12 px-4">

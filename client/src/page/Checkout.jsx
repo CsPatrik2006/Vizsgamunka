@@ -10,7 +10,7 @@ import logo_dark from '../assets/logo_darkMode.png';
 
 const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const { darkMode, themeLoaded } = useTheme();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, handleCartLogout } = useCart();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -32,6 +32,12 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [garages, setGarages] = useState([]);
+
+  // Handle logout with cart clear
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
+  };
 
   // Add this useEffect after your existing useEffects
   useEffect(() => {
@@ -213,7 +219,7 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
         logo_light={logo_light}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
       />
 
       <section className="max-w-7xl mx-auto py-12 px-4">

@@ -18,7 +18,7 @@ export default function ItemDetailsPage({
   handleLogout
 }) {
   const { darkMode, themeLoaded } = useTheme();
-  const { addToCart, cartItems } = useCart();
+  const { addToCart, cartItems, initializeCart, handleCartLogout } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [item, setItem] = useState(null);
   const [garage, setGarage] = useState(null);
@@ -29,6 +29,12 @@ export default function ItemDetailsPage({
   const [isZoomed, setIsZoomed] = useState(false);
   const { itemId } = useParams();
   const navigate = useNavigate();
+
+  // Handle logout with cart clear
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
+  };
 
   // Helper function to get image URL
   const getImageUrl = (imagePath) => {
@@ -54,9 +60,21 @@ export default function ItemDetailsPage({
       return;
     }
 
-    addToCart('inventory', item.id, quantity);
-    setIsCartOpen(true); // Open cart sidebar when item is added
+    // Make sure we have a valid item and quantity
+    if (item && quantity > 0) {
+      addToCart('inventory', item.id, quantity);
+      setIsCartOpen(true); // Open cart sidebar when item is added
+    } else {
+      console.error('Invalid item or quantity');
+    }
   };
+
+  // Initialize cart when user is logged in and item data is available
+  useEffect(() => {
+    if (isLoggedIn && userData && item) {
+      initializeCart(userData.id, item.garage_id);
+    }
+  }, [isLoggedIn, userData, item, initializeCart]);
 
   // Add this useEffect to the itemDetails.jsx component
   useEffect(() => {
@@ -134,7 +152,7 @@ export default function ItemDetailsPage({
         setIsRegisterOpen={setIsRegisterOpen}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
         onCartClick={() => setIsCartOpen(true)}
         cartItemsCount={cartItems.length}
       />

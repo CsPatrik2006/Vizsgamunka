@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "../context/ThemeContext";
+import { useCart } from '../context/CartContext';
 import Header from "../components/ui/navbar";
 import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ import logo_dark from '../assets/logo_darkMode.png';
 
 const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
   const { darkMode, themeLoaded } = useTheme();
+  const { handleCartLogout } = useCart();
   const navigate = useNavigate();
   const [garages, setGarages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,6 +98,11 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
     });
   };
 
+  const handleLogoutWithCartClear = () => {
+    handleCartLogout();
+    handleLogout();
+  };
+
   const handleAddGarage = async (e) => {
     e.preventDefault();
     try {
@@ -158,7 +165,7 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
         logo_light={logo_light}
         isLoggedIn={isLoggedIn}
         userData={userData}
-        handleLogout={handleLogout}
+        handleLogout={handleLogoutWithCartClear}
       />
 
       <section className="max-w-7xl mx-auto py-12 px-4">
