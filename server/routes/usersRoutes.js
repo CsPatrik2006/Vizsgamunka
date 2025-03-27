@@ -29,6 +29,7 @@ router.post("/login", usersController.authenticateUser); // Bejelentkezés
 router.get("/users", authenticateToken, usersController.getAllUsers); // Összes felhasználó lekérése
 router.get("/users/:id", authenticateToken, usersController.getUserById); // Egy felhasználó lekérése
 router.put("/users/:id", authenticateToken, usersController.updateUser); // Felhasználó frissítése
+router.post("/users/:id/change-password", authenticateToken, usersController.changePassword); // Jelszó módosítása
 router.delete("/users/:id", authenticateToken, usersController.deleteUser); // Felhasználó törlése
 
 // Tesztelt védett végpont

@@ -16,7 +16,8 @@ import CheckoutSuccess from "./page/CheckoutSuccess";
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
   const isAuthenticated = localStorage.getItem('token') !== null;
-  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+  const userDataString = localStorage.getItem('userData');
+  const userData = userDataString ? JSON.parse(userDataString) : {};
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -43,7 +44,13 @@ function App() {
 
     if (token && storedUserData) {
       setIsLoggedIn(true);
-      setUserData(JSON.parse(storedUserData));
+      try {
+        setUserData(JSON.parse(storedUserData));
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        // Clear invalid data
+        localStorage.removeItem('userData');
+      }
     }
   }, []);
 
@@ -214,6 +221,5 @@ function App() {
     </ThemeProvider>
   );
 }
-
 
 export default App;

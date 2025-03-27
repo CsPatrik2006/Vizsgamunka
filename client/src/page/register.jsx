@@ -14,15 +14,27 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
   });
 
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [localIsOpen, setLocalIsOpen] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleClose = () => {
+    setLocalIsOpen(false);
+    // Wait for animation to complete before actually closing
+    setTimeout(() => {
+      onClose();
+      setLocalIsOpen(true);
+    }, 300);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     try {
       const response = await fetch('http://localhost:3000/api/register', {
@@ -34,11 +46,18 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
       });
 
       if (response.ok) {
-        // Close the register modal
-        onClose();
+        // Set success message
+        setSuccess('Sikeres regisztráció!');
 
-        // Open the login modal without passing email
-        setIsLoginOpen(true);
+        // Delay switching to login modal to show the success message
+        setTimeout(() => {
+          setLocalIsOpen(false);
+          setTimeout(() => {
+            onClose();
+            setIsLoginOpen(true);
+            setLocalIsOpen(true);
+          }, 300);
+        }, 1000);
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Sikertelen Regisztráció!');
@@ -49,36 +68,53 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     }
   };
 
+  const handleSwitchToLogin = () => {
+    setLocalIsOpen(false);
+    setTimeout(() => {
+      onClose();
+      setIsLoginOpen(true);
+      setLocalIsOpen(true);
+    }, 300);
+  };
+
   // Don't render until theme is loaded
   if (!themeLoaded) return null;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
+          key="register-modal-backdrop"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: localIsOpen ? 1 : 0 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.3 }}
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(5px)' }}
         >
           <motion.div
+            key="register-modal-content"
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            animate={{
+              opacity: localIsOpen ? 1 : 0,
+              scale: localIsOpen ? 1 : 0.95,
+              y: localIsOpen ? 0 : 20
+            }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.3 }}
             className={`relative ${darkMode ? 'bg-[#252830]' : 'bg-[#f8fafc]'} p-8 rounded-lg shadow-xl w-full max-w-md`}
           >
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className={`absolute top-3 right-3 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-3 py-1 rounded-full text-sm transition cursor-pointer`}
+              disabled={!localIsOpen}
             >
               Mégse
             </button>
 
             <h2 className={`text-2xl font-bold text-center mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Regisztráció</h2>
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+            {success && <p className="text-green-500 text-center mb-4">{success}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -95,6 +131,7 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
+                  disabled={!!success || !localIsOpen}
                 />
               </div>
               <div>
@@ -111,6 +148,7 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
+                  disabled={!!success || !localIsOpen}
                 />
               </div>
               <div>
@@ -127,6 +165,7 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
+                  disabled={!!success || !localIsOpen}
                 />
               </div>
               <div className="relative">
@@ -143,11 +182,13 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
+                  disabled={!!success || !localIsOpen}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute right-2 top-9.5 focus:outline-none cursor-pointer ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                  disabled={!!success || !localIsOpen}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -166,11 +207,16 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                   <span className={`mr-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Szervíztulajdonos vagyok</span>
                   <div
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer
-                      ${formData.role === 'garage_owner' ? 'bg-[#4e77f4]' : darkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
-                    onClick={() => setFormData({
-                      ...formData,
-                      role: formData.role === 'customer' ? 'garage_owner' : 'customer'
-                    })}
+                      ${formData.role === 'garage_owner' ? 'bg-[#4e77f4]' : darkMode ? 'bg-gray-600' : 'bg-gray-200'}
+                      ${(success || !localIsOpen) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => {
+                      if (!success && localIsOpen) {
+                        setFormData({
+                          ...formData,
+                          role: formData.role === 'customer' ? 'garage_owner' : 'customer'
+                        });
+                      }
+                    }}
                   >
                     <span
                       className={`inline-flex h-4 w-4 transform rounded-full transition-transform items-center justify-center
@@ -193,6 +239,7 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                 <Button
                   type="submit"
                   className="px-8"
+                  disabled={!!success || !localIsOpen}
                 >
                   Regisztráció
                 </Button>
@@ -202,11 +249,9 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
             <p className={`mt-4 text-center ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Van már fiókod?{' '}
               <button
-                onClick={() => {
-                  onClose();
-                  setIsLoginOpen(true);
-                }}
+                onClick={handleSwitchToLogin}
                 className="text-[#88a0e8] underline cursor-pointer hover:opacity-80"
+                disabled={!!success || !localIsOpen}
               >
                 Bejelentkezés
               </button>

@@ -12,6 +12,8 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
   });
 
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [localIsOpen, setLocalIsOpen] = useState(true);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -19,9 +21,19 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleClose = () => {
+    setLocalIsOpen(false);
+    // Wait for animation to complete before actually closing
+    setTimeout(() => {
+      onClose();
+      setLocalIsOpen(true);
+    }, 300);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     try {
       const response = await fetch('http://localhost:3000/api/login', {
@@ -36,13 +48,23 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
         const data = await response.json();
         console.log('Login successful', data);
 
+        // Set success message
+        setSuccess('Sikeres bejelentkezés!');
+
         // Call the onLoginSuccess function with user data and token
         if (onLoginSuccess && data.user && data.token) {
           onLoginSuccess(data.user, data.token);
         }
 
-        navigate('/');
-        onClose();
+        // Delay navigation and closing to show the success message
+        setTimeout(() => {
+          setLocalIsOpen(false);
+          setTimeout(() => {
+            navigate('/');
+            onClose();
+            setLocalIsOpen(true);
+          }, 300);
+        }, 1000);
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Invalid email or password');
@@ -53,36 +75,53 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
     }
   };
 
+  const handleSwitchToRegister = () => {
+    setLocalIsOpen(false);
+    setTimeout(() => {
+      onClose();
+      setIsRegisterOpen(true);
+      setLocalIsOpen(true);
+    }, 300);
+  };
+
   // Don't render until theme is loaded
   if (!themeLoaded) return null;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
+          key="login-modal-backdrop"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: localIsOpen ? 1 : 0 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.3 }}
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(5px)' }}
         >
           <motion.div
+            key="login-modal-content"
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            animate={{ 
+              opacity: localIsOpen ? 1 : 0, 
+              scale: localIsOpen ? 1 : 0.95, 
+              y: localIsOpen ? 0 : 20 
+            }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.3 }}
             className={`relative ${darkMode ? 'bg-[#252830]' : 'bg-[#f8fafc]'} p-8 rounded-lg shadow-xl w-full max-w-md`}
           >
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className={`absolute top-3 right-3 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-3 py-1 rounded-full text-sm transition cursor-pointer`}
+              disabled={!localIsOpen}
             >
               Mégse
             </button>
 
             <h2 className={`text-2xl font-bold text-center mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Bejelentkezés</h2>
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+            {success && <p className="text-green-500 text-center mb-4">{success}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Email</label>
@@ -98,6 +137,7 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
+                  disabled={!!success || !localIsOpen}
                 />
               </div>
               <div className="relative">
@@ -114,10 +154,12 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
                       : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
                     }`}
                   required
+                  disabled={!!success || !localIsOpen}
                 />
                 <button
                   type="button" onClick={() => setShowPassword(!showPassword)}
                   className={`absolute right-2 top-9.5 focus:outline-none cursor-pointer ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                  disabled={!!success || !localIsOpen}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -135,6 +177,7 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
                 <Button
                   type="submit"
                   className="px-8"
+                  disabled={!!success || !localIsOpen}
                 >
                   Bejelentkezés
                 </Button>
@@ -144,11 +187,9 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
             <p className={`mt-4 text-center ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Még nincs fiókod?{' '}
               <button
-                onClick={() => {
-                  onClose();
-                  setIsRegisterOpen(true);
-                }}
+                onClick={handleSwitchToRegister}
                 className="text-[#88a0e8] underline cursor-pointer hover:opacity-80"
+                disabled={!!success || !localIsOpen}
               >
                 Regisztrálj Itt!
               </button>
