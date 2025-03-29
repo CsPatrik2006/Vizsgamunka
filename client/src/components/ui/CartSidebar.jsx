@@ -11,6 +11,11 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
   const [mounted, setMounted] = useState(false);
   const [animationClass, setAnimationClass] = useState("translate-x-full");
 
+  // Format price with thousand separator
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('hu-HU').format(price);
+  };
+
   // Handle animation mounting
   useEffect(() => {
     if (isOpen) {
@@ -93,7 +98,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">{item.price} Ft</p>
+                      <p className="font-bold">{formatPrice(item.price)} Ft</p>
                       <button
                         className="text-red-500 text-sm mt-1 cursor-pointer"
                         onClick={() => handleRemoveItem(item.id)}
@@ -112,7 +117,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
             <div className="flex justify-between mb-4">
               <span className="font-medium">Összesen:</span>
               <span className="font-bold">
-                {cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)} Ft
+                {formatPrice(cartItems.reduce((total, item) => total + (item.price * item.quantity), 0))} Ft
               </span>
             </div>
             <button

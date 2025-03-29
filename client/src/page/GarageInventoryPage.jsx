@@ -23,7 +23,8 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     item_name: "",
     vehicle_type: "car",
     quantity: 0,
-    unit_price: ""
+    unit_price: "",
+    description: ""
   });
 
   // Add a new state for the file
@@ -197,6 +198,8 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       formData.append('vehicle_type', newItem.vehicle_type);
       formData.append('quantity', newItem.quantity);
       formData.append('unit_price', newItem.unit_price);
+      formData.append('description', newItem.description);
+
 
       if (selectedFile) {
         formData.append('image', selectedFile);
@@ -218,6 +221,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         vehicle_type: "car",
         quantity: 0,
         unit_price: "",
+        description: ""
       });
       setSelectedFile(null);
       setShowAddItemForm(false);
@@ -381,6 +385,17 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         step="0.01"
                         required
                       />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block mb-2 text-sm font-medium">Termék leírása</label>
+                      <textarea
+                        name="description"
+                        value={newItem.description}
+                        onChange={handleInputChange}
+                        rows="4"
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                        placeholder="Adjon meg részletes leírást a termékről..."
+                      ></textarea>
                     </div>
                     <div className="md:col-span-2">
                       <label className="block mb-2 text-sm font-medium">Termék képe</label>

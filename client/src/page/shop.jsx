@@ -26,12 +26,11 @@ export default function ShopPage({
   const [garages, setGarages] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedGarage, setSelectedGarage] = useState(null);
-  const [selectedVehicleType, setSelectedVehicleType] = useState(null);
+  const [selectedGarages, setSelectedGarages] = useState([]); // Changed to array for multiple selection
+  const [selectedVehicleTypes, setSelectedVehicleTypes] = useState([]); // Changed to array for multiple selection
   const [filteredItems, setFilteredItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [services, setServices] = useState([]);
-  const [isGarageFilter, setIsGarageFilter] = useState(false);
   const [isServiceFilter, setIsServiceFilter] = useState(false);
   const [filteredServiceId, setFilteredServiceId] = useState(null);
 
@@ -51,39 +50,37 @@ export default function ShopPage({
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const searchParam = params.get('search');
-    const garageParam = params.get('garage');
+    const garageParams = params.getAll('garage');
     const serviceParam = params.get('service');
-    const vehicleTypeParam = params.get('type');
+    const vehicleTypeParams = params.getAll('type');
 
     // Handle search parameter
     if (searchParam) {
       setShopSearchQuery(searchParam);
     }
 
-    // Handle vehicle type parameter
-    if (vehicleTypeParam) {
-      setSelectedVehicleType(vehicleTypeParam);
+    // Handle vehicle type parameters
+    if (vehicleTypeParams.length > 0) {
+      setSelectedVehicleTypes(vehicleTypeParams);
     }
 
-    if (garageParam) {
-      const garageId = parseInt(garageParam);
-      setSelectedGarage(garageId);
-      setIsGarageFilter(true);
+    // Handle garage parameters
+    if (garageParams.length > 0) {
+      const garageIds = garageParams.map(id => parseInt(id));
+      setSelectedGarages(garageIds);
       setIsServiceFilter(false);
     } else if (serviceParam) {
       // Handle service parameter - find the garage that offers this service
       const serviceId = parseInt(serviceParam);
       const service = services.find(s => s.id === serviceId);
       if (service) {
-        setSelectedGarage(service.garage_id);
+        setSelectedGarages([service.garage_id]);
         setIsServiceFilter(true);
-        setIsGarageFilter(false);
         setFilteredServiceId(serviceId);
       }
     } else {
       // Reset filters if no parameters
-      setSelectedGarage(null);
-      setIsGarageFilter(false);
+      setSelectedGarages([]);
       setIsServiceFilter(false);
       setFilteredServiceId(null);
     }
@@ -93,10 +90,10 @@ export default function ShopPage({
   useEffect(() => {
     if (isLoggedIn && userData) {
       // Use the first garage as default if none selected
-      const defaultGarageId = selectedGarage || (garages.length > 0 ? garages[0].id : 1);
+      const defaultGarageId = selectedGarages.length > 0 ? selectedGarages[0] : (garages.length > 0 ? garages[0].id : 1);
       initializeCart(userData.id, defaultGarageId);
     }
-  }, [isLoggedIn, userData, garages, selectedGarage, initializeCart]);
+  }, [isLoggedIn, userData, garages, selectedGarages, initializeCart]);
 
   // Handle adding item to cart
   const handleAddToCart = (item) => {
@@ -148,18 +145,18 @@ export default function ShopPage({
     fetchData();
   }, []);
 
-  // Filter items based on search query, selected garage, and vehicle type
+  // Filter items based on search query, selected garages, and vehicle types
   useEffect(() => {
     let filtered = inventoryItems;
 
-    // Filter by garage if selected
-    if (selectedGarage !== null) {
-      filtered = filtered.filter(item => item.garage_id === selectedGarage);
+    // Filter by garages if selected
+    if (selectedGarages.length > 0) {
+      filtered = filtered.filter(item => selectedGarages.includes(item.garage_id));
     }
 
-    // Filter by vehicle type if selected
-    if (selectedVehicleType !== null) {
-      filtered = filtered.filter(item => item.vehicle_type === selectedVehicleType);
+    // Filter by vehicle types if selected
+    if (selectedVehicleTypes.length > 0) {
+      filtered = filtered.filter(item => selectedVehicleTypes.includes(item.vehicle_type));
     }
 
     // Filter by shop search query if present
@@ -193,41 +190,55 @@ export default function ShopPage({
     }
 
     setFilteredItems(filtered);
-  }, [shopSearchQuery, selectedGarage, selectedVehicleType, inventoryItems, garages, services]);
+  }, [shopSearchQuery, selectedGarages, selectedVehicleTypes, inventoryItems, garages, services]);
 
-  // Filter inventory items by garage
-  const filterByGarage = (garageId) => {
-    setSelectedGarage(garageId);
-    setIsGarageFilter(garageId !== null);
-    setIsServiceFilter(false);
-    setFilteredServiceId(null);
+  // Toggle garage filter
+  const toggleGarageFilter = (garageId) => {
+    setSelectedGarages(prev => {
+      // If already selected, remove it
+      if (prev.includes(garageId)) {
+        return prev.filter(id => id !== garageId);
+      }
+      // Otherwise add it
+      return [...prev, garageId];
+    });
 
     // Update URL without redirecting
-    updateURL(garageId, selectedVehicleType, shopSearchQuery);
+    updateURL(selectedVehicleTypes, shopSearchQuery);
   };
 
-  // Filter inventory items by vehicle type
-  const filterByVehicleType = (vehicleType) => {
-    setSelectedVehicleType(vehicleType);
+  // Toggle vehicle type filter
+  const toggleVehicleTypeFilter = (vehicleType) => {
+    setSelectedVehicleTypes(prev => {
+      // If already selected, remove it
+      if (prev.includes(vehicleType)) {
+        return prev.filter(type => type !== vehicleType);
+      }
+      // Otherwise add it
+      return [...prev, vehicleType];
+    });
 
     // Update URL without redirecting
-    updateURL(selectedGarage, vehicleType, shopSearchQuery);
+    updateURL(selectedGarages, shopSearchQuery);
   };
 
   // Helper function to update URL with all filters
-  const updateURL = (garageId, vehicleType, search) => {
+  const updateURL = () => {
     const params = new URLSearchParams();
 
-    if (garageId !== null) {
+    // Add all selected garages
+    selectedGarages.forEach(garageId => {
       params.append('garage', garageId);
-    }
+    });
 
-    if (vehicleType !== null) {
+    // Add all selected vehicle types
+    selectedVehicleTypes.forEach(vehicleType => {
       params.append('type', vehicleType);
-    }
+    });
 
-    if (search) {
-      params.append('search', search);
+    // Add search query if present
+    if (shopSearchQuery) {
+      params.append('search', shopSearchQuery);
     }
 
     const queryString = params.toString();
@@ -241,7 +252,7 @@ export default function ShopPage({
     e.preventDefault();
 
     // Update URL with all current filters
-    updateURL(selectedGarage, selectedVehicleType, shopSearchQuery);
+    updateURL();
   };
 
   // Format price with thousand separator
@@ -257,6 +268,16 @@ export default function ShopPage({
       case 'truck': return 'Teherautó';
       default: return 'Ismeretlen';
     }
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedGarages([]);
+    setSelectedVehicleTypes([]);
+    setShopSearchQuery('');
+    setIsServiceFilter(false);
+    setFilteredServiceId(null);
+    window.history.pushState({}, '', '/shop');
   };
 
   // Don't render until theme is loaded
@@ -317,13 +338,13 @@ export default function ShopPage({
           </form>
         </div>
 
-        {/* Garage filter section */}
+        {/* Garage filter section - updated for multiple selection */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Szervízek</h2>
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={() => filterByGarage(null)}
-              className={`px-4 py-2 rounded-lg ${selectedGarage === null
+              onClick={() => setSelectedGarages([])}
+              className={`px-4 py-2 rounded-lg ${selectedGarages.length === 0
                 ? 'bg-[#4e77f4] text-white'
                 : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
             >
@@ -332,24 +353,29 @@ export default function ShopPage({
             {garages.map(garage => (
               <Button
                 key={garage.id}
-                onClick={() => filterByGarage(garage.id)}
-                className={`px-4 py-2 rounded-lg ${selectedGarage === garage.id
+                onClick={() => toggleGarageFilter(garage.id)}
+                className={`px-4 py-2 rounded-lg ${selectedGarages.includes(garage.id)
                   ? 'bg-[#4e77f4] text-white'
                   : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
               >
                 {garage.name}
+                {selectedGarages.includes(garage.id) && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-white text-[#4e77f4] rounded-full text-xs font-bold">
+                    ✓
+                  </span>
+                )}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Vehicle type filter section */}
+        {/* Vehicle type filter section - updated for multiple selection */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Jármű típus</h2>
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={() => filterByVehicleType(null)}
-              className={`px-4 py-2 rounded-lg ${selectedVehicleType === null
+              onClick={() => setSelectedVehicleTypes([])}
+              className={`px-4 py-2 rounded-lg ${selectedVehicleTypes.length === 0
                 ? 'bg-[#4e77f4] text-white'
                 : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
             >
@@ -358,12 +384,17 @@ export default function ShopPage({
             {['car', 'motorcycle', 'truck'].map(type => (
               <Button
                 key={type}
-                onClick={() => filterByVehicleType(type)}
-                className={`px-4 py-2 rounded-lg ${selectedVehicleType === type
+                onClick={() => toggleVehicleTypeFilter(type)}
+                className={`px-4 py-2 rounded-lg ${selectedVehicleTypes.includes(type)
                   ? 'bg-[#4e77f4] text-white'
                   : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
               >
                 {getVehicleTypeDisplayName(type)}
+                {selectedVehicleTypes.includes(type) && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-white text-[#4e77f4] rounded-full text-xs font-bold">
+                    ✓
+                  </span>
+                )}
               </Button>
             ))}
           </div>
@@ -378,14 +409,6 @@ export default function ShopPage({
           </div>
         )}
 
-        {isGarageFilter && selectedGarage && !shopSearchQuery && (
-          <div className="mb-6">
-            <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-              Termékek a következő szervízben: <span className="font-semibold">"{garages.find(g => g.id === selectedGarage)?.name || 'Szervíz'}"</span>
-            </p>
-          </div>
-        )}
-
         {isServiceFilter && filteredServiceId && !shopSearchQuery && (
           <div className="mb-6">
             <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
@@ -394,78 +417,70 @@ export default function ShopPage({
           </div>
         )}
 
-        {selectedVehicleType && !shopSearchQuery && (
+        {/* Active filters display - enhanced for better visibility */}
+        {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || shopSearchQuery) && (
           <div className="mb-6">
-            <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-              Termékek a következő járműtípushoz: <span className="font-semibold">{getVehicleTypeDisplayName(selectedVehicleType)}</span>
-            </p>
-          </div>
-        )}
-
-        {/* Active filters display */}
-        {(selectedGarage !== null || selectedVehicleType !== null || shopSearchQuery) && (
-          <div className="mb-6 flex flex-wrap gap-2">
-            <span className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>Aktív szűrők:</span>
-
-            {selectedGarage !== null && (
-              <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                Szervíz: {garages.find(g => g.id === selectedGarage)?.name || 'Szervíz'}
+            <div className="p-4 rounded-lg border-2 border-[#4e77f4] bg-[#4e77f4]/10">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-[#4e77f4]">Aktív szűrők</h3>
                 <button
-                  onClick={() => filterByGarage(null)}
-                  className="ml-2 focus:outline-none"
+                  onClick={clearAllFilters}
+                  className={`px-3 py-1 text-sm rounded-full ${darkMode ? "bg-[#252830] text-white hover:bg-[#353b48]" : "bg-gray-200 text-black hover:bg-gray-300"}`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  Összes szűrő törlése
                 </button>
-              </span>
-            )}
+              </div>
 
-            {selectedVehicleType !== null && (
-              <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                Jármű: {getVehicleTypeDisplayName(selectedVehicleType)}
-                <button
-                  onClick={() => filterByVehicleType(null)}
-                  className="ml-2 focus:outline-none"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </span>
-            )}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedGarages.map(garageId => {
+                  const garage = garages.find(g => g.id === garageId);
+                  return garage ? (
+                    <span key={`garage-${garageId}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                      Szervíz: {garage.name}
+                      <button
+                        onClick={() => toggleGarageFilter(garageId)}
+                        className="ml-2 focus:outline-none"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  ) : null;
+                })}
 
-            {shopSearchQuery && (
-              <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                Keresés: {shopSearchQuery}
-                <button
-                  onClick={() => {
-                    setShopSearchQuery('');
-                    updateURL(selectedGarage, selectedVehicleType, '');
-                  }}
-                  className="ml-2 focus:outline-none"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </span>
-            )}
+                {selectedVehicleTypes.map(type => (
+                  <span key={`type-${type}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                    Járműtípus: {getVehicleTypeDisplayName(type)}
+                    <button
+                      onClick={() => toggleVehicleTypeFilter(type)}
+                      className="ml-2 focus:outline-none"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
 
-            <button
-              onClick={() => {
-                setSelectedGarage(null);
-                setSelectedVehicleType(null);
-                setShopSearchQuery('');
-                setIsGarageFilter(false);
-                setIsServiceFilter(false);
-                setFilteredServiceId(null);
-                window.history.pushState({}, '', '/shop');
-              }}
-              className={`px-3 py-1 text-sm rounded-full ${darkMode ? "bg-[#252830] text-white hover:bg-[#353b48]" : "bg-gray-200 text-black hover:bg-gray-300"}`}
-            >
-              Összes szűrő törlése
-            </button>
+                {shopSearchQuery && (
+                  <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                    Keresés: {shopSearchQuery}
+                    <button
+                      onClick={() => {
+                        setShopSearchQuery('');
+                        updateURL();
+                      }}
+                      className="ml-2 focus:outline-none"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -510,8 +525,11 @@ export default function ShopPage({
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      No Image
+                    <div className="text-center p-4 h-full flex flex-col items-center justify-center">
+                      <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="mt-2 text-gray-500 dark:text-gray-400">Nincs kép</p>
                     </div>
                   )}
                   {/* Vehicle type badge */}
@@ -549,10 +567,10 @@ export default function ShopPage({
               <p className="text-xl text-[#88a0e8]">
                 {shopSearchQuery
                   ? 'Nincs találat a keresési feltételeknek megfelelően.'
-                  : selectedVehicleType
-                    ? 'Nincs termék a kiválasztott járműtípushoz.'
-                    : isGarageFilter
-                      ? 'Nincs termék a kiválasztott szervízben.'
+                  : selectedVehicleTypes.length > 0
+                    ? 'Nincs termék a kiválasztott járműtípusokhoz.'
+                    : selectedGarages.length > 0
+                      ? 'Nincs termék a kiválasztott szervízekben.'
                       : isServiceFilter
                         ? 'Nincs termék a kiválasztott szolgáltatáshoz.'
                         : 'Nem található termék.'}

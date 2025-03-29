@@ -8,6 +8,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
+import CartSidebar from '../components/ui/CartSidebar';
 
 export default function TyreShopHomepage({
   setIsLoginOpen,
@@ -21,20 +22,28 @@ export default function TyreShopHomepage({
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { handleCartLogout } = useCart();
+  const { handleCartLogout, addToCart, cartItems } = useCart();
+  const [garages, setGarages] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:3000/inventory');
 
-        if (response.data.length > 0) {
-          const shuffled = [...response.data].sort(() => 0.5 - Math.random());
+        // Fetch products
+        const productsResponse = await axios.get('http://localhost:3000/inventory');
+
+        // Fetch garages for displaying garage names
+        const garagesResponse = await axios.get('http://localhost:3000/garages');
+        setGarages(garagesResponse.data);
+
+        if (productsResponse.data.length > 0) {
+          const shuffled = [...productsResponse.data].sort(() => 0.5 - Math.random());
           const selected = shuffled.slice(0, 3);
           setFeaturedProducts(selected);
         }
@@ -46,7 +55,7 @@ export default function TyreShopHomepage({
       }
     };
 
-    fetchFeaturedProducts();
+    fetchData();
   }, []);
 
   const getImageUrl = (imagePath) => {
@@ -63,12 +72,36 @@ export default function TyreShopHomepage({
     return new Intl.NumberFormat('hu-HU').format(price);
   };
 
+  // Get vehicle type display name
+  const getVehicleTypeDisplayName = (type) => {
+    switch (type) {
+      case 'car': return 'Személygépkocsi';
+      case 'motorcycle': return 'Motorkerékpár';
+      case 'truck': return 'Teherautó';
+      default: return 'Ismeretlen';
+    }
+  };
+
   const handleShopNavigation = () => {
     navigate('/shop');
   };
 
   const handleProductNavigation = (productId) => {
     navigate(`/item/${productId}`);
+  };
+
+  // Handle adding item to cart
+  const handleAddToCart = (e, item) => {
+    e.stopPropagation(); // Prevent navigation to product page
+
+    if (!isLoggedIn) {
+      // Prompt user to login
+      setIsLoginOpen(true);
+      return;
+    }
+
+    addToCart('inventory', item.id, 1);
+    setIsCartOpen(true);
   };
 
   const handleLoginSuccess = (userData, token) => {
@@ -102,6 +135,13 @@ export default function TyreShopHomepage({
         isLoggedIn={isLoggedIn}
         userData={userData}
         handleLogout={handleLogoutWithCartClear}
+        onCartClick={() => setIsCartOpen(true)}
+        cartItemsCount={cartItems.length}
+      />
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
       />
       <section className="flex flex-col items-center justify-center text-center py-20 px-5">
         <motion.h1
@@ -146,31 +186,34 @@ export default function TyreShopHomepage({
             [1, 2, 3].map((_, index) => (
               <motion.div
                 key={index}
-                className={`p-6 rounded-2xl shadow-lg ${darkMode ? "bg-[#252830]" : "bg-[#f1f5f9]"}`}
+                className={`rounded-lg shadow-lg overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ delay: index * 0.2 }}
               >
-                <div className="h-40 bg-gray-700 rounded-xl mb-4 animate-pulse"></div>
-                <div className="h-6 bg-gray-700 rounded w-3/4 mb-2 animate-pulse"></div>
-                <div className="h-4 bg-gray-700 rounded w-1/2 mb-4 animate-pulse"></div>
-                <div className="h-10 bg-gray-700 rounded w-1/3 mb-4 animate-pulse"></div>
-                <div className="h-10 bg-gray-700 rounded w-1/2 animate-pulse"></div>
+                <div className="h-48 bg-gray-700 animate-pulse"></div>
+                <div className="p-4">
+                  <div className="h-5 bg-gray-700 rounded w-3/4 mb-2 animate-pulse"></div>
+                  <div className="h-4 bg-gray-700 rounded w-1/2 mb-4 animate-pulse"></div>
+                  <div className="h-6 bg-gray-700 rounded w-1/3 mb-4 animate-pulse"></div>
+                  <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+                </div>
               </motion.div>
             ))
           ) : featuredProducts.length > 0 ? (
-            // Display featured products
+            // Display featured products - updated to match shop.jsx format
             featuredProducts.map((product, index) => (
               <motion.div
                 key={product.id}
-                className={`p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform ${darkMode ? "bg-[#252830]" : "bg-[#f1f5f9]"}`}
+                onClick={() => handleProductNavigation(product.id)}
+                className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"} hover:shadow-lg transition-shadow cursor-pointer`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ delay: index * 0.2 }}
               >
-                <div className="h-40 bg-gray-700 rounded-xl mb-4 overflow-hidden">
+                <div className="h-48 bg-white relative overflow-hidden">
                   {product.cover_img ? (
                     <img
                       src={getImageUrl(product.cover_img)}
@@ -182,22 +225,37 @@ export default function TyreShopHomepage({
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      No Image
+                    <div className="text-center p-4 h-full flex flex-col items-center justify-center">
+                      <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="mt-2 text-gray-500 dark:text-gray-400">Nincs kép</p>
                     </div>
                   )}
+                  {/* Vehicle type badge */}
+                  <div className="absolute top-2 right-2 bg-[#4e77f4] text-white text-xs px-2 py-1 rounded-full">
+                    {getVehicleTypeDisplayName(product.vehicle_type)}
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{product.item_name}</h3>
-                <p className="text-[#88a0e8] mb-4">
-                  {product.description || 'Kiváló minőségű termék a járművedhez.'}
-                </p>
-                <p className="text-lg font-bold mb-4">{formatPrice(product.unit_price)} Ft</p>
-                <Button
-                  className="mt-2 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-4 py-2 rounded-xl"
-                  onClick={() => handleProductNavigation(product.id)}
-                >
-                  Adatlap
-                </Button>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold mb-1">{product.item_name}</h3>
+                  <p className="text-[#88a0e8] text-sm mb-2">
+                    {garages.find(g => g.id === product.garage_id)?.name || 'Ismeretlen szervíz'}
+                  </p>
+                  <p className="text-xl font-bold mb-3">{formatPrice(product.unit_price)} Ft</p>
+                  <div className="flex justify-between items-center">
+                    <span className={`text-sm ${product.quantity > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {product.quantity > 0 ? `Készleten: ${product.quantity} db` : 'Nincs készleten'}
+                    </span>
+                    <Button
+                      className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-3 py-2 rounded-lg"
+                      disabled={product.quantity <= 0}
+                      onClick={(e) => handleAddToCart(e, product)}
+                    >
+                      Kosárba
+                    </Button>
+                  </div>
+                </div>
               </motion.div>
             ))
           ) : (
@@ -287,7 +345,7 @@ export default function TyreShopHomepage({
       </section>
 
       <footer className={`py-6 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
+        <p className="text-sm">© 2025 Gumizz Kft. Minden jog fenntartva.</p>
         <div className="mt-2">
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>

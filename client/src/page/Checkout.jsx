@@ -33,6 +33,11 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const [error, setError] = useState(null);
   const [garages, setGarages] = useState([]);
 
+  // Format price with thousand separator
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('hu-HU').format(price);
+  };
+
   // Handle logout with cart clear
   const handleLogoutWithCartClear = () => {
     handleCartLogout();
@@ -268,8 +273,8 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold">{item.price} Ft</p>
-                        <p className="text-sm">{item.price * item.quantity} Ft</p>
+                        <p className="font-bold">{formatPrice(item.price)} Ft</p>
+                        <p className="text-sm">{formatPrice(item.price * item.quantity)} Ft</p>
                       </div>
                     </div>
                   ))}
@@ -278,7 +283,7 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                 <div className={`pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                   <div className="flex justify-between mb-2">
                     <span>Részösszeg:</span>
-                    <span>{totalAmount} Ft</span>
+                    <span>{formatPrice(totalAmount)} Ft</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span>Szállítási díj:</span>
@@ -286,7 +291,7 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                   </div>
                   <div className="flex justify-between font-bold text-lg mt-2">
                     <span>Összesen:</span>
-                    <span>{totalAmount} Ft</span>
+                    <span>{formatPrice(totalAmount)} Ft</span>
                   </div>
                 </div>
               </div>
@@ -354,7 +359,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                         className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
                       />
                     </div>
-
                     <div>
                       <label className="block mb-2 text-sm font-medium">Fizetési mód</label>
                       <select
