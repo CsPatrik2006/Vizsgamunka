@@ -143,11 +143,25 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
         return;
       }
 
-      // 1. Create an order
+      // Get the selected garage ID from the appointment data
+      const selectedGarageId = appointmentData.garageId;
+
+      // Calculate total price
+      const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+      // Debug logging
+      console.log('Creating order with data:', {
+        user_id: userId,
+        garage_id: selectedGarageId,
+        total_price: totalPrice,
+        status: 'pending'
+      });
+
+      // 1. Create an order with the correct field names
       const orderResponse = await axios.post('http://localhost:3000/orders', {
         user_id: userId,
-        order_date: new Date().toISOString(),
-        total_amount: cartItems.reduce((total, item) => total + (item.price * item.quantity), 0),
+        garage_id: selectedGarageId, // Add the garage ID
+        total_price: totalPrice, // Changed from total_amount to total_price
         status: 'pending'
       });
 
@@ -195,7 +209,13 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
 
     } catch (error) {
       console.error('Error processing checkout:', error);
-      setError('Failed to process your order. Please try again.');
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        setError(`Failed to process your order: ${error.response.data.message || 'Please try again.'}`);
+      } else {
+        setError('Failed to process your order. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -373,64 +393,166 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                       </select>
                     </div>
 
+                    {/* Appointment Selection Section - Improved UI */}
                     <div className="md:col-span-2 border-t pt-6 mt-2">
                       <h2 className="text-xl font-semibold mb-4">Időpontfoglalás</h2>
                       <p className={`mb-4 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                         Ha szervizelést vagy beszerelést igénylő terméket rendelt, foglaljon időpontot az alábbi űrlapon.
                       </p>
-                    </div>
 
-                    <div>
-                      <label className="block mb-2 text-sm font-medium">Szerviz kiválasztása</label>
-                      <select
-                        name="garageId"
-                        value={appointmentData.garageId}
-                        onChange={handleAppointmentChange}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
-                      >
-                        {garages.map(garage => (
-                          <option key={garage.id} value={garage.id}>
-                            {garage.name} - {garage.location}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      {/* Service Selection Card */}
+                      <div className={`p-4 rounded-lg mb-6 ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
+                        <label className="block mb-2 text-sm font-medium">Szerviz kiválasztása</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {garages.map(garage => (
+                            <div
+                              key={garage.id}
+                              onClick={() => setAppointmentData(prev => ({ ...prev, garageId: garage.id }))}
+                              className={`p-3 rounded-lg cursor-pointer transition-all border-2 ${appointmentData.garageId === garage.id
+                                ? `${darkMode ? "border-[#4e77f4] bg-[#1e2129]" : "border-[#4e77f4] bg-white"}`
+                                : `${darkMode ? "border-transparent" : "border-transparent"}`
+                                }`}
+                            >
+                              <div className="flex items-start">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 mt-1 ${appointmentData.garageId === garage.id
+                                  ? "bg-[#4e77f4]"
+                                  : `${darkMode ? "bg-[#3a3f4b]" : "bg-gray-300"}`
+                                  }`}>
+                                  {appointmentData.garageId === garage.id && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="font-medium">{garage.name}</h3>
+                                  <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{garage.location}</p>
+                                  {garage.phone && (
+                                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                      <span className="inline-block mr-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                      </span>
+                                      {garage.phone}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
-                    <div>
-                      <label className="block mb-2 text-sm font-medium">Dátum</label>
-                      <input
-                        type="date"
-                        name="date"
-                        min={today}
-                        value={appointmentData.date}
-                        onChange={handleAppointmentChange}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
-                      />
-                    </div>
+                      {/* Date Selection */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block mb-2 text-sm font-medium">Dátum kiválasztása</label>
+                          <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
+                            <input
+                              type="date"
+                              name="date"
+                              min={today}
+                              value={appointmentData.date}
+                              onChange={handleAppointmentChange}
+                              className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#1e2129] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                            />
 
-                    <div>
-                      <label className="block mb-2 text-sm font-medium">Időpont</label>
-                      <select
-                        name="time"
-                        value={appointmentData.time}
-                        onChange={handleAppointmentChange}
-                        disabled={!appointmentData.date || availableTimes.length === 0}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all ${!appointmentData.date ? "opacity-50" : ""}`}
-                      >
-                        <option value="">Válassz időpontot</option>
-                        {availableTimes.map(time => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                      {appointmentData.date && availableTimes.length === 0 && (
-                        <p className="mt-1 text-sm text-red-500">Nincs elérhető időpont ezen a napon</p>
+                            {!appointmentData.date && (
+                              <p className={`mt-3 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Válasszon egy dátumot az elérhető időpontok megtekintéséhez
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Time Selection */}
+                        <div>
+                          <label className="block mb-2 text-sm font-medium">Időpont kiválasztása</label>
+                          <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
+                            {appointmentData.date ? (
+                              availableTimes.length > 0 ? (
+                                <div className="grid grid-cols-3 gap-2">
+                                  {availableTimes.map(time => (
+                                    <div
+                                      key={time}
+                                      onClick={() => setAppointmentData(prev => ({ ...prev, time }))}
+                                      className={`p-2 rounded-lg text-center cursor-pointer transition-all ${appointmentData.time === time
+                                        ? `bg-[#4e77f4] text-white`
+                                        : `${darkMode ? "bg-[#1e2129] hover:bg-[#2a2f3a]" : "bg-white hover:bg-gray-100"}`
+                                        }`}
+                                    >
+                                      {time}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-center py-4">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-red-500">Nincs elérhető időpont ezen a napon</p>
+                                  <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                    Kérjük válasszon másik napot
+                                  </p>
+                                </div>
+                              )
+                            ) : (
+                              <div className="text-center py-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                  Először válasszon dátumot
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Appointment Summary */}
+                      {appointmentData.date && appointmentData.time && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className={`mt-6 p-4 rounded-lg border ${darkMode ? "bg-[#1e2129] border-[#4e77f4]" : "bg-blue-50 border-blue-200"}`}
+                        >
+                          <div className="flex items-start">
+                            <div className="rounded-full bg-[#4e77f4] p-2 mr-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="font-medium">Foglalás megerősítve</h3>
+                              <p className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                                {garages.find(g => g.id === appointmentData.garageId)?.name} - {new Date(appointmentData.date).toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' })}, {appointmentData.time}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setAppointmentData(prev => ({ ...prev, date: "", time: "" }))}
+                                className="text-sm text-[#4e77f4] hover:text-[#3a5fc7] mt-1 flex items-center"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Időpont törlése
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
                       )}
-                    </div>
 
-                    <div className="md:col-span-2 mt-4">
-                      <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"} mb-2`}>
-                        Az időpontfoglalás opcionális. Ha nem választ időpontot, a rendelés feldolgozása után felvesszük Önnel a kapcsolatot.
-                      </p>
+                      <div className="mt-4">
+                        <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"} mb-2`}>
+                          Az időpontfoglalás opcionális. Ha nem választ időpontot, a rendelés feldolgozása után felvesszük Önnel a kapcsolatot.
+                        </p>
+                      </div>
                     </div>
                   </div>
 

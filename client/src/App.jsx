@@ -10,32 +10,17 @@ import ShopPage from "./page/shop";
 import ItemDetailsPage from "./page/itemDetails";
 import MyGaragesPage from "./page/MyGaragesPage";
 import GarageInventoryPage from "./page/GarageInventoryPage";
+import EditGaragePage from "./page/EditGaragePage";
+import EditInventoryItemPage from "./page/EditInventoryItemPage";
 import Checkout from "./page/Checkout";
 import CheckoutSuccess from "./page/CheckoutSuccess";
-
-// Protected route component
-const ProtectedRoute = ({ children, requiredRole }) => {
-  const isAuthenticated = localStorage.getItem('token') !== null;
-  const userDataString = localStorage.getItem('userData');
-  const userData = userDataString ? JSON.parse(userDataString) : {};
-
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  // If a specific role is required, check if user has that role
-  if (requiredRole && userData.role !== requiredRole) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Check if user is logged in on component mount
   useEffect(() => {
@@ -52,6 +37,7 @@ function App() {
         localStorage.removeItem('userData');
       }
     }
+    setAuthLoading(false);
   }, []);
 
   const handleLoginSuccess = (user, token) => {
@@ -66,6 +52,32 @@ function App() {
     localStorage.removeItem('userData');
     setIsLoggedIn(false);
     setUserData(null);
+  };
+
+  // Protected route component
+  const ProtectedRoute = ({ children, requiredRole }) => {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
+          <div className="text-xl">Betöltés...</div>
+        </div>
+      );
+    }
+
+    const isAuthenticated = localStorage.getItem('token') !== null;
+    const userDataString = localStorage.getItem('userData');
+    const userData = userDataString ? JSON.parse(userDataString) : {};
+
+    if (!isAuthenticated) {
+      return <Navigate to="/" replace />;
+    }
+
+    // If a specific role is required, check if user has that role
+    if (requiredRole && userData.role !== requiredRole) {
+      return <Navigate to="/" replace />;
+    }
+
+    return children;
   };
 
   return (
@@ -198,20 +210,29 @@ function App() {
               }
             />
 
-            {/* Other protected routes */}
             <Route
-              path="/appointments"
+              path="/my-garages/:garageId/edit"
               element={
-                <ProtectedRoute>
-                  <div>Appointments Page (Coming Soon)</div>
+                <ProtectedRoute requiredRole="garage_owner">
+                  <EditGaragePage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
                 </ProtectedRoute>
               }
             />
+
+            {/* New route for editing inventory items */}
             <Route
-              path="/orders"
+              path="/my-garages/:garageId/inventory/:itemId/edit"
               element={
-                <ProtectedRoute>
-                  <div>Orders Page (Coming Soon)</div>
+                <ProtectedRoute requiredRole="garage_owner">
+                  <EditInventoryItemPage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
+                  />
                 </ProtectedRoute>
               }
             />
