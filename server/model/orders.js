@@ -48,4 +48,8 @@ const Order = sequelize.define(
   }
 );
 
+// Define associations
+Order.belongsTo(User, { foreignKey: 'user_id' });
+Order.belongsTo(Garage, { foreignKey: 'garage_id' });
+
 module.exports = Order;

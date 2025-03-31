@@ -317,10 +317,12 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                     </div>
 
                     <p className="mb-6 text-sm line-clamp-3">{garage.description || "Nincs leírás"}</p>
-
-                    <div className="flex justify-between">
+                    <div className="flex flex-wrap gap-2 justify-between">
                       <Button onClick={() => navigateToInventory(garage.id)}>
                         Készlet kezelése
+                      </Button>
+                      <Button onClick={() => navigate(`/my-garages/${garage.id}/orders`)}>
+                        Rendelések
                       </Button>
                       <Button onClick={() => navigate(`/my-garages/${garage.id}/edit`)}>
                         Szerkesztés
@@ -335,7 +337,7 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
       </section>
 
       <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
+        <p className="text-sm">© 2025 Gumizz Kft. Minden jog fenntartva.</p>
         <div className="mt-2">
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
           <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>

@@ -10,16 +10,17 @@ exports.getAllOrders = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "name", "email"], // Include user details (customize as needed)
+          attributes: ["id", "name", "email"], // Include user details
         },
         {
           model: Garage,
-          attributes: ["id", "name", "location"], // Include garage details (customize as needed)
+          attributes: ["id", "name", "location"], // Include garage details
         },
       ],
     });
     res.json(orders);
   } catch (error) {
+    console.error("Error fetching all orders:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -31,11 +32,11 @@ exports.getOrderById = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "name", "email"], // Include user details (customize as needed)
+          attributes: ["id", "name", "email"], // Include user details
         },
         {
           model: Garage,
-          attributes: ["id", "name", "location"], // Include garage details (customize as needed)
+          attributes: ["id", "name", "location"], // Include garage details
         },
       ],
     });
@@ -46,7 +47,46 @@ exports.getOrderById = async (req, res) => {
 
     res.json(order);
   } catch (error) {
+    console.error("Error fetching order by ID:", error);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get orders by garage ID
+exports.getOrdersByGarageId = async (req, res) => {
+  try {
+    const garageId = req.params.garageId;
+    
+    // First check if the garage exists
+    const garage = await Garage.findByPk(garageId);
+    if (!garage) {
+      return res.status(404).json({ message: "Garage not found" });
+    }
+    
+    // Try with a simpler query first
+    const orders = await Order.findAll({
+      where: { garage_id: garageId },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "name", "email", "phone"],
+        },
+        {
+          model: Garage,
+          attributes: ["id", "name", "location"],
+        },
+      ],
+      order: [['order_date', 'DESC']]
+    });
+    
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders by garage ID:", error);
+    res.status(500).json({ 
+      message: "Server error", 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 };
 
@@ -68,6 +108,7 @@ exports.createOrder = async (req, res) => {
 
     res.status(201).json(newOrder);
   } catch (error) {
+    console.error("Error creating order:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -86,6 +127,7 @@ exports.updateOrder = async (req, res) => {
 
     res.json(order);
   } catch (error) {
+    console.error("Error updating order:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -103,6 +145,7 @@ exports.deleteOrder = async (req, res) => {
 
     res.json({ message: "Order deleted successfully" });
   } catch (error) {
+    console.error("Error deleting order:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

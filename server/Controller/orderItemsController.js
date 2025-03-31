@@ -6,6 +6,7 @@ exports.getAllOrderItems = async (req, res) => {
     const orderItems = await OrderItem.findAll();
     res.json(orderItems);
   } catch (error) {
+    console.error("Error fetching all order items:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -19,6 +20,23 @@ exports.getOrderItemById = async (req, res) => {
     }
     res.json(orderItem);
   } catch (error) {
+    console.error("Error fetching order item by ID:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get order items by order ID
+exports.getOrderItemsByOrderId = async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    
+    const orderItems = await OrderItem.findAll({
+      where: { order_id: orderId }
+    });
+    
+    res.json(orderItems);
+  } catch (error) {
+    console.error("Error fetching order items by order ID:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -42,6 +60,7 @@ exports.createOrderItem = async (req, res) => {
 
     res.status(201).json(newOrderItem);
   } catch (error) {
+    console.error("Error creating order item:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -59,6 +78,7 @@ exports.updateOrderItem = async (req, res) => {
     await orderItem.update({ order_id, product_type, product_id, quantity, unit_price });
     res.json(orderItem);
   } catch (error) {
+    console.error("Error updating order item:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -75,6 +95,7 @@ exports.deleteOrderItem = async (req, res) => {
     await orderItem.destroy();
     res.json({ message: "Order item deleted successfully" });
   } catch (error) {
+    console.error("Error deleting order item:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

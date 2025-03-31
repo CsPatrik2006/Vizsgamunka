@@ -14,6 +14,7 @@ import EditGaragePage from "./page/EditGaragePage";
 import EditInventoryItemPage from "./page/EditInventoryItemPage";
 import Checkout from "./page/Checkout";
 import CheckoutSuccess from "./page/CheckoutSuccess";
+import GarageOrdersPage from "./page/GarageOrders";
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -102,6 +103,7 @@ function App() {
           )}
 
           <Routes>
+            {/* Public Routes */}
             <Route
               path="/"
               element={
@@ -115,7 +117,6 @@ function App() {
               }
             />
 
-            {/* Shop Route */}
             <Route
               path="/shop"
               element={
@@ -142,7 +143,7 @@ function App() {
               }
             />
 
-            {/* Checkout Routes */}
+            {/* Protected Routes - Any authenticated user */}
             <Route
               path="/checkout"
               element={
@@ -169,7 +170,6 @@ function App() {
               }
             />
 
-            {/* Protected Profile Route */}
             <Route
               path="/profile"
               element={
@@ -223,7 +223,6 @@ function App() {
               }
             />
 
-            {/* New route for editing inventory items */}
             <Route
               path="/my-garages/:garageId/inventory/:itemId/edit"
               element={
@@ -232,6 +231,20 @@ function App() {
                     isLoggedIn={isLoggedIn}
                     userData={userData}
                     handleLogout={handleLogout}
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* New protected route for garage orders */}
+            <Route
+              path="/my-garages/:garageId/orders"
+              element={
+                <ProtectedRoute requiredRole="garage_owner">
+                  <GarageOrdersPage 
+                    isLoggedIn={isLoggedIn} 
+                    userData={userData} 
+                    handleLogout={handleLogout} 
                   />
                 </ProtectedRoute>
               }

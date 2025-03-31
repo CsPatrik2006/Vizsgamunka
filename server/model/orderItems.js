@@ -42,4 +42,7 @@ const OrderItem = sequelize.define(
   }
 );
 
+// Define association
+OrderItem.belongsTo(Order, { foreignKey: 'order_id' });
+
 module.exports = OrderItem;
