@@ -29,11 +29,11 @@ exports.getOrderItemById = async (req, res) => {
 exports.getOrderItemsByOrderId = async (req, res) => {
   try {
     const orderId = req.params.orderId;
-    
+
     const orderItems = await OrderItem.findAll({
       where: { order_id: orderId }
     });
-    
+
     res.json(orderItems);
   } catch (error) {
     console.error("Error fetching order items by order ID:", error);
@@ -87,7 +87,7 @@ exports.updateOrderItem = async (req, res) => {
 exports.deleteOrderItem = async (req, res) => {
   try {
     const orderItem = await OrderItem.findByPk(req.params.id);
-    
+
     if (!orderItem) {
       return res.status(404).json({ message: "Order item not found" });
     }

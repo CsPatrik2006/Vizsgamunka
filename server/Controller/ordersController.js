@@ -1,6 +1,9 @@
 const Order = require("../model/orders");
 const User = require("../model/users");
 const Garage = require("../model/garages");
+const OrderItem = require("../model/orderItems");
+const Appointment = require("../model/appointments");
+const { sendOrderConfirmationEmail } = require("../utils/emailService");
 
 // Get all orders
 exports.getAllOrders = async (req, res) => {
@@ -56,13 +59,13 @@ exports.getOrderById = async (req, res) => {
 exports.getOrdersByGarageId = async (req, res) => {
   try {
     const garageId = req.params.garageId;
-    
+
     // First check if the garage exists
     const garage = await Garage.findByPk(garageId);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
-    
+
     // Try with a simpler query first
     const orders = await Order.findAll({
       where: { garage_id: garageId },
@@ -78,14 +81,14 @@ exports.getOrdersByGarageId = async (req, res) => {
       ],
       order: [['order_date', 'DESC']]
     });
-    
+
     res.json(orders);
   } catch (error) {
     console.error("Error fetching orders by garage ID:", error);
-    res.status(500).json({ 
-      message: "Server error", 
+    res.status(500).json({
+      message: "Server error",
       error: error.message,
-      stack: error.stack 
+      stack: error.stack
     });
   }
 };
@@ -106,7 +109,57 @@ exports.createOrder = async (req, res) => {
       status,
     });
 
+    // Get user information for the email
+    const user = await User.findByPk(user_id);
+
+    // Get garage information
+    const garage = await Garage.findByPk(garage_id);
+
+    // Send order confirmation email (we'll get order items later)
+    // We'll store this promise to await it after responding to the client
+    const emailPromise = (async () => {
+      try {
+        // Wait a bit to allow order items to be created
+        setTimeout(async () => {
+          // Get order items
+          const orderItems = await OrderItem.findAll({
+            where: { order_id: newOrder.id }
+          });
+
+          // Check if there's an appointment for this order
+          const appointment = await Appointment.findOne({
+            where: { order_id: newOrder.id }
+          });
+
+          let appointmentDetails = null;
+          if (appointment) {
+            // Get garage name for the appointment
+            const appointmentGarage = await Garage.findByPk(appointment.garage_id);
+            appointmentDetails = {
+              ...appointment.dataValues,
+              garage_name: appointmentGarage ? appointmentGarage.name : 'Unknown'
+            };
+          }
+
+          await sendOrderConfirmationEmail(
+            user,
+            newOrder,
+            orderItems,
+            !!appointment,
+            appointmentDetails
+          );
+        }, 2000); // Wait 2 seconds to ensure order items are created
+      } catch (emailError) {
+        console.error("Failed to send order confirmation email:", emailError);
+        // Continue with order creation even if email fails
+      }
+    })();
+
     res.status(201).json(newOrder);
+
+    // No need to await this, let it run in the background
+    emailPromise.catch(err => console.error("Background email sending failed:", err));
+
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(500).json({ message: "Server error", error: error.message });

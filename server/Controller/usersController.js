@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../model/users");
+const { sendRegistrationEmail } = require("../utils/emailService");
 
 // Regisztráció (Felhasználó létrehozása)
 exports.createUser = async (req, res) => {
@@ -22,6 +23,14 @@ exports.createUser = async (req, res) => {
       password_hash: hashedPassword, // Mentjük a titkosított jelszót
       last_login: new Date(), // Set initial login time
     });
+
+    // Send registration confirmation email
+    try {
+      await sendRegistrationEmail(newUser);
+    } catch (emailError) {
+      console.error("Failed to send registration email:", emailError);
+      // Continue with registration even if email fails
+    }
 
     res.status(201).json({ message: "Felhasználó sikeresen létrehozva!", user: newUser });
   } catch (error) {

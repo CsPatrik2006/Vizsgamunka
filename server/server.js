@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require('cors');
 const path = require('path');
@@ -11,6 +12,11 @@ const ordersRoutes = require("./routes/ordersRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const cartItemsRoutes = require("./routes/cartItemsRoutes");
 const orderItemsRoutes = require("./routes/orderItemsRoutes");
+
+// Check email configuration
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.warn('Warning: Email credentials not configured. Email notifications will not work.');
+}
 
 const app = express();
 app.use(cors());
@@ -29,9 +35,6 @@ app.use("/orders", ordersRoutes);
 app.use("/cart", cartRoutes);
 app.use("/cartItems", cartItemsRoutes);
 app.use("/orderItems", orderItemsRoutes);
-
-
-
 
 sequelize
   .sync({ alter: true })
