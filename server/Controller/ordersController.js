@@ -3,7 +3,7 @@ const User = require("../model/users");
 const Garage = require("../model/garages");
 const OrderItem = require("../model/orderItems");
 const Appointment = require("../model/appointments");
-const { sendOrderConfirmationEmail } = require("../utils/emailService");
+const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require("../utils/emailService");
 
 // Get all orders
 exports.getAllOrders = async (req, res) => {
@@ -59,13 +59,13 @@ exports.getOrderById = async (req, res) => {
 exports.getOrdersByGarageId = async (req, res) => {
   try {
     const garageId = req.params.garageId;
-
+    
     // First check if the garage exists
     const garage = await Garage.findByPk(garageId);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
-
+    
     // Try with a simpler query first
     const orders = await Order.findAll({
       where: { garage_id: garageId },
@@ -81,7 +81,7 @@ exports.getOrdersByGarageId = async (req, res) => {
       ],
       order: [['order_date', 'DESC']]
     });
-
+    
     res.json(orders);
   } catch (error) {
     console.error("Error fetching orders by garage ID:", error);
@@ -176,7 +176,34 @@ exports.updateOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    // Check if status is changing
+    const statusChanged = order.status !== status;
+    const oldStatus = order.status;
+
+    // Update the order
     await order.update({ user_id, garage_id, total_price, status });
+
+    // If status changed, send notification email
+    if (statusChanged && ['confirmed', 'completed', 'canceled'].includes(status)) {
+      try {
+        // Get user information
+        const user = await User.findByPk(order.user_id);
+        
+        // Get garage information
+        const garage = await Garage.findByPk(order.garage_id);
+        
+        // Send status update email
+        await sendOrderStatusUpdateEmail(user, order, garage, {
+          oldStatus,
+          newStatus: status
+        });
+        
+        console.log(`Status update email sent for order #${order.id}: ${oldStatus} -> ${status}`);
+      } catch (emailError) {
+        console.error("Failed to send status update email:", emailError);
+        // Continue with order update even if email fails
+      }
+    }
 
     res.json(order);
   } catch (error) {
