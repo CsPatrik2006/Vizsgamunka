@@ -1,4 +1,6 @@
 const OrderItem = require("../model/orderItems");
+const Inventory = require("../model/inventory");
+const Service = require("../model/services");
 
 // Get all order items
 exports.getAllOrderItems = async (req, res) => {
@@ -25,7 +27,7 @@ exports.getOrderItemById = async (req, res) => {
   }
 };
 
-// Get order items by order ID
+// Get order items by order ID with product details
 exports.getOrderItemsByOrderId = async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -34,7 +36,35 @@ exports.getOrderItemsByOrderId = async (req, res) => {
       where: { order_id: orderId }
     });
 
-    res.json(orderItems);
+    // Enhance order items with product details
+    const enhancedOrderItems = await Promise.all(orderItems.map(async (item) => {
+      const itemData = item.toJSON();
+      
+      // Get product details based on product_type
+      if (item.product_type === 'inventory') {
+        const product = await Inventory.findByPk(item.product_id);
+        if (product) {
+          // Use item_name from inventory
+          itemData.product_name = product.item_name;
+          itemData.product_details = product;
+        } else {
+          itemData.product_name = 'Ismeretlen termék';
+        }
+      } else if (item.product_type === 'service') {
+        const service = await Service.findByPk(item.product_id);
+        if (service) {
+          // Use name from services
+          itemData.product_name = service.name;
+          itemData.product_details = service;
+        } else {
+          itemData.product_name = 'Ismeretlen szolgáltatás';
+        }
+      }
+      
+      return itemData;
+    }));
+
+    res.json(enhancedOrderItems);
   } catch (error) {
     console.error("Error fetching order items by order ID:", error);
     res.status(500).json({ message: "Server error", error: error.message });

@@ -1,4 +1,20 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
+const emailValidator = require('email-validator');
+
+// Define the logo path
+const logoPath = path.join(__dirname, '..', 'assets', 'Gumizz_logo.png');
+console.log('Logo path:', logoPath);
+
+// Verify the logo exists
+let logoExists = false;
+try {
+  logoExists = fs.existsSync(logoPath);
+  console.log('Logo exists:', logoExists);
+} catch (error) {
+  console.error('Error checking if logo exists:', error);
+}
 
 // Create a transporter object
 const transporter = nodemailer.createTransport({
@@ -17,14 +33,44 @@ const transporter = nodemailer.createTransport({
 // Function to send registration confirmation email
 exports.sendRegistrationEmail = async (user) => {
   try {
+    // Validate email first
+    if (!emailValidator.validate(user.email)) {
+      throw new Error(`Invalid email address: ${user.email}`);
+    }
+
+    // Create plain text version for better deliverability
+    const textVersion = `
+      Üdvözöljük a Gumizz Kft. oldalán!
+      
+      Kedves ${user.name},
+      
+      Köszönjük, hogy regisztrált oldalunkon! Fiókja sikeresen létrejött.
+      
+      Felhasználói adatok:
+      - Név: ${user.name}
+      - Email: ${user.email}
+      
+      Most már bejelentkezhet és böngészhet termékeink és szolgáltatásaink között.
+      
+      Ha bármilyen kérdése van, kérjük, vegye fel velünk a kapcsolatot.
+      
+      © 2025 Gumizz Kft. Minden jog fenntartva.
+    `;
+
     const mailOptions = {
-      from: `"Gumizz Webáruház" <${process.env.EMAIL_USER}>`, // Add a display name
+      from: `"Gumizz Webáruház" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: 'Sikeres regisztráció - Gumizz Kft.',
+      text: textVersion,
+      headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High',
+        'Importance': 'High'
+      },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://your-website.com/logo.png" alt="Gumizz Kft. Logo" style="max-width: 150px;">
+            ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
           </div>
           <h2 style="color: #4e77f4;">Üdvözöljük a Gumizz Kft. oldalán!</h2>
           <p>Kedves ${user.name},</p>
@@ -35,14 +81,23 @@ exports.sendRegistrationEmail = async (user) => {
             <li>Email: ${user.email}</li>
           </ul>
           <p>Most már bejelentkezhet és böngészhet termékeink és szolgáltatásaink között.</p>
-          <div style="text-align: center; margin-top: 30px;">
-            <a href="http://localhost:5173/login" style="background-color: #4e77f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Bejelentkezés</a>
-          </div>
+          <p>Ha bármilyen kérdése van, kérjük, vegye fel velünk a kapcsolatot.</p>
           <p style="margin-top: 30px; font-size: 12px; color: #666; text-align: center;">
+            Kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:
+            Email: info.gumizzwebaruhaz@gmail.com
+            Telefon: +36 30 393 0594 / +36 20 443 5228
+            
             © 2025 Gumizz Kft. Minden jog fenntartva.
           </p>
         </div>
-      `
+      `,
+      attachments: logoExists ? [
+        {
+          filename: 'Gumizz_logo.png',
+          path: logoPath,
+          cid: 'logo' // Content ID referenced in the HTML
+        }
+      ] : []
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -57,10 +112,18 @@ exports.sendRegistrationEmail = async (user) => {
 // Function to send order confirmation email
 exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointment, appointmentDetails) => {
   try {
-    // Format items for email
+    // Validate email first
+    if (!emailValidator.validate(user.email)) {
+      throw new Error(`Invalid email address: ${user.email}`);
+    }
+
+    // Format items for email - UPDATED to show product name
     const itemsList = orderItems.map(item => `
       <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${item.product_type === 'service' ? 'Szolgáltatás' : 'Termék'}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">
+          ${item.product_type === 'service' ? 'Szolgáltatás' : 'Termék'}: 
+          <strong>${item.product_name || `ID: ${item.product_id}`}</strong>
+        </td>
         <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${item.quantity} db</td>
         <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${new Intl.NumberFormat('hu-HU').format(item.unit_price)} Ft</td>
         <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${new Intl.NumberFormat('hu-HU').format(item.unit_price * item.quantity)} Ft</td>
@@ -80,14 +143,47 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
       `;
     }
 
+    // Create plain text version for better deliverability
+    const textVersion = `
+      Köszönjük a rendelését!
+      
+      Kedves ${user.name},
+      
+      Rendelését sikeresen rögzítettük. Az alábbiakban találja a rendelés részleteit:
+      
+      Rendelésszám: #${order.id}
+      Rendelés dátuma: ${new Date(order.createdAt).toLocaleDateString('hu-HU')}
+      Állapot: Feldolgozás alatt
+      Végösszeg: ${new Intl.NumberFormat('hu-HU').format(order.total_price)} Ft
+      
+      ${hasAppointment && appointmentDetails ? `
+      Időpontfoglalás részletei:
+      Dátum: ${new Date(appointmentDetails.appointment_time).toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' })}
+      Időpont: ${new Date(appointmentDetails.appointment_time).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}
+      Helyszín: ${appointmentDetails.garage_name}
+      ` : ''}
+      
+      Rendelésével kapcsolatos kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:
+      Email: info.gumizzwebaruhaz@gmail.com
+      Telefon: +36 30 393 0594 / +36 20 443 5228
+      
+      © 2025 Gumizz Kft. Minden jog fenntartva.
+    `;
+
     const mailOptions = {
-      from: `"Gumizz Webáruház" <${process.env.EMAIL_USER}>`, // Add a display name
+      from: `"Gumizz Webáruház" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: `Rendelés visszaigazolás - #${order.id}`,
+      text: textVersion,
+      headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High',
+        'Importance': 'High'
+      },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://your-website.com/logo.png" alt="Gumizz Kft. Logo" style="max-width: 150px;">
+            ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
           </div>
           <h2 style="color: #4e77f4;">Köszönjük a rendelését!</h2>
           <p>Kedves ${user.name},</p>
@@ -123,13 +219,20 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
           ${appointmentSection}
           
           <p style="margin-top: 30px;">Rendelésével kapcsolatos kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:</p>
-          <p>Email: info@gumizz.hu<br>Telefon: +36 1 234 5678</p>
+          <p>Email: info.gumizzwebaruhaz@gmail.com<br>Telefon: +36 30 393 0594 / +36 20 443 5228</p>
           
           <p style="margin-top: 30px; font-size: 12px; color: #666; text-align: center;">
             © 2025 Gumizz Kft. Minden jog fenntartva.
           </p>
         </div>
-      `
+      `,
+      attachments: logoExists ? [
+        {
+          filename: 'Gumizz_logo.png',
+          path: logoPath,
+          cid: 'logo' // Content ID referenced in the HTML
+        }
+      ] : []
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -141,12 +244,17 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
   }
 };
 
-// NEW FUNCTION: Send order status update email
+// Send order status update email
 exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => {
   try {
+    // Validate email first
+    if (!emailValidator.validate(user.email)) {
+      throw new Error(`Invalid email address: ${user.email}`);
+    }
+
     // Get status-specific content
     let statusTitle, statusMessage, statusColor, statusEmoji;
-    
+
     switch (order.status) {
       case 'confirmed':
         statusTitle = 'Rendelés megerősítve';
@@ -173,14 +281,40 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
         statusEmoji = 'ℹ️';
     }
 
+    // Create plain text version for better deliverability
+    const textVersion = `
+      ${statusTitle}
+      
+      Kedves ${user.name},
+      
+      ${statusMessage}
+      
+      Rendelésszám: #${order.id}
+      Rendelés dátuma: ${new Date(order.createdAt).toLocaleDateString('hu-HU')}
+      Szerviz: ${garage?.name || 'Nem elérhető'}
+      Végösszeg: ${new Intl.NumberFormat('hu-HU').format(order.total_price)} Ft
+      
+      Rendelésével kapcsolatos kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:
+      Email: info.gumizzwebaruhaz@gmail.com
+      Telefon: +36 30 393 0594 / +36 20 443 5228
+      
+      © 2025 Gumizz Kft. Minden jog fenntartva.
+    `;
+
     const mailOptions = {
       from: `"Gumizz Webáruház" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: `${statusEmoji} ${statusTitle} - Rendelés #${order.id}`,
+      text: textVersion,
+      headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High',
+        'Importance': 'High'
+      },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://your-website.com/logo.png" alt="Gumizz Kft. Logo" style="max-width: 150px;">
+            ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
           </div>
           
           <div style="text-align: center; margin-bottom: 30px;">
@@ -200,18 +334,21 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
             <p style="margin: 0;"><strong>Végösszeg:</strong> ${new Intl.NumberFormat('hu-HU').format(order.total_price)} Ft</p>
           </div>
           
-          <div style="margin-top: 30px; text-align: center;">
-            <a href="http://localhost:5173/profile/orders" style="background-color: #4e77f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Rendeléseim megtekintése</a>
-          </div>
-          
           <p style="margin-top: 30px;">Rendelésével kapcsolatos kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:</p>
-          <p>Email: info@gumizz.hu<br>Telefon: +36 1 234 5678</p>
+          <p>Email: info.gumizzwebaruhaz@gmail.com<br>Telefon: +36 30 393 0594 / +36 20 443 5228</p>
           
           <p style="margin-top: 30px; font-size: 12px; color: #666; text-align: center;">
             © 2025 Gumizz Kft. Minden jog fenntartva.
           </p>
         </div>
-      `
+      `,
+      attachments: logoExists ? [
+        {
+          filename: 'Gumizz_logo.png',
+          path: logoPath,
+          cid: 'logo' // Content ID referenced in the HTML
+        }
+      ] : []
     };
 
     const info = await transporter.sendMail(mailOptions);

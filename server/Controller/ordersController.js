@@ -3,6 +3,8 @@ const User = require("../model/users");
 const Garage = require("../model/garages");
 const OrderItem = require("../model/orderItems");
 const Appointment = require("../model/appointments");
+const Inventory = require("../model/inventory");
+const Service = require("../model/services");
 const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require("../utils/emailService");
 
 // Get all orders
@@ -59,13 +61,13 @@ exports.getOrderById = async (req, res) => {
 exports.getOrdersByGarageId = async (req, res) => {
   try {
     const garageId = req.params.garageId;
-    
+
     // First check if the garage exists
     const garage = await Garage.findByPk(garageId);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
-    
+
     // Try with a simpler query first
     const orders = await Order.findAll({
       where: { garage_id: garageId },
@@ -81,7 +83,7 @@ exports.getOrdersByGarageId = async (req, res) => {
       ],
       order: [['order_date', 'DESC']]
     });
-    
+
     res.json(orders);
   } catch (error) {
     console.error("Error fetching orders by garage ID:", error);
@@ -126,6 +128,28 @@ exports.createOrder = async (req, res) => {
             where: { order_id: newOrder.id }
           });
 
+          // Enhance order items with product details
+          const enhancedOrderItems = await Promise.all(orderItems.map(async (item) => {
+            const itemData = item.toJSON();
+
+            // Get product details based on product_type
+            if (item.product_type === 'inventory') {
+              const product = await Inventory.findByPk(item.product_id);
+              if (product) {
+                // Use item_name from inventory
+                itemData.product_name = product.item_name;
+              }
+            } else if (item.product_type === 'service') {
+              const service = await Service.findByPk(item.product_id);
+              if (service) {
+                // Use name from services
+                itemData.product_name = service.name;
+              }
+            }
+
+            return itemData;
+          }));
+
           // Check if there's an appointment for this order
           const appointment = await Appointment.findOne({
             where: { order_id: newOrder.id }
@@ -144,7 +168,7 @@ exports.createOrder = async (req, res) => {
           await sendOrderConfirmationEmail(
             user,
             newOrder,
-            orderItems,
+            enhancedOrderItems, // Use enhanced items with product names
             !!appointment,
             appointmentDetails
           );
@@ -188,16 +212,16 @@ exports.updateOrder = async (req, res) => {
       try {
         // Get user information
         const user = await User.findByPk(order.user_id);
-        
+
         // Get garage information
         const garage = await Garage.findByPk(order.garage_id);
-        
+
         // Send status update email
         await sendOrderStatusUpdateEmail(user, order, garage, {
           oldStatus,
           newStatus: status
         });
-        
+
         console.log(`Status update email sent for order #${order.id}: ${oldStatus} -> ${status}`);
       } catch (emailError) {
         console.error("Failed to send status update email:", emailError);

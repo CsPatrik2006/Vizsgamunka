@@ -231,19 +231,7 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         </div>
     );
 
-    const renderEmptyState = () => (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className={`p-12 text-center rounded-xl ${darkMode ? "bg-[#1e2129]" : "bg-white"} shadow-lg`}
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto mb-4 text-[#88a0e8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <p className="text-xl text-[#88a0e8]">Még nincsenek rendelések.</p>
-        </motion.div>
-    );
+    // In the GarageOrders.jsx file, update the renderOrderItems function:
 
     const renderOrderItems = () => (
         itemsLoading ? (
@@ -259,7 +247,7 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                                 Típus
                             </th>
                             <th scope="col" className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">
-                                Termék ID
+                                Termék név
                             </th>
                             <th scope="col" className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">
                                 Mennyiség
@@ -277,14 +265,14 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                             <tr key={item.id}>
                                 <td className="px-4 py-2 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.product_type === "service"
-                                            ? (darkMode ? "bg-purple-800/30 text-purple-200" : "bg-purple-100 text-purple-800")
-                                            : (darkMode ? "bg-indigo-800/30 text-indigo-200" : "bg-indigo-100 text-indigo-800")
+                                        ? (darkMode ? "bg-purple-800/30 text-purple-200" : "bg-purple-100 text-purple-800")
+                                        : (darkMode ? "bg-indigo-800/30 text-indigo-200" : "bg-indigo-100 text-indigo-800")
                                         }`}>
                                         {item.product_type === "service" ? "Szolgáltatás" : "Termék"}
                                     </span>
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap text-sm">
-                                    {item.product_id}
+                                    {item.product_name || `ID: ${item.product_id}`}
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap text-sm">
                                     {item.quantity}
