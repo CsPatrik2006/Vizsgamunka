@@ -96,15 +96,22 @@ export default function ShopPage({
   }, [isLoggedIn, userData, garages, selectedGarages, initializeCart]);
 
   // Handle adding item to cart
-  const handleAddToCart = (item) => {
+  const handleAddToCart = async (e, item) => {
+    e.stopPropagation(); // Prevent event bubbling
+
     if (!isLoggedIn) {
       // Prompt user to login
       setIsLoginOpen(true);
       return;
     }
 
-    addToCart('inventory', item.id, 1);
-    setIsCartOpen(true); // Open cart sidebar when item is added
+    // Try to add to cart
+    const success = await addToCart('inventory', item.id, 1);
+
+    // Only open cart if successfully added
+    if (success) {
+      setIsCartOpen(true);
+    }
   };
 
   // Add the getImageUrl helper function here

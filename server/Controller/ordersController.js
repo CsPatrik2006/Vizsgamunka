@@ -5,6 +5,7 @@ const OrderItem = require("../model/orderItems");
 const Appointment = require("../model/appointments");
 const Inventory = require("../model/inventory");
 const Service = require("../model/services");
+const sequelize = require("../config/config");
 const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require("../utils/emailService");
 
 // Get all orders
@@ -98,18 +99,83 @@ exports.getOrdersByGarageId = async (req, res) => {
 // Create a new order
 exports.createOrder = async (req, res) => {
   try {
-    const { user_id, garage_id, total_price, status } = req.body;
+    const { user_id, garage_id, total_price, status, items } = req.body;
 
     if (!user_id || !garage_id || !total_price || !status) {
       return res.status(400).json({ message: "Missing required fields (user_id, garage_id, total_price, status)" });
     }
 
-    const newOrder = await Order.create({
-      user_id,
-      garage_id,
-      total_price,
-      status,
+    console.log("Creating order with items:", JSON.stringify(items, null, 2));
+
+    // Start a transaction to ensure data consistency
+    const result = await sequelize.transaction(async (t) => {
+      // Create the order
+      const newOrder = await Order.create({
+        user_id,
+        garage_id,
+        total_price,
+        status,
+      }, { transaction: t });
+
+      console.log(`Order created with ID: ${newOrder.id}`);
+
+      // If items are provided in the request, process them
+      if (items && Array.isArray(items)) {
+        console.log(`Processing ${items.length} items for order ${newOrder.id}`);
+
+        for (const item of items) {
+          console.log(`Processing item: ${JSON.stringify(item)}`);
+
+          // Create order item
+          const orderItem = await OrderItem.create({
+            order_id: newOrder.id,
+            product_type: item.product_type,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price: item.unit_price
+          }, { transaction: t });
+
+          console.log(`Created order item with ID: ${orderItem.id}`);
+
+          // Update inventory if the item is an inventory product
+          if (item.product_type === 'inventory') {
+            console.log(`Item ${item.product_id} is inventory type, updating stock...`);
+
+            const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
+
+            if (!inventoryItem) {
+              console.error(`Inventory item with ID ${item.product_id} not found`);
+              throw new Error(`Inventory item with ID ${item.product_id} not found`);
+            }
+
+            console.log(`Found inventory item: ${inventoryItem.item_name}, current quantity: ${inventoryItem.quantity}`);
+
+            if (inventoryItem.quantity < item.quantity) {
+              console.error(`Not enough stock for item ${inventoryItem.item_name}. Available: ${inventoryItem.quantity}, Requested: ${item.quantity}`);
+              throw new Error(`Not enough stock for item ${inventoryItem.item_name}. Available: ${inventoryItem.quantity}, Requested: ${item.quantity}`);
+            }
+
+            const newQuantity = inventoryItem.quantity - item.quantity;
+            console.log(`Updating quantity from ${inventoryItem.quantity} to ${newQuantity}`);
+
+            // Subtract the ordered quantity from inventory
+            await inventoryItem.update({
+              quantity: newQuantity
+            }, { transaction: t });
+
+            console.log(`Successfully updated inventory for item ${item.product_id}`);
+          } else {
+            console.log(`Item ${item.product_id} is type ${item.product_type}, no inventory update needed`);
+          }
+        }
+      } else {
+        console.log(`No items provided for order ${newOrder.id}`);
+      }
+
+      return newOrder;
     });
+
+    console.log(`Order transaction completed successfully for order ID: ${result.id}`);
 
     // Get user information for the email
     const user = await User.findByPk(user_id);
@@ -125,7 +191,7 @@ exports.createOrder = async (req, res) => {
         setTimeout(async () => {
           // Get order items
           const orderItems = await OrderItem.findAll({
-            where: { order_id: newOrder.id }
+            where: { order_id: result.id }
           });
 
           // Enhance order items with product details
@@ -152,7 +218,7 @@ exports.createOrder = async (req, res) => {
 
           // Check if there's an appointment for this order
           const appointment = await Appointment.findOne({
-            where: { order_id: newOrder.id }
+            where: { order_id: result.id }
           });
 
           let appointmentDetails = null;
@@ -167,7 +233,7 @@ exports.createOrder = async (req, res) => {
 
           await sendOrderConfirmationEmail(
             user,
-            newOrder,
+            result,
             enhancedOrderItems, // Use enhanced items with product names
             !!appointment,
             appointmentDetails
@@ -179,17 +245,22 @@ exports.createOrder = async (req, res) => {
       }
     })();
 
-    res.status(201).json(newOrder);
+    res.status(201).json(result);
 
     // No need to await this, let it run in the background
     emailPromise.catch(err => console.error("Background email sending failed:", err));
 
   } catch (error) {
     console.error("Error creating order:", error);
+
+    // Provide more specific error messages for inventory-related issues
+    if (error.message.includes("Not enough stock")) {
+      return res.status(400).json({ message: error.message });
+    }
+
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 // Update an existing order
 exports.updateOrder = async (req, res) => {
   try {

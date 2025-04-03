@@ -91,7 +91,7 @@ export default function TyreShopHomepage({
   };
 
   // Handle adding item to cart
-  const handleAddToCart = (e, item) => {
+  const handleAddToCart = async (e, item) => {
     e.stopPropagation(); // Prevent navigation to product page
 
     if (!isLoggedIn) {
@@ -100,8 +100,13 @@ export default function TyreShopHomepage({
       return;
     }
 
-    addToCart('inventory', item.id, 1);
-    setIsCartOpen(true);
+    // Try to add to cart
+    const success = await addToCart('inventory', item.id, 1);
+
+    // Only open cart if successfully added
+    if (success) {
+      setIsCartOpen(true);
+    }
   };
 
   const handleLoginSuccess = (userData, token) => {

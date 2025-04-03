@@ -102,9 +102,31 @@ export const CartProvider = ({ children }) => {
 
   // Add item to cart with optimistic updates
   const addToCart = async (productType, productId, quantity) => {
-    if (!cart) return;
+    if (!cart) return false;
     
     try {
+      // Check inventory limits for inventory items
+      if (productType === 'inventory') {
+        // Fetch current inventory status
+        const inventoryResponse = await axios.get(`http://localhost:3000/inventory/${productId}`);
+        const inventoryItem = inventoryResponse.data;
+        
+        // Check if item already exists in cart
+        const existingItem = cartItems.find(
+          item => item.product_type === productType && item.product_id === productId
+        );
+        
+        const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+        const totalRequestedQuantity = currentCartQuantity + quantity;
+        
+        // Check if total requested quantity exceeds available inventory
+        if (totalRequestedQuantity > inventoryItem.quantity) {
+          // Show error message
+          alert(`Csak ${inventoryItem.quantity} darab áll rendelkezésre ebből a termékből.`);
+          return false;
+        }
+      }
+      
       // Check if item already exists in cart
       const existingItem = cartItems.find(
         item => item.product_type === productType && item.product_id === productId
@@ -139,6 +161,8 @@ export const CartProvider = ({ children }) => {
             price: existingItem.price
           } : item
         ));
+        
+        return true;
       } else {
         // For new items, first get product details
         let productDetails = {};
@@ -178,11 +202,14 @@ export const CartProvider = ({ children }) => {
             ? { ...newItem.data, ...productDetails } 
             : item
         ));
+        
+        return true;
       }
     } catch (error) {
       console.error('Error adding item to cart:', error);
       // Revert to original state if there was an error
       fetchCartItems(cart.id);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -197,10 +224,12 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       await axios.delete(`http://localhost:3000/cartItems/${itemId}`);
+      return true;
     } catch (error) {
       console.error('Error removing item from cart:', error);
       // Revert to original state if there was an error
       setCartItems(originalItems);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -209,7 +238,26 @@ export const CartProvider = ({ children }) => {
   // Update cart item quantity with optimistic updates
   const updateCartItemQuantity = async (itemId, quantity) => {
     const item = cartItems.find(item => item.id === itemId);
-    if (!item) return;
+    if (!item) return false;
+    
+    // Check inventory limits for inventory items
+    if (item.product_type === 'inventory') {
+      try {
+        // Fetch current inventory status
+        const inventoryResponse = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
+        const inventoryItem = inventoryResponse.data;
+        
+        // Check if requested quantity exceeds available inventory
+        if (quantity > inventoryItem.quantity) {
+          // Show error message
+          alert(`Csak ${inventoryItem.quantity} darab áll rendelkezésre ebből a termékből.`);
+          return false;
+        }
+      } catch (error) {
+        console.error('Error checking inventory:', error);
+        return false;
+      }
+    }
     
     // Store original items for potential rollback
     const originalItems = [...cartItems];
@@ -236,10 +284,13 @@ export const CartProvider = ({ children }) => {
           price: item.price
         } : item
       ));
+      
+      return true;
     } catch (error) {
       console.error('Error updating cart item quantity:', error);
       // Revert to original state if there was an error
       setCartItems(originalItems);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -247,7 +298,7 @@ export const CartProvider = ({ children }) => {
 
   // Clear cart - modified to also clear localStorage
   const clearCart = async () => {
-    if (!cart) return;
+    if (!cart) return false;
     
     // Store original items for potential rollback
     const originalItems = [...cartItems];
@@ -262,10 +313,13 @@ export const CartProvider = ({ children }) => {
       await Promise.all(originalItems.map(item => 
         axios.delete(`http://localhost:3000/cartItems/${item.id}`)
       ));
+      
+      return true;
     } catch (error) {
       console.error('Error clearing cart:', error);
       // Revert to original state if there was an error
       setCartItems(originalItems);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -288,6 +342,8 @@ export const CartProvider = ({ children }) => {
       // Reset state
       setCart(null);
       setCartItems([]);
+      
+      return true;
     } catch (error) {
       console.error('Error during cart logout:', error);
       // Still clear local state even if server operations fail
@@ -295,6 +351,7 @@ export const CartProvider = ({ children }) => {
       localStorage.removeItem('cartItems');
       setCart(null);
       setCartItems([]);
+      return false;
     }
   };
 

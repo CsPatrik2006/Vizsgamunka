@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { useTheme } from '../../context/ThemeContext';
 import { useCart } from '../../context/CartContext';
@@ -6,10 +7,12 @@ import { Button } from "./button";
 
 const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
   const { darkMode } = useTheme();
-  const { removeFromCart } = useCart();
+  const { removeFromCart, updateCartItemQuantity } = useCart();
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [animationClass, setAnimationClass] = useState("translate-x-full");
+  const [inventoryLimits, setInventoryLimits] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   // Format price with thousand separator
   const formatPrice = (price) => {
@@ -24,6 +27,9 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
       setTimeout(() => {
         setAnimationClass("translate-x-0");
       }, 10);
+
+      // Fetch inventory limits when cart opens
+      fetchInventoryLimits();
     } else {
       setAnimationClass("translate-x-full");
       const timer = setTimeout(() => {
@@ -33,9 +39,53 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
     }
   }, [isOpen]);
 
+  // Fetch inventory limits for all items in cart
+  const fetchInventoryLimits = async () => {
+    const inventoryItems = cartItems.filter(item => item.product_type === 'inventory');
+
+    if (inventoryItems.length === 0) return;
+
+    setIsLoading(true);
+    try {
+      const limits = {};
+
+      for (const item of inventoryItems) {
+        const response = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
+        limits[item.product_id] = response.data.quantity;
+      }
+
+      setInventoryLimits(limits);
+    } catch (error) {
+      console.error('Error fetching inventory limits:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle item removal
   const handleRemoveItem = (itemId) => {
     removeFromCart(itemId);
+  };
+
+  // Handle quantity change
+  const handleQuantityChange = async (item, change) => {
+    const newQuantity = item.quantity + change;
+
+    // Don't allow quantity below 1
+    if (newQuantity < 1) return;
+
+    // For inventory items, check against inventory limits
+    if (item.product_type === 'inventory') {
+      const limit = inventoryLimits[item.product_id] || 0;
+
+      if (newQuantity > limit) {
+        alert(`Csak ${limit} darab áll rendelkezésre ebből a termékből.`);
+        return;
+      }
+    }
+
+    // Update quantity
+    await updateCartItemQuantity(item.id, newQuantity);
   };
 
   // Handle checkout
@@ -86,26 +136,61 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
                 {cartItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"} flex justify-between items-center`}
+                    className={`p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}
                   >
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                        {item.product_type === "service" ? "Szolgáltatás" : "Termék"}
-                      </p>
-                      <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                        Mennyiség: {item.quantity}
-                      </p>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                          {item.product_type === "service" ? "Szolgáltatás" : "Termék"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">{formatPrice(item.price)} Ft</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold">{formatPrice(item.price)} Ft</p>
-                      <button
-                        className="text-red-500 text-sm mt-1 cursor-pointer"
-                        onClick={() => handleRemoveItem(item.id)}
-                      >
-                        Eltávolítás
-                      </button>
+
+                    {/* Quantity controls */}
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex items-center">
+                        <button
+                          className={`w-7 h-7 flex items-center justify-center rounded-full ${darkMode ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-200 hover:bg-gray-300"}`}
+                          onClick={() => handleQuantityChange(item, -1)}
+                          disabled={isLoading}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+                          </svg>
+                        </button>
+                        <span className="mx-2">{item.quantity}</span>
+                        <button
+                          className={`w-7 h-7 flex items-center justify-center rounded-full ${darkMode ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-200 hover:bg-gray-300"}`}
+                          onClick={() => handleQuantityChange(item, 1)}
+                          disabled={isLoading || (item.product_type === 'inventory' && item.quantity >= (inventoryLimits[item.product_id] || 0))}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                          </svg>
+                        </button>
+                      </div>
+                      <p className="font-medium">{formatPrice(item.price * item.quantity)} Ft</p>
                     </div>
+
+                    {/* Inventory limit warning */}
+                    {item.product_type === 'inventory' &&
+                      inventoryLimits[item.product_id] !== undefined &&
+                      item.quantity >= inventoryLimits[item.product_id] && (
+                        <p className="text-xs text-amber-500 mt-1">
+                          Elérte a maximális készletet ({inventoryLimits[item.product_id]} db)
+                        </p>
+                      )}
+
+                    <button
+                      className="text-red-500 text-sm mt-2 cursor-pointer"
+                      onClick={() => handleRemoveItem(item.id)}
+                    >
+                      Eltávolítás
+                    </button>
                   </div>
                 ))}
               </div>
@@ -122,10 +207,10 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
             </div>
             <button
               className={`w-full py-2 rounded-lg ${cartItems.length === 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#4e77f4] hover:bg-[#3a5fc7]"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#4e77f4] hover:bg-[#3a5fc7]"
                 } text-white font-medium transition-colors cursor-pointer`}
-              disabled={cartItems.length === 0}
+              disabled={cartItems.length === 0 || isLoading}
               onClick={handleCheckout}
             >
               Tovább a fizetéshez

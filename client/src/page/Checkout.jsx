@@ -149,34 +149,35 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
       // Calculate total price
       const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
+      // Prepare the items array from cart items
+      const orderItems = cartItems.map(item => ({
+        product_type: item.product_type,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.price
+      }));
+
       // Debug logging
       console.log('Creating order with data:', {
         user_id: userId,
         garage_id: selectedGarageId,
         total_price: totalPrice,
-        status: 'pending'
+        status: 'pending',
+        items: orderItems // Include the items array
       });
 
-      // 1. Create an order with the correct field names
+      // 1. Create an order with items included
       const orderResponse = await axios.post('http://localhost:3000/orders', {
         user_id: userId,
-        garage_id: selectedGarageId, // Add the garage ID
-        total_price: totalPrice, // Changed from total_amount to total_price
-        status: 'pending'
+        garage_id: selectedGarageId,
+        total_price: totalPrice,
+        status: 'pending',
+        items: orderItems // Include the items array here
       });
 
       const orderId = orderResponse.data.id;
 
-      // 2. Create order items
-      await Promise.all(cartItems.map(item =>
-        axios.post('http://localhost:3000/orderItems', {
-          order_id: orderId,
-          product_type: item.product_type,
-          product_id: item.product_id,
-          quantity: item.quantity,
-          unit_price: item.price
-        })
-      ));
+      // No need to create order items separately since they're included in the order creation
 
       // 3. Create appointment if time is selected
       let hasAppointment = false;
