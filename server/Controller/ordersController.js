@@ -271,12 +271,52 @@ exports.updateOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    // Check if status is changing to canceled
+    const statusChangingToCanceled = order.status !== 'canceled' && status === 'canceled';
+
     // Check if status is changing
     const statusChanged = order.status !== status;
     const oldStatus = order.status;
 
-    // Update the order
-    await order.update({ user_id, garage_id, total_price, status });
+    // Start a transaction to ensure data consistency
+    const result = await sequelize.transaction(async (t) => {
+      // Update the order
+      await order.update({ user_id, garage_id, total_price, status }, { transaction: t });
+
+      // If order is being canceled, restore inventory quantities
+      if (statusChangingToCanceled) {
+        console.log(`Order #${order.id} is being canceled. Restoring inventory...`);
+
+        // Get order items
+        const orderItems = await OrderItem.findAll({
+          where: { order_id: order.id },
+          transaction: t
+        });
+
+        // Process each order item
+        for (const item of orderItems) {
+          // Only restore inventory for inventory items
+          if (item.product_type === 'inventory') {
+            const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
+
+            if (inventoryItem) {
+              console.log(`Restoring ${item.quantity} units to inventory item #${item.product_id}`);
+
+              // Add the ordered quantity back to inventory
+              await inventoryItem.update({
+                quantity: inventoryItem.quantity + item.quantity
+              }, { transaction: t });
+
+              console.log(`Inventory item #${item.product_id} updated. New quantity: ${inventoryItem.quantity + item.quantity}`);
+            } else {
+              console.warn(`Inventory item #${item.product_id} not found. Cannot restore quantity.`);
+            }
+          }
+        }
+      }
+
+      return order;
+    });
 
     // If status changed, send notification email
     if (statusChanged && ['confirmed', 'completed', 'canceled'].includes(status)) {
@@ -300,7 +340,7 @@ exports.updateOrder = async (req, res) => {
       }
     }
 
-    res.json(order);
+    res.json(result);
   } catch (error) {
     console.error("Error updating order:", error);
     res.status(500).json({ message: "Server error", error: error.message });

@@ -118,6 +118,7 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
     };
 
+    // Update order status
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
             const token = localStorage.getItem("token");
@@ -127,7 +128,14 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
 
             console.log(`Updating order ${orderId} status to: ${newStatus}`);
 
-            await axios.put(`http://localhost:3000/orders/${orderId}`, {
+            // Show confirmation dialog for cancellation
+            if (newStatus === 'canceled') {
+                if (!window.confirm("Biztosan törölni szeretné ezt a rendelést? A készlet visszakerül a raktárba.")) {
+                    return;
+                }
+            }
+
+            const response = await axios.put(`http://localhost:3000/orders/${orderId}`, {
                 user_id: order.user_id,
                 garage_id: order.garage_id,
                 total_price: order.total_price,
@@ -147,6 +155,11 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                 setSelectedOrder({ ...selectedOrder, status: newStatus });
             }
 
+            // Show success message for cancellation
+            if (newStatus === 'canceled') {
+                alert("A rendelés sikeresen törölve lett, és a készlet visszakerült a raktárba.");
+            }
+
         } catch (err) {
             console.error("Error updating order status:", err);
 
@@ -161,7 +174,7 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                 errorMessage += `: ${err.message}`;
             }
 
-            // You could show a toast notification here instead of setting the global error
+            // Show error notification
             alert(errorMessage);
         }
     };
