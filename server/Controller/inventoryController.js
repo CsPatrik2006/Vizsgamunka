@@ -14,7 +14,11 @@ exports.getAllItems = async (req, res) => {
       max_price,
       search,
       sort_by,
-      sort_order
+      sort_order,
+      season,
+      width,
+      profile,
+      diameter
     } = req.query;
 
     // Build query conditions
@@ -31,6 +35,33 @@ exports.getAllItems = async (req, res) => {
     // Filter by vehicle_type
     if (vehicle_type && ['car', 'motorcycle', 'truck'].includes(vehicle_type)) {
       whereConditions.vehicle_type = vehicle_type;
+    }
+
+    // Filter by season
+    if (season && ['winter', 'summer', 'all_season'].includes(season)) {
+      whereConditions.season = season;
+    }
+
+    // Filter by tyre dimensions
+    if (width) {
+      const parsedWidth = parseInt(width, 10);
+      if (!isNaN(parsedWidth)) {
+        whereConditions.width = parsedWidth;
+      }
+    }
+
+    if (profile) {
+      const parsedProfile = parseInt(profile, 10);
+      if (!isNaN(parsedProfile)) {
+        whereConditions.profile = parsedProfile;
+      }
+    }
+
+    if (diameter) {
+      const parsedDiameter = parseInt(diameter, 10);
+      if (!isNaN(parsedDiameter)) {
+        whereConditions.diameter = parsedDiameter;
+      }
     }
 
     // Filter by price range
@@ -86,7 +117,8 @@ exports.getAllItems = async (req, res) => {
       ],
       attributes: [
         "id", "garage_id", "item_name", "vehicle_type",
-        "quantity", "unit_price", "cover_img", "createdAt", "updatedAt"
+        "quantity", "unit_price", "cover_img", "additional_img1", "additional_img2",
+        "season", "width", "profile", "diameter", "createdAt", "updatedAt"
       ],
     });
 
@@ -123,7 +155,18 @@ exports.getItemById = async (req, res) => {
 // Create a new inventory item
 exports.createItem = async (req, res) => {
   try {
-    const { garage_id, item_name, vehicle_type, quantity, unit_price, description } = req.body;
+    const {
+      garage_id,
+      item_name,
+      vehicle_type,
+      quantity,
+      unit_price,
+      description,
+      season,
+      width,
+      profile,
+      diameter
+    } = req.body;
 
     // Validate required fields
     if (!garage_id || !item_name || !vehicle_type || !unit_price) {
@@ -142,10 +185,21 @@ exports.createItem = async (req, res) => {
       });
     }
 
+    // Validate season if provided
+    if (season && !['winter', 'summer', 'all_season'].includes(season)) {
+      return res.status(400).json({
+        message: "Invalid season. Must be one of: winter, summer, all_season",
+        received: season
+      });
+    }
+
     // Validate numeric fields
     const parsedGarageId = parseInt(garage_id, 10);
     const parsedQuantity = parseInt(quantity || 0, 10);
     const parsedUnitPrice = parseFloat(unit_price);
+    const parsedWidth = width ? parseInt(width, 10) : null;
+    const parsedProfile = profile ? parseInt(profile, 10) : null;
+    const parsedDiameter = diameter ? parseInt(diameter, 10) : null;
 
     if (isNaN(parsedGarageId) || isNaN(parsedQuantity) || isNaN(parsedUnitPrice)) {
       return res.status(400).json({
@@ -164,10 +218,25 @@ exports.createItem = async (req, res) => {
       return res.status(404).json({ message: `Garage with ID ${parsedGarageId} not found` });
     }
 
-    // Handle the uploaded file
+    // Handle the uploaded files
     let cover_img = null;
-    if (req.file) {
-      cover_img = `/uploads/inventory/${req.file.filename}`;
+    let additional_img1 = null;
+    let additional_img2 = null;
+
+    if (req.files) {
+      // Handle cover image
+      if (req.files.cover_img && req.files.cover_img[0]) {
+        cover_img = `/uploads/inventory/${req.files.cover_img[0].filename}`;
+      }
+
+      // Handle additional images
+      if (req.files.additional_img1 && req.files.additional_img1[0]) {
+        additional_img1 = `/uploads/inventory/${req.files.additional_img1[0].filename}`;
+      }
+
+      if (req.files.additional_img2 && req.files.additional_img2[0]) {
+        additional_img2 = `/uploads/inventory/${req.files.additional_img2[0].filename}`;
+      }
     }
 
     // Create the item
@@ -177,8 +246,14 @@ exports.createItem = async (req, res) => {
       vehicle_type,
       quantity: parsedQuantity,
       unit_price: parsedUnitPrice,
-      description, // Add description field
+      description,
       cover_img,
+      additional_img1,
+      additional_img2,
+      season,
+      width: parsedWidth,
+      profile: parsedProfile,
+      diameter: parsedDiameter
     });
 
     // Return the created item with garage details
@@ -215,13 +290,34 @@ exports.updateItem = async (req, res) => {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    const { item_name, vehicle_type, quantity, unit_price, description, garage_id } = req.body;
+    const {
+      item_name,
+      vehicle_type,
+      quantity,
+      unit_price,
+      description,
+      garage_id,
+      season,
+      width,
+      profile,
+      diameter,
+      remove_additional_img1,
+      remove_additional_img2
+    } = req.body;
 
     // Validate vehicle type if provided
     if (vehicle_type && !['car', 'motorcycle', 'truck'].includes(vehicle_type)) {
       return res.status(400).json({
         message: "Invalid vehicle type. Must be one of: car, motorcycle, truck",
         received: vehicle_type
+      });
+    }
+
+    // Validate season if provided
+    if (season && !['winter', 'summer', 'all_season'].includes(season)) {
+      return res.status(400).json({
+        message: "Invalid season. Must be one of: winter, summer, all_season",
+        received: season
       });
     }
 
@@ -253,17 +349,84 @@ exports.updateItem = async (req, res) => {
       }
     }
 
-    // Handle the uploaded file
-    let cover_img = item.cover_img;
-    if (req.file) {
-      // Delete old image if it exists
-      if (item.cover_img) {
-        const oldImagePath = path.join(__dirname, '..', item.cover_img);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+    // Validate tyre size fields if provided
+    const parsedWidth = width !== undefined ? parseInt(width, 10) : null;
+    const parsedProfile = profile !== undefined ? parseInt(profile, 10) : null;
+    const parsedDiameter = diameter !== undefined ? parseInt(diameter, 10) : null;
+
+    if (
+      (width !== undefined && isNaN(parsedWidth)) ||
+      (profile !== undefined && isNaN(parsedProfile)) ||
+      (diameter !== undefined && isNaN(parsedDiameter))
+    ) {
+      return res.status(400).json({
+        message: "Invalid tyre size values",
+        details: {
+          width: width !== undefined && isNaN(parsedWidth) ? "Must be a number" : "Valid",
+          profile: profile !== undefined && isNaN(parsedProfile) ? "Must be a number" : "Valid",
+          diameter: diameter !== undefined && isNaN(parsedDiameter) ? "Must be a number" : "Valid"
         }
+      });
+    }
+
+    // Handle the uploaded files
+    let cover_img = item.cover_img;
+    let additional_img1 = item.additional_img1;
+    let additional_img2 = item.additional_img2;
+
+    if (req.files) {
+      // Handle cover image
+      if (req.files.cover_img && req.files.cover_img[0]) {
+        // Delete old image if it exists
+        if (item.cover_img) {
+          const oldImagePath = path.join(__dirname, '..', item.cover_img);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+        cover_img = `/uploads/inventory/${req.files.cover_img[0].filename}`;
       }
-      cover_img = `/uploads/inventory/${req.file.filename}`;
+
+      // Handle additional image 1
+      if (req.files.additional_img1 && req.files.additional_img1[0]) {
+        // Delete old image if it exists
+        if (item.additional_img1) {
+          const oldImagePath = path.join(__dirname, '..', item.additional_img1);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+        additional_img1 = `/uploads/inventory/${req.files.additional_img1[0].filename}`;
+      }
+
+      // Handle additional image 2
+      if (req.files.additional_img2 && req.files.additional_img2[0]) {
+        // Delete old image if it exists
+        if (item.additional_img2) {
+          const oldImagePath = path.join(__dirname, '..', item.additional_img2);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+        additional_img2 = `/uploads/inventory/${req.files.additional_img2[0].filename}`;
+      }
+    }
+
+    // Handle image removal requests
+    if (remove_additional_img1 === 'true' && item.additional_img1) {
+      const oldImagePath = path.join(__dirname, '..', item.additional_img1);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+      additional_img1 = null;
+    }
+
+    if (remove_additional_img2 === 'true' && item.additional_img2) {
+      const oldImagePath = path.join(__dirname, '..', item.additional_img2);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+      additional_img2 = null;
     }
 
     // Update the item
@@ -274,15 +437,21 @@ exports.updateItem = async (req, res) => {
       unit_price: unit_price ? parseFloat(unit_price) : item.unit_price,
       description: description !== undefined ? description : item.description,
       garage_id: garage_id ? parseInt(garage_id, 10) : item.garage_id,
-      cover_img
+      cover_img,
+      additional_img1,
+      additional_img2,
+      season: season || item.season,
+      width: width !== undefined ? parsedWidth : item.width,
+      profile: profile !== undefined ? parsedProfile : item.profile,
+      diameter: diameter !== undefined ? parsedDiameter : item.diameter
     });
 
-    // Return the updated item with garage details - FIX THE ATTRIBUTES HERE
+    // Return the updated item with garage details
     const updatedItemWithGarage = await Inventory.findByPk(item.id, {
       include: [
         {
           model: Garage,
-          attributes: ["id", "name", "location", "contact_info"], // Changed from "contact" to "contact_info"
+          attributes: ["id", "name", "location", "contact_info"],
         }
       ]
     });
@@ -302,11 +471,15 @@ exports.deleteItem = async (req, res) => {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    // Delete the image file if it exists
-    if (item.cover_img) {
-      const imagePath = path.join(__dirname, '..', item.cover_img);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+    // Delete all image files if they exist
+    const imageFields = ['cover_img', 'additional_img1', 'additional_img2'];
+
+    for (const field of imageFields) {
+      if (item[field]) {
+        const imagePath = path.join(__dirname, '..', item[field]);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
       }
     }
 
@@ -345,7 +518,11 @@ exports.getItemsByGarageId = async (req, res) => {
     // Get items for this garage
     const items = await Inventory.findAll({
       where: { garage_id: parsedGarageId },
-      attributes: ["id", "garage_id", "item_name", "vehicle_type", "quantity", "unit_price", "cover_img", "createdAt", "updatedAt"],
+      attributes: [
+        "id", "garage_id", "item_name", "vehicle_type", "quantity", "unit_price",
+        "cover_img", "additional_img1", "additional_img2", "season",
+        "width", "profile", "diameter", "createdAt", "updatedAt"
+      ],
       order: [['createdAt', 'DESC']]
     });
 

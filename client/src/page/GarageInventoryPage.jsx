@@ -24,13 +24,20 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     vehicle_type: "car",
     quantity: 0,
     unit_price: "",
-    description: ""
+    description: "",
+    season: "",
+    width: "",
+    profile: "",
+    diameter: ""
   });
 
-  // Add a new state for the file
-  const [selectedFile, setSelectedFile] = useState(null);
+  // Add states for the files
+  const [coverImage, setCoverImage] = useState(null);
+  const [additionalImage1, setAdditionalImage1] = useState(null);
+  const [additionalImage2, setAdditionalImage2] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [currentDragTarget, setCurrentDragTarget] = useState(null);
 
   // Add the getImageUrl helper function
   const getImageUrl = (imagePath) => {
@@ -44,16 +51,18 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   };
 
   // Add drag and drop event handlers
-  const handleDragEnter = (e) => {
+  const handleDragEnter = (e, target) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
+    setCurrentDragTarget(target);
   };
 
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
+    setCurrentDragTarget(null);
   };
 
   const handleDragOver = (e) => {
@@ -64,26 +73,24 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e, target) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
+    setCurrentDragTarget(null);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       // Check if the file is an image
       if (file.type.match('image.*')) {
-        setSelectedFile(file);
-
-        // Create a synthetic event object to reuse the existing handleInputChange
-        const syntheticEvent = {
-          target: {
-            name: 'image',
-            type: 'file',
-            files: [file]
-          }
-        };
-        handleInputChange(syntheticEvent);
+        // Set the appropriate image based on the target
+        if (target === 'cover') {
+          setCoverImage(file);
+        } else if (target === 'additional1') {
+          setAdditionalImage1(file);
+        } else if (target === 'additional2') {
+          setAdditionalImage2(file);
+        }
       }
     }
   };
@@ -175,14 +182,22 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, files } = e.target;
 
     if (type === 'file') {
-      setSelectedFile(e.target.files[0]);
+      // Handle file inputs based on the input name
+      if (name === 'cover_img') {
+        setCoverImage(files[0]);
+      } else if (name === 'additional_img1') {
+        setAdditionalImage1(files[0]);
+      } else if (name === 'additional_img2') {
+        setAdditionalImage2(files[0]);
+      }
     } else {
+      // Handle other inputs
       setNewItem({
         ...newItem,
-        [name]: name === "unit_price" || name === "quantity" ? parseFloat(value) : value
+        [name]: value
       });
     }
   };
@@ -200,9 +215,21 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       formData.append('unit_price', newItem.unit_price);
       formData.append('description', newItem.description);
 
+      // Add tyre-specific fields
+      if (newItem.season) formData.append('season', newItem.season);
+      if (newItem.width) formData.append('width', newItem.width);
+      if (newItem.profile) formData.append('profile', newItem.profile);
+      if (newItem.diameter) formData.append('diameter', newItem.diameter);
 
-      if (selectedFile) {
-        formData.append('image', selectedFile);
+      // Add images
+      if (coverImage) {
+        formData.append('cover_img', coverImage);
+      }
+      if (additionalImage1) {
+        formData.append('additional_img1', additionalImage1);
+      }
+      if (additionalImage2) {
+        formData.append('additional_img2', additionalImage2);
       }
 
       await axios.post(
@@ -216,14 +243,21 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
       );
 
+      // Reset form
       setNewItem({
         item_name: "",
         vehicle_type: "car",
         quantity: 0,
         unit_price: "",
-        description: ""
+        description: "",
+        season: "",
+        width: "",
+        profile: "",
+        diameter: ""
       });
-      setSelectedFile(null);
+      setCoverImage(null);
+      setAdditionalImage1(null);
+      setAdditionalImage2(null);
       setShowAddItemForm(false);
       fetchGarageAndInventory();
     } catch (err) {
@@ -261,6 +295,104 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       case 'truck': return 'Teherautó';
       default: return type;
     }
+  };
+
+  const getSeasonLabel = (season) => {
+    switch (season) {
+      case 'winter': return 'Téli';
+      case 'summer': return 'Nyári';
+      case 'all_season': return 'Négyévszakos';
+      default: return 'Nincs megadva';
+    }
+  };
+
+  // Helper function to render image upload area
+  const renderImageUpload = (imageType, image, setImage, label) => {
+    return (
+      <div className="mb-4">
+        <label className="block mb-2 text-sm font-medium">{label}</label>
+        <div
+          className={`border-2 border-dashed rounded-lg p-4 transition-all 
+            ${isDragging && currentDragTarget === imageType ? "border-[#4e77f4] bg-blue-50" : ""} 
+            ${darkMode
+              ? `${isDragging && currentDragTarget === imageType ? "bg-[#1e2129] border-[#4e77f4]" : "border-[#3a3f4b] bg-[#252830]"}`
+              : `${isDragging && currentDragTarget === imageType ? "bg-blue-50 border-[#4e77f4]" : "border-gray-300 bg-gray-50"}`} 
+            hover:border-[#4e77f4]`}
+          onDragEnter={(e) => handleDragEnter(e, imageType)}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, imageType)}
+        >
+          <div className="flex flex-col items-center justify-center">
+            {image ? (
+              <div className="w-full">
+                <div className="flex items-center justify-center mb-4">
+                  <img
+                    src={URL.createObjectURL(image)}
+                    alt="Preview"
+                    className="h-40 object-contain rounded-md"
+                  />
+                </div>
+                <p className="text-sm text-center mb-2 text-green-500">
+                  <span className="font-medium">{image.name}</span> ({(image.size / 1024).toFixed(1)} KB)
+                </p>
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setImage(null)}
+                    className="text-xs text-red-500 hover:text-red-700 font-medium"
+                  >
+                    Kép eltávolítása
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <svg
+                  className={`w-10 h-10 mb-3 ${isDragging && currentDragTarget === imageType ? "text-[#4e77f4]" : darkMode ? "text-gray-400" : "text-gray-500"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  ></path>
+                </svg>
+                <p className={`mb-2 text-sm ${isDragging && currentDragTarget === imageType ? "text-[#4e77f4] font-medium" : darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  {isDragging && currentDragTarget === imageType
+                    ? <span className="font-semibold">Engedd el a fájlt a feltöltéshez</span>
+                    : <span><span className="font-semibold">Kattints a feltöltéshez</span> vagy húzd ide a fájlt</span>
+                  }
+                </p>
+                <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-500"}`}>
+                  PNG, JPG vagy WEBP (Max. 5MB)
+                </p>
+              </>
+            )}
+            <input
+              type="file"
+              name={imageType}
+              id={`file-upload-${imageType}`}
+              className="hidden"
+              onChange={handleInputChange}
+              accept="image/*"
+            />
+            {!image && (
+              <label
+                htmlFor={`file-upload-${imageType}`}
+                className="mt-4 px-4 py-2 bg-[#4e77f4] text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-[#5570c2] transition-colors"
+              >
+                Kép kiválasztása
+              </label>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Don't render until theme is loaded
@@ -386,6 +518,59 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         required
                       />
                     </div>
+
+                    {/* Tyre-specific fields */}
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">Évszak</label>
+                      <select
+                        name="season"
+                        value={newItem.season}
+                        onChange={handleInputChange}
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                      >
+                        <option value="">Válassz évszakot</option>
+                        <option value="winter">Téli</option>
+                        <option value="summer">Nyári</option>
+                        <option value="all_season">Négyévszakos</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">Szélesség (mm)</label>
+                      <input
+                        type="number"
+                        name="width"
+                        value={newItem.width}
+                        onChange={handleInputChange}
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">Profil (%)</label>
+                      <input
+                        type="number"
+                        name="profile"
+                        value={newItem.profile}
+                        onChange={handleInputChange}
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">Átmérő (col)</label>
+                      <input
+                        type="number"
+                        name="diameter"
+                        value={newItem.diameter}
+                        onChange={handleInputChange}
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                        min="0"
+                      />
+                    </div>
+
                     <div className="md:col-span-2">
                       <label className="block mb-2 text-sm font-medium">Termék leírása</label>
                       <textarea
@@ -397,88 +582,18 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         placeholder="Adjon meg részletes leírást a termékről..."
                       ></textarea>
                     </div>
+
+                    {/* Image upload sections */}
                     <div className="md:col-span-2">
-                      <label className="block mb-2 text-sm font-medium">Termék képe</label>
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-4 transition-all 
-                          ${isDragging ? "border-[#4e77f4] bg-blue-50" : ""} 
-                          ${darkMode
-                            ? `${isDragging ? "bg-[#1e2129] border-[#4e77f4]" : "border-[#3a3f4b] bg-[#252830]"}`
-                            : `${isDragging ? "bg-blue-50 border-[#4e77f4]" : "border-gray-300 bg-gray-50"}`} 
-                          hover:border-[#4e77f4]`}
-                        onDragEnter={handleDragEnter}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        <div className="flex flex-col items-center justify-center">
-                          {selectedFile ? (
-                            <div className="w-full">
-                              <div className="flex items-center justify-center mb-4">
-                                <img
-                                  src={URL.createObjectURL(selectedFile)}
-                                  alt="Preview"
-                                  className="h-40 object-contain rounded-md"
-                                />
-                              </div>
-                              <p className="text-sm text-center mb-2 text-green-500">
-                                <span className="font-medium">{selectedFile.name}</span> ({(selectedFile.size / 1024).toFixed(1)} KB)
-                              </p>
-                              <div className="flex justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedFile(null)}
-                                  className="text-xs text-red-500 hover:text-red-700 font-medium"
-                                >
-                                  Kép eltávolítása
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <svg
-                                className={`w-10 h-10 mb-3 ${isDragging ? "text-[#4e77f4]" : darkMode ? "text-gray-400" : "text-gray-500"}`}
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                ></path>
-                              </svg>
-                              <p className={`mb-2 text-sm ${isDragging ? "text-[#4e77f4] font-medium" : darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                                {isDragging
-                                  ? <span className="font-semibold">Engedd el a fájlt a feltöltéshez</span>
-                                  : <span><span className="font-semibold">Kattints a feltöltéshez</span> vagy húzd ide a fájlt</span>
-                                }
-                              </p>
-                              <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-500"}`}>
-                                PNG, JPG vagy WEBP (Max. 5MB)
-                              </p>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            name="image"
-                            id="file-upload"
-                            className="hidden"
-                            onChange={handleInputChange}
-                            accept="image/*"
-                          />
-                          {!selectedFile && (
-                            <label
-                              htmlFor="file-upload"
-                              className="mt-4 px-4 py-2 bg-[#4e77f4] text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-[#5570c2] transition-colors"
-                            >
-                              Kép kiválasztása
-                            </label>
-                          )}
-                        </div>
-                      </div>
+                      {renderImageUpload('cover_img', coverImage, setCoverImage, 'Borítókép (kötelező)')}
+                    </div>
+
+                    <div className="md:col-span-1">
+                      {renderImageUpload('additional_img1', additionalImage1, setAdditionalImage1, 'További kép 1')}
+                    </div>
+
+                    <div className="md:col-span-1">
+                      {renderImageUpload('additional_img2', additionalImage2, setAdditionalImage2, 'További kép 2')}
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
@@ -525,6 +640,12 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-[#88a0e8]">
                           Egységár
                         </th>
+                        <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-[#88a0e8]">
+                          Évszak
+                        </th>
+                        <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-[#88a0e8]">
+                          Méret
+                        </th>
                         <th scope="col" className="px-6 py-4 text-right text-xs font-medium uppercase tracking-wider text-[#88a0e8]">
                           Műveletek
                         </th>
@@ -556,6 +677,12 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                               )}
                               <div>
                                 <div className="font-medium">{item.item_name}</div>
+                                {item.additional_img1 || item.additional_img2 ? (
+                                  <div className="text-xs text-gray-500">
+                                    {item.additional_img1 && item.additional_img2 ?
+                                      '2 további kép' : '1 további kép'}
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
                           </td>
@@ -576,6 +703,29 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap font-medium">
                             {new Intl.NumberFormat('hu-HU', { style: 'currency', currency: 'HUF' }).format(item.unit_price)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {item.season ? (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.season === 'winter'
+                                ? 'bg-blue-100 text-blue-800'
+                                : item.season === 'summer'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-green-100 text-green-800'
+                                }`}>
+                                {getSeasonLabel(item.season)}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {item.width && item.profile && item.diameter ? (
+                              <span className="text-sm">
+                                {item.width}/{item.profile}R{item.diameter}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <button

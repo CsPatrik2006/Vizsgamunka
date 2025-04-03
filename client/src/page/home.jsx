@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import CartSidebar from '../components/ui/CartSidebar';
+import ProductCard from '../components/ui/ProductCard';
 
 export default function TyreShopHomepage({
   setIsLoginOpen,
@@ -58,47 +59,9 @@ export default function TyreShopHomepage({
     fetchData();
   }, []);
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
-    }
-
-    return `http://localhost:3000${imagePath}`;
-  };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('hu-HU').format(price);
-  };
-
-  // Get vehicle type display name
-  const getVehicleTypeDisplayName = (type) => {
-    switch (type) {
-      case 'car': return 'Személygépkocsi';
-      case 'motorcycle': return 'Motorkerékpár';
-      case 'truck': return 'Teherautó';
-      default: return 'Ismeretlen';
-    }
-  };
-
-  const handleShopNavigation = () => {
-    navigate('/shop');
-  };
-
-  const handleProductNavigation = (productId) => {
-    navigate(`/item/${productId}`);
-  };
-
   // Handle adding item to cart
   const handleAddToCart = async (e, item) => {
     e.stopPropagation(); // Prevent navigation to product page
-
-    if (!isLoggedIn) {
-      // Prompt user to login
-      setIsLoginOpen(true);
-      return;
-    }
 
     // Try to add to cart
     const success = await addToCart('inventory', item.id, 1);
@@ -118,6 +81,14 @@ export default function TyreShopHomepage({
   const handleLogoutWithCartClear = () => {
     handleCartLogout();
     handleLogout();
+  };
+
+  const handleProductNavigation = (productId) => {
+    navigate(`/item/${productId}`);
+  };
+
+  const handleShopNavigation = () => {
+    navigate('/shop');
   };
 
   if (!themeLoaded) {
@@ -173,7 +144,6 @@ export default function TyreShopHomepage({
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.2 }}
         >
-          {/* Changed to onClick handler instead of Link for better animation control */}
           <Button
             className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-2xl text-lg shadow-lg"
             onClick={handleShopNavigation}
@@ -207,61 +177,17 @@ export default function TyreShopHomepage({
               </motion.div>
             ))
           ) : featuredProducts.length > 0 ? (
-            // Display featured products - updated to match shop.jsx format
+            // Display featured products using the ProductCard component
             featuredProducts.map((product, index) => (
-              <motion.div
+              <ProductCard
                 key={product.id}
+                item={product}
+                garage={garages.find(g => g.id === product.garage_id)}
+                onAddToCart={handleAddToCart}
                 onClick={() => handleProductNavigation(product.id)}
-                className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"} hover:shadow-lg transition-shadow cursor-pointer`}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ delay: index * 0.2 }}
-              >
-                <div className="h-48 bg-white relative overflow-hidden">
-                  {product.cover_img ? (
-                    <img
-                      src={getImageUrl(product.cover_img)}
-                      alt={product.item_name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = "https://placehold.co/400x300/gray/white?text=No+Image"
-                      }}
-                    />
-                  ) : (
-                    <div className="text-center p-4 h-full flex flex-col items-center justify-center">
-                      <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <p className="mt-2 text-gray-500 dark:text-gray-400">Nincs kép</p>
-                    </div>
-                  )}
-                  {/* Vehicle type badge */}
-                  <div className="absolute top-2 right-2 bg-[#4e77f4] text-white text-xs px-2 py-1 rounded-full">
-                    {getVehicleTypeDisplayName(product.vehicle_type)}
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-1">{product.item_name}</h3>
-                  <p className="text-[#88a0e8] text-sm mb-2">
-                    {garages.find(g => g.id === product.garage_id)?.name || 'Ismeretlen szervíz'}
-                  </p>
-                  <p className="text-xl font-bold mb-3">{formatPrice(product.unit_price)} Ft</p>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-sm ${product.quantity > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {product.quantity > 0 ? `Készleten: ${product.quantity} db` : 'Nincs készleten'}
-                    </span>
-                    <Button
-                      className="bg-[#4e77f4] hover:bg-[#5570c2] text-white px-3 py-2 rounded-lg"
-                      disabled={product.quantity <= 0}
-                      onClick={(e) => handleAddToCart(e, product)}
-                    >
-                      Kosárba
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+                isLoggedIn={isLoggedIn}
+                setIsLoginOpen={setIsLoginOpen}
+              />
             ))
           ) : (
             // Fallback if no products are available
@@ -288,8 +214,6 @@ export default function TyreShopHomepage({
           )}
         </div>
       </section>
-
-      {/* Rest of the component remains unchanged */}
       <section className={`${darkMode ? "bg-[#030507]" : "bg-[#f9fafc]"} py-16 px-5`}>
         <h2 className="text-3xl font-semibold text-center mb-8">Szolgáltatásaink</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">

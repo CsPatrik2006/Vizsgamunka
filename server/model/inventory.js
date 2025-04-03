@@ -46,6 +46,38 @@ const Inventory = sequelize.define(
       allowNull: true,
       comment: "URL to the cover image of the inventory item",
     },
+    // Additional image fields
+    additional_img1: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: "URL to the first additional image",
+    },
+    additional_img2: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: "URL to the second additional image",
+    },
+    // Fields for season and tyre size
+    season: {
+      type: DataTypes.ENUM('winter', 'summer', 'all_season'),
+      allowNull: true,
+      comment: "Season type for the tyre",
+    },
+    width: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Tyre width in mm",
+    },
+    profile: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Tyre profile/aspect ratio as percentage",
+    },
+    diameter: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Tyre diameter in inches",
+    }
   },
   {
     tableName: "inventory",

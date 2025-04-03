@@ -12,11 +12,19 @@ router.get("/garage/:garageId", inventoryController.getItemsByGarageId);
 // Get a specific inventory item by ID
 router.get("/:id", inventoryController.getItemById);
 
-// Create a new inventory item
-router.post("/", upload.single('image'), inventoryController.createItem);
+// Create a new inventory item with multiple images
+router.post("/", upload.fields([
+  { name: 'cover_img', maxCount: 1 },
+  { name: 'additional_img1', maxCount: 1 },
+  { name: 'additional_img2', maxCount: 1 }
+]), inventoryController.createItem);
 
-// Update an existing inventory item
-router.put("/:id", upload.single('image'), inventoryController.updateItem);
+// Update an existing inventory item with multiple images
+router.put("/:id", upload.fields([
+  { name: 'cover_img', maxCount: 1 },
+  { name: 'additional_img1', maxCount: 1 },
+  { name: 'additional_img2', maxCount: 1 }
+]), inventoryController.updateItem);
 
 // Update only the quantity of an inventory item
 router.patch("/:id/quantity", inventoryController.updateItemQuantity);
