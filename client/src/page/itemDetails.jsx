@@ -27,6 +27,7 @@ export default function ItemDetailsPage({
   const [quantity, setQuantity] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { itemId } = useParams();
   const navigate = useNavigate();
 
@@ -50,6 +51,38 @@ export default function ItemDetailsPage({
   // Format price with thousand separator
   const formatPrice = (price) => {
     return new Intl.NumberFormat('hu-HU').format(price);
+  };
+
+  // Get vehicle type display name
+  const getVehicleTypeDisplayName = (type) => {
+    switch (type) {
+      case 'car': return 'Személygépkocsi';
+      case 'motorcycle': return 'Motorkerékpár';
+      case 'truck': return 'Teherautó';
+      default: return 'Ismeretlen';
+    }
+  };
+
+  // Get season display name
+  const getSeasonDisplayName = (season) => {
+    switch (season) {
+      case 'winter': return 'Téli';
+      case 'summer': return 'Nyári';
+      case 'all_season': return 'Négyévszakos';
+      default: return 'Ismeretlen';
+    }
+  };
+
+  // Get all available images for the item
+  const getItemImages = (item) => {
+    if (!item) return [];
+
+    const images = [];
+    if (item.cover_img) images.push({ url: item.cover_img, type: 'cover' });
+    if (item.additional_img1) images.push({ url: item.additional_img1, type: 'additional1' });
+    if (item.additional_img2) images.push({ url: item.additional_img2, type: 'additional2' });
+
+    return images;
   };
 
   // Handle adding item to cart
@@ -80,6 +113,8 @@ export default function ItemDetailsPage({
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
+    // Reset current image index when item changes
+    setCurrentImageIndex(0);
   }, [itemId]); // Dependency on itemId ensures it runs when the product changes
 
   // Fetch item details
@@ -107,7 +142,7 @@ export default function ItemDetailsPage({
   // Reset image loaded state when item changes
   useEffect(() => {
     setImageLoaded(false);
-  }, [item]);
+  }, [item, currentImageIndex]);
 
   // Close zoom view when escape key is pressed
   useEffect(() => {
@@ -140,6 +175,10 @@ export default function ItemDetailsPage({
       </div>
     );
   }
+
+  // Get all available images for the current item
+  const itemImages = item ? getItemImages(item) : [];
+  const currentImage = itemImages[currentImageIndex]?.url || null;
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-[#030507] text-[#f9fafc]" : "bg-[#f8fafc] text-black"} font-inter`}>
@@ -202,39 +241,66 @@ export default function ItemDetailsPage({
             transition={{ duration: 0.5 }}
           >
             <div className="flex flex-col md:flex-row">
-              {/* Product Image - Enhanced Version with improved loading */}
+              {/* Product Image Gallery */}
               <div className="w-full md:w-1/2 p-6">
-                <div
-                  className="h-96 flex items-center justify-center relative"
-                  onClick={() => item.cover_img && setIsZoomed(true)}
-                >
-                  {/* Loading skeleton - only show when an image is expected but not yet loaded */}
-                  {!imageLoaded && item.cover_img && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-10 h-10 border-4 border-[#4e77f4] border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
+                <div className="flex flex-col">
+                  {/* Main Image Display */}
+                  <div
+                    className="h-80 flex items-center justify-center relative mb-4 overflow-hidden"
+                    onClick={() => currentImage && setIsZoomed(true)}
+                  >
+                    {/* Loading skeleton - only show when an image is expected but not yet loaded */}
+                    {!imageLoaded && currentImage && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-10 h-10 border-4 border-[#4e77f4] border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
 
-                  {item.cover_img ? (
-                    <motion.img
-                      src={getImageUrl(item.cover_img)}
-                      alt={item.item_name}
-                      className={`w-full h-full object-contain transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${item.cover_img ? 'cursor-zoom-in' : ''}`}
-                      onLoad={() => setImageLoaded(true)}
-                      onError={(e) => {
-                        setImageLoaded(true);
-                        e.target.onerror = null;
-                        e.target.src = "https://placehold.co/400x300/gray/white?text=No+Image";
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    />
-                  ) : (
-                    <div className="text-center p-4">
-                      <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <p className="mt-2 text-gray-500 dark:text-gray-400">Nincs kép</p>
+                    {currentImage ? (
+                      <img
+                        src={getImageUrl(currentImage)}
+                        alt={item.item_name}
+                        className={`w-full h-full object-contain transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${currentImage ? 'cursor-zoom-in' : ''}`}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={(e) => {
+                          setImageLoaded(true);
+                          e.target.onerror = null;
+                          e.target.src = "https://placehold.co/400x300/gray/white?text=No+Image";
+                        }}
+                      />
+                    ) : (
+                      <div className="text-center p-4">
+                        <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="mt-2 text-gray-500 dark:text-gray-400">Nincs kép</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Thumbnail Gallery */}
+                  {itemImages.length > 1 && (
+                    <div className="flex justify-center space-x-2">
+                      {itemImages.map((image, index) => (
+                        <div
+                          key={index}
+                          className={`w-16 h-16 border-2 rounded-md overflow-hidden cursor-pointer transition-all ${currentImageIndex === index
+                              ? `border-[#4e77f4] ${darkMode ? 'shadow-[0_0_10px_rgba(78,119,244,0.5)]' : 'shadow-[0_0_10px_rgba(78,119,244,0.3)]'}`
+                              : darkMode ? 'border-gray-700' : 'border-gray-200'
+                            }`}
+                          onClick={() => setCurrentImageIndex(index)}
+                        >
+                          <img
+                            src={getImageUrl(image.url)}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "https://placehold.co/64x64/gray/white?text=Error";
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -242,7 +308,7 @@ export default function ItemDetailsPage({
 
               {/* Zoom overlay with blurred background and animation */}
               <AnimatePresence>
-                {isZoomed && item.cover_img && (
+                {isZoomed && currentImage && (
                   <motion.div
                     className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30 dark:bg-black/50"
                     initial={{ opacity: 0 }}
@@ -271,6 +337,55 @@ export default function ItemDetailsPage({
                       </svg>
                     </motion.button>
 
+                    {/* Navigation buttons for zoomed gallery */}
+                    {itemImages.length > 1 && (
+                      <>
+                        <motion.button
+                          className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? "bg-[#1e2129] text-[#f9fafc]" : "bg-white text-gray-700"} hover:bg-[#4e77f4] hover:text-white rounded-full p-3 shadow-md transition-colors duration-200 z-10 cursor-pointer ${currentImageIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}
+                          whileHover={currentImageIndex > 0 ? { scale: 1.1 } : {}}
+                          whileTap={currentImageIndex > 0 ? { scale: 0.9 } : {}}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentImageIndex > 0) {
+                              setCurrentImageIndex(currentImageIndex - 1);
+                            }
+                          }}
+                          disabled={currentImageIndex === 0}
+                          aria-label="Előző kép"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </motion.button>
+
+                        <motion.button
+                          className={`absolute right-4 top-1/2 -translate-y-1/2 ${darkMode ? "bg-[#1e2129] text-[#f9fafc]" : "bg-white text-gray-700"} hover:bg-[#4e77f4] hover:text-white rounded-full p-3 shadow-md transition-colors duration-200 z-10 cursor-pointer ${currentImageIndex === itemImages.length - 1 ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}
+                          whileHover={currentImageIndex < itemImages.length - 1 ? { scale: 1.1 } : {}}
+                          whileTap={currentImageIndex < itemImages.length - 1 ? { scale: 0.9 } : {}}
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 10 }}
+                          transition={{ duration: 0.2 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentImageIndex < itemImages.length - 1) {
+                              setCurrentImageIndex(currentImageIndex + 1);
+                            }
+                          }}
+                          disabled={currentImageIndex === itemImages.length - 1}
+                          aria-label="Következő kép"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </motion.button>
+                      </>
+                    )}
+
                     <motion.div
                       className={`relative ${darkMode ? "bg-[#252830]/80" : "bg-white/80"} p-3 rounded-xl shadow-xl border ${darkMode ? "border-gray-700/30" : "border-gray-200/30"}`}
                       initial={{ scale: 0.9, opacity: 0 }}
@@ -280,10 +395,10 @@ export default function ItemDetailsPage({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <motion.img
-                        src={getImageUrl(item.cover_img)}
+                        src={getImageUrl(currentImage)}
                         alt={item.item_name}
                         className="max-h-[85vh] max-w-[85vw] object-contain rounded-lg"
-                        layoutId={`product-image-${item.id}`}
+                        layoutId={`product-image-${item.id}-${currentImageIndex}`}
                       />
                     </motion.div>
                   </motion.div>
@@ -294,14 +409,34 @@ export default function ItemDetailsPage({
               <div className="w-full md:w-1/2 p-6">
                 <div className="mb-2">
                   <span className="inline-block bg-[#4e77f4] text-white text-xs px-2 py-1 rounded-full mb-2">
-                    {item.vehicle_type === 'car' ? 'Személygépkocsi' :
-                      item.vehicle_type === 'motorcycle' ? 'Motorkerékpár' : 'Teherautó'}
+                    {getVehicleTypeDisplayName(item.vehicle_type)}
                   </span>
+
+                  {/* Season badge in details section */}
+                  {item.season && (
+                    <span className={`inline-block ml-2 text-xs px-2 py-1 rounded-full ${item.season === 'winter'
+                        ? 'bg-blue-500 text-white'
+                        : item.season === 'summer'
+                          ? 'bg-yellow-500 text-black'
+                          : 'bg-green-500 text-white'
+                      }`}>
+                      {getSeasonDisplayName(item.season)}
+                    </span>
+                  )}
                 </div>
+
                 <h1 className="text-3xl font-bold mb-2">{item.item_name}</h1>
                 <p className="text-[#88a0e8] text-lg mb-4">
                   {garage?.name || 'Ismeretlen szervíz'}
                 </p>
+
+                {/* Tyre size display */}
+                {item.width && item.profile && item.diameter && (
+                  <p className="text-lg mb-4 font-medium">
+                    Méret: <span className="font-bold">{item.width}/{item.profile}R{item.diameter}</span>
+                  </p>
+                )}
+
                 <p className="text-3xl font-bold mb-6">{formatPrice(item.unit_price)} Ft</p>
 
                 <div className="mb-6">

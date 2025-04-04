@@ -50,7 +50,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     return `http://localhost:3000${imagePath}`;
   };
 
-  // Add drag and drop event handlers
+  // Updated drag and drop event handlers
   const handleDragEnter = (e, target) => {
     e.preventDefault();
     e.stopPropagation();
@@ -61,6 +61,13 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Check if we're leaving to a child element - if so, don't reset the dragging state
+    const relatedTarget = e.relatedTarget;
+    if (relatedTarget && e.currentTarget.contains(relatedTarget)) {
+      return;
+    }
+
     setIsDragging(false);
     setCurrentDragTarget(null);
   };
@@ -68,14 +75,12 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isDragging) {
-      setIsDragging(true);
-    }
   };
 
   const handleDrop = (e, target) => {
     e.preventDefault();
     e.stopPropagation();
+
     setIsDragging(false);
     setCurrentDragTarget(null);
 
@@ -84,11 +89,11 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       // Check if the file is an image
       if (file.type.match('image.*')) {
         // Set the appropriate image based on the target
-        if (target === 'cover') {
+        if (target === 'cover_img') {
           setCoverImage(file);
-        } else if (target === 'additional1') {
+        } else if (target === 'additional_img1') {
           setAdditionalImage1(file);
-        } else if (target === 'additional2') {
+        } else if (target === 'additional_img2') {
           setAdditionalImage2(file);
         }
       }
@@ -306,21 +311,21 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // Helper function to render image upload area
+  // Helper function to render image upload area - Fixed version
   const renderImageUpload = (imageType, image, setImage, label) => {
     return (
       <div className="mb-4">
         <label className="block mb-2 text-sm font-medium">{label}</label>
         <div
           className={`border-2 border-dashed rounded-lg p-4 transition-all 
-            ${isDragging && currentDragTarget === imageType ? "border-[#4e77f4] bg-blue-50" : ""} 
-            ${darkMode
+          ${isDragging && currentDragTarget === imageType ? "border-[#4e77f4] bg-blue-50" : ""} 
+          ${darkMode
               ? `${isDragging && currentDragTarget === imageType ? "bg-[#1e2129] border-[#4e77f4]" : "border-[#3a3f4b] bg-[#252830]"}`
               : `${isDragging && currentDragTarget === imageType ? "bg-blue-50 border-[#4e77f4]" : "border-gray-300 bg-gray-50"}`} 
-            hover:border-[#4e77f4]`}
+          hover:border-[#4e77f4]`}
           onDragEnter={(e) => handleDragEnter(e, imageType)}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
+          onDragOver={(e) => handleDragOver(e)}
+          onDragLeave={(e) => handleDragLeave(e)}
           onDrop={(e) => handleDrop(e, imageType)}
         >
           <div className="flex flex-col items-center justify-center">
