@@ -122,7 +122,7 @@ export default function TyreShopHomepage({
       <section className="flex flex-col items-center justify-center text-center py-20 px-5">
 
         <motion.h1
-          className="text-4xl font-bold max-w-5xl mb-4"
+          className="text-5xl font-bold max-w-7xl mb-4"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
@@ -136,7 +136,7 @@ export default function TyreShopHomepage({
           viewport={{ once: true, amount: 0.2 }}
         >
           <Button
-            className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-12 py-6 rounded-2xl text-lg shadow-lg"
+            className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-12 py-4 rounded-2xl text-lg shadow-lg"
             onClick={handleShopNavigation}
           >
             Tovább a webshopra

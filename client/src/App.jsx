@@ -15,6 +15,7 @@ import EditInventoryItemPage from "./page/EditInventoryItemPage";
 import Checkout from "./page/Checkout";
 import CheckoutSuccess from "./page/CheckoutSuccess";
 import GarageOrdersPage from "./page/GarageOrders";
+import GarageAppointmentSchedulePage from "./page/GarageAppointmentSchedulePage";
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -236,12 +237,25 @@ function App() {
               }
             />
 
-            {/* New protected route for garage orders */}
             <Route
               path="/my-garages/:garageId/orders"
               element={
                 <ProtectedRoute requiredRole="garage_owner">
                   <GarageOrdersPage 
+                    isLoggedIn={isLoggedIn} 
+                    userData={userData} 
+                    handleLogout={handleLogout} 
+                  />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* New route for appointment schedule management */}
+            <Route
+              path="/my-garages/:garageId/appointments"
+              element={
+                <ProtectedRoute requiredRole="garage_owner">
+                  <GarageAppointmentSchedulePage 
                     isLoggedIn={isLoggedIn} 
                     userData={userData} 
                     handleLogout={handleLogout} 

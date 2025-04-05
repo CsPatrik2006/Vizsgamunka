@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/config");
 const User = require("../model/users");
 const Garage = require("../model/garages");
+const GarageScheduleSlot = require("../model/garageSchedule");
 
 const Appointments = sequelize.define(
   "Appointments",
@@ -15,19 +16,28 @@ const Appointments = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: User, // Reference the 'users' table
-        key: "id", // The primary key in the 'users' table
+        model: User,
+        key: "id",
       },
-      onDelete: "CASCADE", // Ensure deletion of appointments if user is deleted
+      onDelete: "CASCADE",
     },
     garage_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Garage, // Reference the 'garages' table
-        key: "id", // The primary key in the 'garages' table
+        model: Garage,
+        key: "id",
       },
-      onDelete: "CASCADE", // Ensure deletion of appointments if garage is deleted
+      onDelete: "CASCADE",
+    },
+    schedule_slot_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: GarageScheduleSlot,
+        key: "id",
+      },
+      onDelete: "SET NULL",
     },
     appointment_time: {
       type: DataTypes.DATE,
@@ -42,15 +52,15 @@ const Appointments = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "orders", // Reference the 'orders' table
-        key: "id", // The primary key in the 'orders' table
+        model: "orders",
+        key: "id",
       },
-      onDelete: "CASCADE", // Ensure deletion of appointments if order is deleted
+      onDelete: "CASCADE",
     },
   },
   {
-    tableName: "appointments", // Changed the table name to 'appointments'
-    timestamps: true, // Automatically add createdAt and updatedAt
+    tableName: "appointments",
+    timestamps: true,
   }
 );
 

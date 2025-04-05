@@ -327,6 +327,9 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                       <Button onClick={() => navigate(`/my-garages/${garage.id}/edit`)}>
                         Szerkesztés
                       </Button>
+                      <Button onClick={() => navigate(`/my-garages/${garage.id}/appointments`)}>
+                        Időpontok
+                      </Button>
                     </div>
                   </div>
                 </motion.div>

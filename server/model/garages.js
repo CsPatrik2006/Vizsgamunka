@@ -31,6 +31,14 @@ const Garage = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    opening_hours: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
   },
   {
     tableName: "garages",
