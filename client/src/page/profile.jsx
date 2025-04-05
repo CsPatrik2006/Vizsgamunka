@@ -541,9 +541,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     <h3 className="font-medium">Legutóbbi időpontfoglalás</h3>
                     <p className="text-sm text-[#88a0e8]">Nincs aktív időpontfoglalás</p>
                   </div>
-                  <Button className="bg-[#4e77f4] hover:bg-[#5570c2] text-white">
-                    Időpontfoglalás
-                  </Button>
                 </div>
               </div>
 
@@ -553,9 +550,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     <h3 className="font-medium">Legutóbbi rendelés</h3>
                     <p className="text-sm text-[#88a0e8]">Nincs aktív rendelés</p>
                   </div>
-                  <Button className="bg-[#4e77f4] hover:bg-[#5570c2] text-white">
-                    Rendelés
-                  </Button>
                 </div>
               </div>
             </div>

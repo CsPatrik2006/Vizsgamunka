@@ -7,7 +7,7 @@ import logo_dark from '../assets/logo_darkMode.png';
 import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
 import CartSidebar from '../components/ui/CartSidebar';
-import ProductCard from '../components/ui/ProductCard'; // Import the ProductCard component
+import ProductCard from '../components/ui/ProductCard';
 import axios from 'axios';
 
 export default function ShopPage({
@@ -43,6 +43,12 @@ export default function ShopPage({
   const [selectedProfile, setSelectedProfile] = useState("");
   const [selectedDiameter, setSelectedDiameter] = useState("");
   const [showSizeFilter, setShowSizeFilter] = useState(false);
+  
+  // State for filter panel visibility
+  const [showFilters, setShowFilters] = useState(true);
+  const [showGarageFilter, setShowGarageFilter] = useState(true);
+  const [showVehicleTypeFilter, setShowVehicleTypeFilter] = useState(true);
+  const [showSeasonFilter, setShowSeasonFilter] = useState(true);
 
   // Handle logout with cart clear
   const handleLogoutWithCartClear = () => {
@@ -460,380 +466,515 @@ export default function ShopPage({
           </form>
         </div>
 
-        {/* Garage filter section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Szervízek</h2>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => setSelectedGarages([])}
-              className={`px-4 py-2 rounded-lg ${selectedGarages.length === 0
-                ? 'bg-[#4e77f4] text-white'
-                : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-            >
-              Összes
-            </Button>
-            {garages.map(garage => (
-              <Button
-                key={garage.id}
-                onClick={() => toggleGarageFilter(garage.id)}
-                className={`px-4 py-2 rounded-lg ${selectedGarages.includes(garage.id)
-                  ? 'bg-[#4e77f4] text-white'
-                  : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
+        {/* Main content with filters and products */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Filters sidebar */}
+          <div className={`lg:w-1/4 ${darkMode ? "bg-[#0d1117]" : "bg-gray-50"} rounded-lg p-4 shadow-sm`}>
+            {/* Filters header with toggle */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Szűrők</h2>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-[#4e77f4] hover:text-[#5570c2] font-medium flex items-center"
               >
-                {garage.name}
-                {selectedGarages.includes(garage.id) && (
-                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-white text-[#4e77f4] rounded-full text-xs font-bold">
-                    ✓
-                  </span>
+                {showFilters ? (
+                  <>
+                    <span className="text-sm cursor-pointer">Elrejtés</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm cursor-pointer">Megjelenítés</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </>
                 )}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Vehicle type filter section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Jármű típus</h2>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => setSelectedVehicleTypes([])}
-              className={`px-4 py-2 rounded-lg ${selectedVehicleTypes.length === 0
-                ? 'bg-[#4e77f4] text-white'
-                : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-            >
-              Összes
-            </Button>
-            {['car', 'motorcycle', 'truck'].map(type => (
-              <Button
-                key={type}
-                onClick={() => toggleVehicleTypeFilter(type)}
-                className={`px-4 py-2 rounded-lg ${selectedVehicleTypes.includes(type)
-                  ? 'bg-[#4e77f4] text-white'
-                  : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-              >
-                {getVehicleTypeDisplayName(type)}
-                {selectedVehicleTypes.includes(type) && (
-                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-white text-[#4e77f4] rounded-full text-xs font-bold">
-                    ✓
-                  </span>
-                )}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Season filter section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Évszak</h2>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => setSelectedSeasons([])}
-              className={`px-4 py-2 rounded-lg ${selectedSeasons.length === 0
-                ? 'bg-[#4e77f4] text-white'
-                : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-            >
-              Összes
-            </Button>
-            {['winter', 'summer', 'all_season'].map(season => (
-              <Button
-                key={season}
-                onClick={() => toggleSeasonFilter(season)}
-                className={`px-4 py-2 rounded-lg ${selectedSeasons.includes(season)
-                  ? 'bg-[#4e77f4] text-white'
-                  : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-              >
-                {getSeasonDisplayName(season)}
-                {selectedSeasons.includes(season) && (
-                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-white text-[#4e77f4] rounded-full text-xs font-bold">
-                    ✓
-                  </span>
-                )}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tyre size filter section */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Gumiméret</h2>
-            <button
-              onClick={() => setShowSizeFilter(!showSizeFilter)}
-              className="text-[#4e77f4] hover:text-[#5570c2] font-medium flex items-center"
-            >
-              {showSizeFilter ? (
-                <>
-                  <span>Elrejtés</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
-                  </svg>
-                </>
-              ) : (
-                <>
-                  <span>Megjelenítés</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </>
-              )}
-            </button>
-          </div>
-
-          {showSizeFilter && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Width filter */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">Szélesség (mm)</h3>
-                <div className="flex flex-wrap gap-2">
-                  {widthOptions.map(width => (
-                    <Button
-                      key={`width-${width}`}
-                      onClick={() => handleSizeFilterChange('width', width)}
-                      className={`px-3 py-1 text-sm rounded-lg ${selectedWidth === width
-                        ? 'bg-[#4e77f4] text-white'
-                        : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-                    >
-                      {width}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Profile filter */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">Profil (%)</h3>
-                <div className="flex flex-wrap gap-2">
-                  {profileOptions.map(profile => (
-                    <Button
-                      key={`profile-${profile}`}
-                      onClick={() => handleSizeFilterChange('profile', profile)}
-                      className={`px-3 py-1 text-sm rounded-lg ${selectedProfile === profile
-                        ? 'bg-[#4e77f4] text-white'
-                        : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-                    >
-                      {profile}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Diameter filter */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">Átmérő (col)</h3>
-                <div className="flex flex-wrap gap-2">
-                  {diameterOptions.map(diameter => (
-                    <Button
-                      key={`diameter-${diameter}`}
-                      onClick={() => handleSizeFilterChange('diameter', diameter)}
-                      className={`px-3 py-1 text-sm rounded-lg ${selectedDiameter === diameter
-                        ? 'bg-[#4e77f4] text-white'
-                        : darkMode ? 'bg-[#252830] text-white' : 'bg-gray-200 text-black'}`}
-                    >
-                      {diameter}"
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              </button>
             </div>
-          )}
-        </div>
 
-        {/* Filter information messages */}
-        {shopSearchQuery && (
-          <div className="mb-6">
-            <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-              Keresési eredmények a következőre: <span className="font-semibold">"{shopSearchQuery}"</span>
-            </p>
-          </div>
-        )}
+            {/* Clear all filters button */}
+            {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 || 
+              selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
+              <button
+                onClick={clearAllFilters}
+                className={`w-full mb-4 py-2 px-4 rounded-md text-sm font-medium ${
+                  darkMode ? "bg-[#252830] text-white hover:bg-[#353b48]" : "bg-gray-200 text-black hover:bg-gray-300"
+                } flex items-center justify-center`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Összes szűrő törlése
+              </button>
+            )}
 
-        {isServiceFilter && filteredServiceId && !shopSearchQuery && (
-          <div className="mb-6">
-            <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-              Termékek a következő szolgáltatáshoz: <span className="font-semibold">"{services.find(s => s.id === filteredServiceId)?.name || 'Szolgáltatás'}"</span>
-            </p>
-          </div>
-        )}
-
-        {/* Active filters display */}
-        {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 || selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
-          <div className="mb-6">
-            <div className="p-4 rounded-lg border-2 border-[#4e77f4] bg-[#4e77f4]/10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-[#4e77f4]">Aktív szűrők</h3>
-                <button
-                  onClick={clearAllFilters}
-                  className={`px-3 py-1 text-sm rounded-full ${darkMode ? "bg-[#252830] text-white hover:bg-[#353b48]" : "bg-gray-200 text-black hover:bg-gray-300"}`}
-                >
-                  Összes szűrő törlése
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedGarages.map(garageId => {
-                  const garage = garages.find(g => g.id === garageId);
-                  return garage ? (
-                    <span key={`garage-${garageId}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                      Szervíz: {garage.name}
-                      <button
-                        onClick={() => toggleGarageFilter(garageId)}
-                        className="ml-2 focus:outline-none"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            {showFilters && (
+              <div className="space-y-6">
+                {/* Garage filter section */}
+                <div className="border-b pb-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium">Szervízek</h3>
+                    <button
+                      onClick={() => setShowGarageFilter(!showGarageFilter)}
+                      className="text-[#4e77f4] hover:text-[#5570c2]"
+                    >
+                      {showGarageFilter ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
                         </svg>
-                      </button>
-                    </span>
-                  ) : null;
-                })}
-
-                {selectedVehicleTypes.map(type => (
-                  <span key={`type-${type}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                    Járműtípus: {getVehicleTypeDisplayName(type)}
-                    <button
-                      onClick={() => toggleVehicleTypeFilter(type)}
-                      className="ml-2 focus:outline-none"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </button>
-                  </span>
-                ))}
+                  </div>
+                  
+                  {showGarageFilter && (
+                    <div className="space-y-2">
+                      <div 
+                        className={`flex items-center p-2 rounded-md cursor-pointer ${
+                          selectedGarages.length === 0 
+                            ? 'bg-[#4e77f4] text-white' 
+                            : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                        }`}
+                        onClick={() => setSelectedGarages([])}
+                      >
+                        <span className="ml-2">Összes</span>
+                      </div>
+                      
+                      {garages.map(garage => (
+                        <div 
+                          key={garage.id}
+                          className={`flex items-center p-2 rounded-md cursor-pointer ${
+                            selectedGarages.includes(garage.id) 
+                              ? 'bg-[#4e77f4] text-white' 
+                              : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                          }`}
+                          onClick={() => toggleGarageFilter(garage.id)}
+                        >
+                          <span className="ml-2">{garage.name}</span>
+                          {selectedGarages.includes(garage.id) && (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-auto" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {selectedSeasons.map(season => (
-                  <span key={`season-${season}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                    Évszak: {getSeasonDisplayName(season)}
+                {/* Vehicle type filter section */}
+                <div className="border-b pb-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium">Jármű típus</h3>
                     <button
-                      onClick={() => toggleSeasonFilter(season)}
-                      className="ml-2 focus:outline-none"
+                      onClick={() => setShowVehicleTypeFilter(!showVehicleTypeFilter)}
+                      className="text-[#4e77f4] hover:text-[#5570c2]"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      {showVehicleTypeFilter ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </button>
-                  </span>
-                ))}
+                  </div>
+                  
+                  {showVehicleTypeFilter && (
+                    <div className="space-y-2">
+                      <div 
+                        className={`flex items-center p-2 rounded-md cursor-pointer ${
+                          selectedVehicleTypes.length === 0 
+                            ? 'bg-[#4e77f4] text-white' 
+                            : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                        }`}
+                        onClick={() => setSelectedVehicleTypes([])}
+                      >
+                        <span className="ml-2">Összes</span>
+                      </div>
+                      
+                      {['car', 'motorcycle', 'truck'].map(type => (
+                        <div 
+                          key={type}
+                          className={`flex items-center p-2 rounded-md cursor-pointer ${
+                            selectedVehicleTypes.includes(type) 
+                              ? 'bg-[#4e77f4] text-white' 
+                              : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                          }`}
+                          onClick={() => toggleVehicleTypeFilter(type)}
+                        >
+                          <span className="ml-2">{getVehicleTypeDisplayName(type)}</span>
+                          {selectedVehicleTypes.includes(type) && (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-auto" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {selectedWidth && (
-                  <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                    Szélesség: {selectedWidth} mm
+                {/* Season filter section */}
+                <div className="border-b pb-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium">Évszak</h3>
                     <button
-                      onClick={() => {
-                        setSelectedWidth("");
-                        updateURL();
-                      }}
-                      className="ml-2 focus:outline-none"
+                      onClick={() => setShowSeasonFilter(!showSeasonFilter)}
+                      className="text-[#4e77f4] hover:text-[#5570c2]"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      {showSeasonFilter ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </button>
-                  </span>
-                )}
+                  </div>
+                  
+                  {showSeasonFilter && (
+                    <div className="space-y-2">
+                      <div 
+                        className={`flex items-center p-2 rounded-md cursor-pointer ${
+                          selectedSeasons.length === 0 
+                            ? 'bg-[#4e77f4] text-white' 
+                            : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                        }`}
+                        onClick={() => setSelectedSeasons([])}
+                      >
+                        <span className="ml-2">Összes</span>
+                      </div>
+                      
+                      {['winter', 'summer', 'all_season'].map(season => (
+                        <div 
+                          key={season}
+                          className={`flex items-center p-2 rounded-md cursor-pointer ${
+                            selectedSeasons.includes(season) 
+                              ? 'bg-[#4e77f4] text-white' 
+                              : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                          }`}
+                          onClick={() => toggleSeasonFilter(season)}
+                        >
+                          <span className="ml-2">{getSeasonDisplayName(season)}</span>
+                          {selectedSeasons.includes(season) && (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-auto" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {selectedProfile && (
-                  <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                    Profil: {selectedProfile}%
+                {/* Tyre size filter section */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium">Gumiméret</h3>
                     <button
-                      onClick={() => {
-                        setSelectedProfile("");
-                        updateURL();
-                      }}
-                      className="ml-2 focus:outline-none"
+                      onClick={() => setShowSizeFilter(!showSizeFilter)}
+                      className="text-[#4e77f4] hover:text-[#5570c2]"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      {showSizeFilter ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </button>
-                  </span>
-                )}
+                  </div>
+                  
+                  {showSizeFilter && (
+                    <div className="space-y-4">
+                      {/* Width filter */}
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Szélesség (mm)</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {widthOptions.map(width => (
+                            <button
+                              key={`width-${width}`}
+                              onClick={() => handleSizeFilterChange('width', width)}
+                              className={`px-2 py-1 text-sm rounded-md ${
+                                selectedWidth === width
+                                  ? 'bg-[#4e77f4] text-white'
+                                  : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                              }`}
+                            >
+                              {width}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                {selectedDiameter && (
-                  <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                    Átmérő: {selectedDiameter}"
-                    <button
-                      onClick={() => {
-                        setSelectedDiameter("");
-                        updateURL();
-                      }}
-                      className="ml-2 focus:outline-none"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </span>
-                )}
+                      {/* Profile filter */}
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Profil (%)</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {profileOptions.map(profile => (
+                            <button
+                              key={`profile-${profile}`}
+                              onClick={() => handleSizeFilterChange('profile', profile)}
+                              className={`px-2 py-1 text-sm rounded-md ${
+                                selectedProfile === profile
+                                  ? 'bg-[#4e77f4] text-white'
+                                  : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                              }`}
+                            >
+                              {profile}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                {shopSearchQuery && (
-                  <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
-                    Keresés: {shopSearchQuery}
-                    <button
-                      onClick={() => {
-                        setShopSearchQuery('');
-                        updateURL();
-                      }}
-                      className="ml-2 focus:outline-none"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Inventory items grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {loading ? (
-            // Loading placeholders
-            Array(8).fill().map((_, index) => (
-              <div
-                key={index}
-                className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"}`}
-              >
-                <div className="h-48 bg-gray-700 animate-pulse"></div>
-                <div className="p-4">
-                  <div className="h-5 bg-gray-700 rounded w-3/4 mb-2 animate-pulse"></div>
-                  <div className="h-4 bg-gray-700 rounded w-1/2 mb-4 animate-pulse"></div>
-                  <div className="h-6 bg-gray-700 rounded w-1/3 mb-4 animate-pulse"></div>
-                  <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+                      {/* Diameter filter */}
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Átmérő (col)</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {diameterOptions.map(diameter => (
+                            <button
+                              key={`diameter-${diameter}`}
+                              onClick={() => handleSizeFilterChange('diameter', diameter)}
+                              className={`px-2 py-1 text-sm rounded-md ${
+                                selectedDiameter === diameter
+                                  ? 'bg-[#4e77f4] text-white'
+                                  : darkMode ? 'bg-[#252830] hover:bg-[#353b48] text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'
+                              }`}
+                            >
+                              {diameter}"
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))
-          ) : filteredItems.length > 0 ? (
-            // Display inventory items using the ProductCard component
-            filteredItems.map(item => (
-              <ProductCard
-                key={item.id}
-                item={item}
-                garage={garages.find(g => g.id === item.garage_id)}
-                onAddToCart={handleAddToCart}
-                onClick={() => navigate(`/item/${item.id}`)}
-                isLoggedIn={isLoggedIn}
-                setIsLoginOpen={setIsLoginOpen}
-              />
-            ))
-          ) : (
-            // No items found
-            <div className="col-span-full text-center py-12">
-              <p className="text-xl text-[#88a0e8]">
-                {shopSearchQuery
-                  ? 'Nincs találat a keresési feltételeknek megfelelően.'
-                  : selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 || selectedWidth || selectedProfile || selectedDiameter
-                    ? 'Nincs termék a kiválasztott szűrőknek megfelelően.'
-                    : selectedGarages.length > 0
-                      ? 'Nincs termék a kiválasztott szervízekben.'
-                      : isServiceFilter
-                        ? 'Nincs termék a kiválasztott szolgáltatáshoz.'
-                        : 'Nem található termék.'}
+            )}
+          </div>
+
+          {/* Products section */}
+          <div className="lg:w-3/4">
+            {/* Active filters display */}
+            {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 || 
+              selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
+              <div className="mb-6">
+                <div className={`p-4 rounded-lg ${darkMode ? "bg-[#0d1117]" : "bg-gray-50"} shadow-sm`}>
+                  <h3 className="font-semibold text-[#4e77f4] mb-2">Aktív szűrők</h3>
+
+                  <div className="flex flex-wrap gap-2">
+                    {selectedGarages.map(garageId => {
+                      const garage = garages.find(g => g.id === garageId);
+                      return garage ? (
+                        <span key={`garage-${garageId}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                          {garage.name}
+                          <button
+                            onClick={() => toggleGarageFilter(garageId)}
+                            className="ml-2 focus:outline-none"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
+
+                    {selectedVehicleTypes.map(type => (
+                      <span key={`type-${type}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                        {getVehicleTypeDisplayName(type)}
+                        <button
+                          onClick={() => toggleVehicleTypeFilter(type)}
+                          className="ml-2 focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+
+                    {selectedSeasons.map(season => (
+                      <span key={`season-${season}`} className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                        {getSeasonDisplayName(season)}
+                        <button
+                          onClick={() => toggleSeasonFilter(season)}
+                          className="ml-2 focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+
+                    {selectedWidth && (
+                      <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                        {selectedWidth} mm
+                        <button
+                          onClick={() => {
+                            setSelectedWidth("");
+                            updateURL();
+                          }}
+                          className="ml-2 focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+
+                    {selectedProfile && (
+                      <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                        {selectedProfile}%
+                        <button
+                          onClick={() => {
+                            setSelectedProfile("");
+                            updateURL();
+                          }}
+                          className="ml-2 focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+
+                    {selectedDiameter && (
+                      <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                        {selectedDiameter}"
+                        <button
+                          onClick={() => {
+                            setSelectedDiameter("");
+                            updateURL();
+                          }}
+                          className="ml-2 focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+
+                    {shopSearchQuery && (
+                      <span className="px-3 py-1 bg-[#4e77f4] text-white text-sm rounded-full flex items-center">
+                        Keresés: {shopSearchQuery}
+                        <button
+                          onClick={() => {
+                            setShopSearchQuery('');
+                            updateURL();
+                          }}
+                          className="ml-2 focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Filter information messages */}
+            {shopSearchQuery && (
+              <div className="mb-6">
+                <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  Keresési eredmények a következőre: <span className="font-semibold">"{shopSearchQuery}"</span>
+                </p>
+              </div>
+            )}
+
+            {isServiceFilter && filteredServiceId && !shopSearchQuery && (
+              <div className="mb-6">
+                <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                Termékek a következő szolgáltatáshoz: <span className="font-semibold">"{services.find(s => s.id === filteredServiceId)?.name || 'Szolgáltatás'}"</span>
+                </p>
+              </div>
+            )}
+
+            {/* Results count */}
+            <div className="mb-4">
+              <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                {filteredItems.length} termék található
               </p>
             </div>
-          )}
+
+            {/* Inventory items grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {loading ? (
+                // Loading placeholders
+                Array(6).fill().map((_, index) => (
+                  <div
+                    key={index}
+                    className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"}`}
+                  >
+                    <div className="h-48 bg-gray-700 animate-pulse"></div>
+                    <div className="p-4">
+                      <div className="h-5 bg-gray-700 rounded w-3/4 mb-2 animate-pulse"></div>
+                      <div className="h-4 bg-gray-700 rounded w-1/2 mb-4 animate-pulse"></div>
+                      <div className="h-6 bg-gray-700 rounded w-1/3 mb-4 animate-pulse"></div>
+                      <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+                    </div>
+                  </div>
+                ))
+              ) : filteredItems.length > 0 ? (
+                // Display inventory items using the ProductCard component
+                filteredItems.map(item => (
+                  <ProductCard
+                    key={item.id}
+                    item={item}
+                    garage={garages.find(g => g.id === item.garage_id)}
+                    onAddToCart={handleAddToCart}
+                    onClick={() => navigate(`/item/${item.id}`)}
+                    isLoggedIn={isLoggedIn}
+                    setIsLoginOpen={setIsLoginOpen}
+                  />
+                ))
+              ) : (
+                // No items found
+                <div className="col-span-full text-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-xl text-[#88a0e8] mb-2">
+                    {shopSearchQuery
+                      ? 'Nincs találat a keresési feltételeknek megfelelően.'
+                      : selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 || selectedWidth || selectedProfile || selectedDiameter
+                        ? 'Nincs termék a kiválasztott szűrőknek megfelelően.'
+                        : selectedGarages.length > 0
+                          ? 'Nincs termék a kiválasztott szervízekben.'
+                          : isServiceFilter
+                            ? 'Nincs termék a kiválasztott szolgáltatáshoz.'
+                            : 'Nem található termék.'}
+                  </p>
+                  <button 
+                    onClick={clearAllFilters}
+                    className="mt-4 px-4 py-2 bg-[#4e77f4] text-white rounded-md hover:bg-[#3d66e3] transition-colors"
+                  >
+                    Szűrők törlése
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

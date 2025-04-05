@@ -120,32 +120,23 @@ export default function TyreShopHomepage({
         cartItems={cartItems}
       />
       <section className="flex flex-col items-center justify-center text-center py-20 px-5">
-        <motion.h1
-          className="text-5xl font-bold mb-4"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-        >
-          Prémium Abroncsok, Személyreszabott szolgáltatások
-        </motion.h1>
 
-        <motion.p
-          className="text-lg text-[#88a0e8] max-w-2xl mb-8"
+        <motion.h1
+          className="text-4xl font-bold max-w-5xl mb-4"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8 }}
         >
           Találd meg a járművedhez legjobban illő abroncsokat és foglalj időpontot a hozzád legközelebbi szervízhez.
-        </motion.p>
+        </motion.h1>
 
         <motion.div
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.2 }}
         >
           <Button
-            className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-6 py-3 rounded-2xl text-lg shadow-lg"
+            className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white px-12 py-6 rounded-2xl text-lg shadow-lg"
             onClick={handleShopNavigation}
           >
             Tovább a webshopra
