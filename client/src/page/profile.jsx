@@ -15,6 +15,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // New state for delete confirmation modal
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
@@ -25,8 +26,10 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     newPassword: '',
     confirmPassword: '',
   });
+  const [deleteConfirmation, setDeleteConfirmation] = useState(''); // New state for delete confirmation text
   const [message, setMessage] = useState({ type: '', text: '' });
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+  const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' }); // New state for delete messages
   const navigate = useNavigate();
 
   // Format date helper function
@@ -260,6 +263,67 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
+  // New function to handle profile deletion
+  const handleDeleteProfile = async () => {
+    // Reset previous messages
+    setDeleteMessage({ type: '', text: '' });
+
+    // Validate confirmation text
+    if (deleteConfirmation !== 'TÖRLÉS') {
+      setDeleteMessage({ type: 'error', text: 'Kérjük, írja be a "TÖRLÉS" szót a megerősítéshez!' });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const storedUserData = localStorage.getItem('userData');
+
+      if (!token || !storedUserData) {
+        setDeleteMessage({ type: 'error', text: 'Nincs bejelentkezve!' });
+        return;
+      }
+
+      let parsedUserData;
+      try {
+        parsedUserData = JSON.parse(storedUserData);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        setDeleteMessage({ type: 'error', text: 'Hibás felhasználói adatok!' });
+        return;
+      }
+
+      const response = await fetch(`http://localhost:3000/api/users/${parsedUserData.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setDeleteMessage({ type: 'success', text: 'Fiók sikeresen törölve!' });
+
+        // Clear form
+        setDeleteConfirmation('');
+
+        // Log out and redirect after 2 seconds
+        setTimeout(() => {
+          // Clear all local storage data
+          localStorage.removeItem('token');
+          localStorage.removeItem('userData');
+          handleLogoutWithCartClear();
+          navigate('/');
+        }, 2000);
+      } else {
+        const error = await response.json();
+        setDeleteMessage({ type: 'error', text: error.message || 'Hiba történt a fiók törlésekor.' });
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      setDeleteMessage({ type: 'error', text: 'Hiba történt a fiók törlésekor.' });
+    }
+  };
+
   // Wait for both theme and user data to load
   if (!themeLoaded || loading) {
     return (
@@ -446,12 +510,20 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={() => setShowPasswordModal(true)}
-                className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white"
-              >
-                Jelszó módosítása
-              </Button>
+              <div className="flex flex-col space-y-2">
+                <Button
+                  onClick={() => setShowPasswordModal(true)}
+                  className="mt-6 bg-[#4e77f4] hover:bg-[#5570c2] text-white"
+                >
+                  Jelszó módosítása
+                </Button>
+                <Button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Fiók törlése
+                </Button>
+              </div>
             </motion.div>
           </div>
 
@@ -593,6 +665,86 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     disabled={passwordMessage.type === 'success'}
                   >
                     Mentés
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Account Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(5px)' }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-md p-6 rounded-lg shadow-xl ${darkMode ? "bg-[#252830] text-white" : "bg-white text-black"}`}
+            >
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmation('');
+                  setDeleteMessage({ type: '', text: '' });
+                }}
+                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <h2 className="text-xl font-semibold mb-4">Fiók törlése</h2>
+
+              {deleteMessage.text && (
+                <div className={`mb-4 p-3 rounded-lg text-center ${deleteMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {deleteMessage.text}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+                  <p className="font-medium">Figyelem! Ez a művelet nem visszavonható!</p>
+                  <p className="mt-2 text-sm">A fiók törlésével minden személyes adatát véglegesen töröljük rendszerünkből. Ez a művelet nem vonható vissza.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">A megerősítéshez írja be: "TÖRLÉS"</label>
+                  <input
+                    type="text"
+                    value={deleteConfirmation}
+                    onChange={(e) => setDeleteConfirmation(e.target.value)}
+                    className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 
+                      ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-2 mt-6">
+                  <Button
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setDeleteConfirmation('');
+                      setDeleteMessage({ type: '', text: '' });
+                    }}
+                    className="bg-gray-500 hover:bg-gray-600 text-white"
+                  >
+                    Mégse
+                  </Button>
+                  <Button
+                    onClick={handleDeleteProfile}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    disabled={deleteMessage.type === 'success'}
+                  >
+                    Fiók törlése
                   </Button>
                 </div>
               </div>
