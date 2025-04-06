@@ -7,6 +7,7 @@ import Header from "../components/ui/navbar";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import { format } from 'date-fns';
 
 const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const { darkMode, themeLoaded } = useTheme();
@@ -25,10 +26,11 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const [appointmentData, setAppointmentData] = useState({
     date: "",
     time: "",
-    garageId: 1, // Default garage ID
+    garageId: null, // Start with no garage selected
   });
 
   const [availableTimes, setAvailableTimes] = useState([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [garages, setGarages] = useState([]);
@@ -81,41 +83,50 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
 
   // Generate available time slots when date changes
   useEffect(() => {
-    if (appointmentData.date) {
+    if (appointmentData.date && appointmentData.garageId) {
       generateTimeSlots(appointmentData.date);
     }
   }, [appointmentData.date, appointmentData.garageId]);
 
   const generateTimeSlots = async (date) => {
     try {
-      // Fetch already booked appointments from your API
-      const response = await axios.get('http://localhost:3000/appointments');
-      const bookedAppointments = response.data.filter(
-        app =>
-          new Date(app.appointment_time).toDateString() === new Date(date).toDateString() &&
-          app.garage_id === appointmentData.garageId
-      );
-
-      // Generate time slots from 8:00 to 18:00 with 1-hour intervals
-      const timeSlots = [];
-      for (let hour = 8; hour <= 18; hour++) {
-        const timeString = `${hour.toString().padStart(2, '0')}:00`;
-
-        // Check if this time is already booked
-        const isBooked = bookedAppointments.some(app => {
-          const appTime = new Date(app.appointment_time);
-          return appTime.getHours() === hour;
-        });
-
-        if (!isBooked) {
-          timeSlots.push(timeString);
-        }
+      if (!appointmentData.garageId) {
+        setError("Kérjük, először válasszon szervizt");
+        return;
       }
 
-      setAvailableTimes(timeSlots);
+      setLoadingTimes(true);
+      setAvailableTimes([]);
+
+      // Format the date for the API request
+      const formattedDate = format(new Date(date), 'yyyy-MM-dd');
+
+      // Fetch available slots from the garage's schedule
+      const response = await axios.get(
+        `http://localhost:3000/garages/${appointmentData.garageId}/available-slots?date=${formattedDate}`
+      );
+
+      if (Array.isArray(response.data)) {
+        // Transform the available slots into the format we need
+        const availableSlots = response.data
+          .filter(slot => !slot.is_full) // Only show slots that aren't full
+          .map(slot => slot.start_time.substring(0, 5)); // Format time as HH:MM
+
+        setAvailableTimes(availableSlots);
+
+        // If no slots are available, show a message
+        if (availableSlots.length === 0) {
+          console.log("No available slots for this date");
+        }
+      } else {
+        console.error("Unexpected response format:", response.data);
+        setError("Nem sikerült betölteni az elérhető időpontokat");
+      }
     } catch (error) {
-      console.error('Error fetching appointments:', error);
-      setError('Failed to load available appointment times');
+      console.error('Error fetching available slots:', error);
+      setError('Nem sikerült betölteni az elérhető időpontokat');
+    } finally {
+      setLoadingTimes(false);
     }
   };
 
@@ -126,7 +137,13 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
 
   const handleAppointmentChange = (e) => {
     const { name, value } = e.target;
-    setAppointmentData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'date') {
+      // Reset time when date changes
+      setAppointmentData(prev => ({ ...prev, [name]: value, time: "" }));
+    } else {
+      setAppointmentData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -213,9 +230,9 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
       if (error.response) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
-        setError(`Failed to process your order: ${error.response.data.message || 'Please try again.'}`);
+        setError(`Nem sikerült feldolgozni a rendelést: ${error.response.data.message || 'Kérjük, próbálja újra.'}`);
       } else {
-        setError('Failed to process your order. Please try again.');
+        setError('Nem sikerült feldolgozni a rendelést. Kérjük, próbálja újra.');
       }
     } finally {
       setIsSubmitting(false);
@@ -404,20 +421,28 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                       {/* Service Selection Card */}
                       <div className={`p-4 rounded-lg mb-6 ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
                         <label className="block mb-2 text-sm font-medium">Szerviz kiválasztása</label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3">
                           {garages.map(garage => (
                             <div
                               key={garage.id}
-                              onClick={() => setAppointmentData(prev => ({ ...prev, garageId: garage.id }))}
+                              onClick={() => {
+                                setAppointmentData(prev => ({
+                                  ...prev,
+                                  garageId: garage.id,
+                                  date: "", // Reset date when changing garage
+                                  time: ""  // Reset time when changing garage
+                                }));
+                                setAvailableTimes([]); // Clear available times when changing garage
+                              }}
                               className={`p-3 rounded-lg cursor-pointer transition-all border-2 ${appointmentData.garageId === garage.id
-                                ? `${darkMode ? "border-[#4e77f4] bg-[#1e2129]" : "border-[#4e77f4] bg-white"}`
-                                : `${darkMode ? "border-transparent" : "border-transparent"}`
+                                  ? `${darkMode ? "border-[#4e77f4] bg-[#1e2129]" : "border-[#4e77f4] bg-white"}`
+                                  : `${darkMode ? "border-transparent" : "border-transparent"}`
                                 }`}
                             >
                               <div className="flex items-start">
                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 mt-1 ${appointmentData.garageId === garage.id
-                                  ? "bg-[#4e77f4]"
-                                  : `${darkMode ? "bg-[#3a3f4b]" : "bg-gray-300"}`
+                                    ? "bg-[#4e77f4]"
+                                    : `${darkMode ? "bg-[#3a3f4b]" : "bg-gray-300"}`
                                   }`}>
                                   {appointmentData.garageId === garage.id && (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -428,14 +453,24 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                                 <div>
                                   <h3 className="font-medium">{garage.name}</h3>
                                   <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{garage.location}</p>
-                                  {garage.phone && (
+                                  {garage.contact_info && (
                                     <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
                                       <span className="inline-block mr-1">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                         </svg>
                                       </span>
-                                      {garage.phone}
+                                      {garage.contact_info}
+                                    </p>
+                                  )}
+                                  {garage.opening_hours && (
+                                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                      <span className="inline-block mr-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                      </span>
+                                      {garage.opening_hours}
                                     </p>
                                   )}
                                 </div>
@@ -457,9 +492,19 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                               value={appointmentData.date}
                               onChange={handleAppointmentChange}
                               className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#1e2129] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                              disabled={!appointmentData.garageId}
                             />
 
-                            {!appointmentData.date && (
+                            {!appointmentData.garageId && (
+                              <p className={`mt-3 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Először válasszon szervizt
+                              </p>
+                            )}
+
+                            {appointmentData.garageId && !appointmentData.date && (
                               <p className={`mt-3 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -475,31 +520,37 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                           <label className="block mb-2 text-sm font-medium">Időpont kiválasztása</label>
                           <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
                             {appointmentData.date ? (
-                              availableTimes.length > 0 ? (
-                                <div className="grid grid-cols-3 gap-2">
-                                  {availableTimes.map(time => (
-                                    <div
-                                      key={time}
-                                      onClick={() => setAppointmentData(prev => ({ ...prev, time }))}
-                                      className={`p-2 rounded-lg text-center cursor-pointer transition-all ${appointmentData.time === time
-                                        ? `bg-[#4e77f4] text-white`
-                                        : `${darkMode ? "bg-[#1e2129] hover:bg-[#2a2f3a]" : "bg-white hover:bg-gray-100"}`
-                                        }`}
-                                    >
-                                      {time}
-                                    </div>
-                                  ))}
+                              loadingTimes ? (
+                                <div className="flex justify-center py-4">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#4e77f4]"></div>
                                 </div>
                               ) : (
-                                <div className="text-center py-4">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  <p className="text-sm text-red-500">Nincs elérhető időpont ezen a napon</p>
-                                  <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                    Kérjük válasszon másik napot
-                                  </p>
-                                </div>
+                                availableTimes.length > 0 ? (
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {availableTimes.map(time => (
+                                      <div
+                                        key={time}
+                                        onClick={() => setAppointmentData(prev => ({ ...prev, time }))}
+                                        className={`p-2 rounded-lg text-center cursor-pointer transition-all ${appointmentData.time === time
+                                            ? `bg-[#4e77f4] text-white`
+                                            : `${darkMode ? "bg-[#1e2129] hover:bg-[#2a2f3a]" : "bg-white hover:bg-gray-100"}`
+                                          }`}
+                                      >
+                                        {time}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-center py-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p className="text-sm text-red-500">Nincs elérhető időpont ezen a napon</p>
+                                    <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                      Kérjük válasszon másik napot vagy másik szervizt
+                                    </p>
+                                  </div>
+                                )
                               )
                             ) : (
                               <div className="text-center py-6">
