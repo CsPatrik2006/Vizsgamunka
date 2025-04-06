@@ -15,7 +15,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // New state for delete confirmation modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
@@ -26,10 +26,17 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     newPassword: '',
     confirmPassword: '',
   });
-  const [deleteConfirmation, setDeleteConfirmation] = useState(''); // New state for delete confirmation text
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
-  const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' }); // New state for delete messages
+  const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
+  
+  // New state variables for orders and appointments
+  const [userOrders, setUserOrders] = useState([]);
+  const [userAppointments, setUserAppointments] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  
   const navigate = useNavigate();
 
   // Format date helper function
@@ -43,6 +50,16 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     });
   };
 
+  // Format time helper function
+  const formatTime = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('hu-HU', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   // Check if today
   const isToday = (dateString) => {
     if (!dateString) return false;
@@ -51,6 +68,28 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     return date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
+  };
+
+  // Helper function to get human-readable status
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'pending': return 'Függőben';
+      case 'confirmed': return 'Megerősítve';
+      case 'completed': return 'Teljesítve';
+      case 'canceled': return 'Törölve/Lemondva';
+      default: return status;
+    }
+  };
+
+  // Helper function to get status color class
+  const getStatusColorClass = (status) => {
+    switch(status) {
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'canceled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   const handleLogoutWithCartClear = () => {
@@ -80,6 +119,10 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
         // Fetch the latest user data
         fetchUserData(parsedUserData.id, token);
+        
+        // Fetch orders and appointments
+        fetchUserOrders(parsedUserData.id, token);
+        fetchUserAppointments(parsedUserData.id, token);
       } catch (error) {
         console.error("Error parsing user data:", error);
         // Clear invalid data and redirect
@@ -123,6 +166,56 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     } catch (error) {
       console.error('Error fetching user data:', error);
       setLoading(false);
+    }
+  };
+
+  // New function to fetch user orders
+  const fetchUserOrders = async (userId, token) => {
+    try {
+      setOrdersLoading(true);
+      const response = await fetch(`http://localhost:3000/orders/user/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const orders = await response.json();
+        setUserOrders(orders);
+      } else {
+        console.error('Failed to fetch user orders');
+      }
+    } catch (error) {
+      console.error('Error fetching user orders:', error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  // New function to fetch user appointments
+  const fetchUserAppointments = async (userId, token) => {
+    try {
+      setAppointmentsLoading(true);
+      const response = await fetch(`http://localhost:3000/appointments/user/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const appointments = await response.json();
+        setUserAppointments(appointments);
+      } else {
+        console.error('Failed to fetch user appointments');
+      }
+    } catch (error) {
+      console.error('Error fetching user appointments:', error);
+    } finally {
+      setAppointmentsLoading(false);
     }
   };
 
@@ -535,22 +628,94 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           >
             <h2 className="text-xl font-semibold mb-4">Aktivitás</h2>
             <div className="space-y-4">
+              {/* Appointments Section */}
               <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-[#f8fafc]"}`}>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-3">
                   <div>
-                    <h3 className="font-medium">Legutóbbi időpontfoglalás</h3>
+                    <h3 className="font-medium">Időpontfoglalások</h3>
+                  </div>
+                </div>
+                
+                {appointmentsLoading ? (
+                  <div className="py-4 text-center">
+                    <p className="text-sm text-[#88a0e8]">Betöltés...</p>
+                  </div>
+                ) : userAppointments.length > 0 ? (
+                  <div className="space-y-3">
+                    {userAppointments.slice(0, 3).map((appointment) => (
+                      <div 
+                        key={appointment.id} 
+                        className={`p-3 rounded-md ${darkMode ? "bg-[#1e2129]" : "bg-white"} border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">
+                              {appointment.Garage?.name || "Szerviz időpont"}
+                            </p>
+                            <p className="text-sm text-[#88a0e8]">
+                              {formatDate(appointment.appointment_time)} {formatTime(appointment.appointment_time)}
+                            </p>
+                            <p className="text-xs mt-1 text-gray-500">
+                              Rendelés azonosító: #{appointment.order_id}
+                            </p>
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs ${getStatusColorClass(appointment.status)}`}>
+                            {getStatusText(appointment.status)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-4 text-center">
                     <p className="text-sm text-[#88a0e8]">Nincs aktív időpontfoglalás</p>
                   </div>
-                </div>
+                )}
               </div>
 
+              {/* Orders Section */}
               <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-[#f8fafc]"}`}>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-3">
                   <div>
-                    <h3 className="font-medium">Legutóbbi rendelés</h3>
-                    <p className="text-sm text-[#88a0e8]">Nincs aktív rendelés</p>
+                    <h3 className="font-medium">Rendelések</h3>
                   </div>
                 </div>
+                
+                {ordersLoading ? (
+                  <div className="py-4 text-center">
+                    <p className="text-sm text-[#88a0e8]">Betöltés...</p>
+                  </div>
+                ) : userOrders.length > 0 ? (
+                  <div className="space-y-3">
+                    {userOrders.slice(0, 3).map((order) => (
+                      <div 
+                        key={order.id} 
+                        className={`p-3 rounded-md ${darkMode ? "bg-[#1e2129]" : "bg-white"} border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">
+                              Rendelés #{order.id}
+                            </p>
+                            <p className="text-sm text-[#88a0e8]">
+                              {formatDate(order.order_date)} • {order.total_price} Ft
+                            </p>
+                            <p className="text-xs mt-1 text-gray-500">
+                              Szerviz: {order.Garage?.name || "Ismeretlen"}
+                            </p>
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs ${getStatusColorClass(order.status)}`}>
+                            {getStatusText(order.status)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-4 text-center">
+                    <p className="text-sm text-[#88a0e8]">Nincs aktív rendelés</p>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

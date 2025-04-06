@@ -1,5 +1,7 @@
 const Appointments = require("../model/appointments");
 const GarageScheduleSlot = require("../model/garageSchedule");
+const User = require("../model/users");
+const Garage = require("../model/garages");
 const { Op } = require("sequelize");
 
 // Get all appointments
@@ -189,5 +191,48 @@ exports.deleteAppointment = async (req, res) => {
     res.json({ message: "Appointment deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get appointments by user ID
+exports.getAppointmentsByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // First check if the user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the requesting user is authorized to access these appointments
+    if (req.user && req.user.id !== parseInt(userId)) {
+      return res.status(403).json({ message: "Unauthorized access to another user's appointments" });
+    }
+
+    // Get appointments for this user
+    const appointments = await Appointments.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: Garage,
+          attributes: ["id", "name", "location"],
+        },
+        {
+          model: GarageScheduleSlot,
+          attributes: ["id", "day_of_week", "start_time", "end_time"],
+        }
+      ],
+      order: [['appointment_time', 'DESC']]
+    });
+
+    res.json(appointments);
+  } catch (error) {
+    console.error("Error fetching appointments by user ID:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      stack: error.stack
+    });
   }
 };

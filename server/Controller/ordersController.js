@@ -364,3 +364,46 @@ exports.deleteOrder = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// Get orders by user ID
+exports.getOrdersByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // First check if the user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the requesting user is authorized to access these orders
+    if (req.user && req.user.id !== parseInt(userId)) {
+      return res.status(403).json({ message: "Unauthorized access to another user's orders" });
+    }
+
+    // Get orders for this user
+    const orders = await Order.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "name", "email"],
+        },
+        {
+          model: Garage,
+          attributes: ["id", "name", "location"],
+        },
+      ],
+      order: [['order_date', 'DESC']]
+    });
+
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders by user ID:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      stack: error.stack
+    });
+  }
+};

@@ -64,4 +64,8 @@ const Appointments = sequelize.define(
   }
 );
 
+Appointments.belongsTo(User, { foreignKey: 'user_id' });
+Appointments.belongsTo(Garage, { foreignKey: 'garage_id' });
+Appointments.belongsTo(GarageScheduleSlot, { foreignKey: 'schedule_slot_id' });
+
 module.exports = Appointments;
