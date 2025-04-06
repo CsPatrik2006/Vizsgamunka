@@ -10,6 +10,7 @@ import { hu } from 'date-fns/locale';
 // Import UI components
 import Header from "../components/ui/navbar";
 import { Button } from "../components/ui/button";
+import { Tooltip } from "../components/ui/tooltip";
 
 // Import our new components
 import ScheduleView from "../components/garage/ScheduleView";
@@ -465,38 +466,56 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
                         <div>
                             <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => navigate('/my-garages')}
-                                    className="text-[#4e77f4] hover:text-[#3a5fd0] transition-colors"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
+                                <Tooltip content="Vissza a garázsokhoz">
+                                    <button
+                                        onClick={() => navigate('/my-garages')}
+                                        className="text-[#4e77f4] hover:text-[#3a5fd0] transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </Tooltip>
                                 <h1 className="text-3xl font-bold">Időpontfoglalás kezelése</h1>
                             </div>
                             {garage && <p className="text-[#88a0e8] mt-1">{garage.name}</p>}
                         </div>
 
-                        <div className="mt-4 md:mt-0 flex gap-3">
-                            <Button
-                                onClick={() => setViewMode("schedule")}
-                                className={viewMode === "schedule" ? "bg-[#4e77f4]" : "bg-gray-600"}
-                            >
-                                Beosztás
-                            </Button>
-                            <Button
-                                onClick={() => setViewMode("week")}
-                                className={viewMode === "week" ? "bg-[#4e77f4]" : "bg-gray-600"}
-                            >
-                                Heti naptár
-                            </Button>
-                            <Button
-                                onClick={() => setViewMode("bookings")}
-                                className={viewMode === "bookings" ? "bg-[#4e77f4]" : "bg-gray-600"}
-                            >
-                                Foglalások
-                            </Button>
+                        <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
+                            <Tooltip content="Beosztás beállítása">
+                                <Button
+                                    onClick={() => setViewMode("schedule")}
+                                    className={`flex items-center gap-1 ${viewMode === "schedule" ? "bg-[#4e77f4]" : "bg-gray-600"}`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="hidden sm:inline">Beosztás</span>
+                                </Button>
+                            </Tooltip>
+                            <Tooltip content="Heti naptár nézet">
+                                <Button
+                                    onClick={() => setViewMode("week")}
+                                    className={`flex items-center gap-1 ${viewMode === "week" ? "bg-[#4e77f4]" : "bg-gray-600"}`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="hidden sm:inline">Heti naptár</span>
+                                </Button>
+                            </Tooltip>
+                            <Tooltip content="Foglalások listája">
+                                <Button
+                                    onClick={() => setViewMode("bookings")}
+                                    className={`flex items-center gap-1 ${viewMode === "bookings" ? "bg-[#4e77f4]" : "bg-gray-600"}`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="hidden sm:inline">Foglalások</span>
+                                </Button>
+                            </Tooltip>
                         </div>
                     </div>
 
@@ -504,15 +523,27 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6"
+                            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 flex items-center"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
                             {error}
+                            <button
+                                onClick={() => setError(null)}
+                                className="ml-auto text-red-700 hover:text-red-900"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
                         </motion.div>
                     )}
 
                     {loading ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4e77f4]"></div>
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4e77f4] mb-4"></div>
+                            <p className="text-[#4e77f4]">Adatok betöltése...</p>
                         </div>
                     ) : viewMode === "schedule" ? (
                         <ScheduleView
