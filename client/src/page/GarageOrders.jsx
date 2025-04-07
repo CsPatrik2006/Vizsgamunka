@@ -244,8 +244,23 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         </div>
     );
 
-    // In the GarageOrders.jsx file, update the renderOrderItems function:
+    // Add the missing renderEmptyState function
+    const renderEmptyState = () => (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className={`p-12 text-center rounded-xl ${darkMode ? "bg-[#1e2129]" : "bg-white"} shadow-lg`}
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto mb-4 text-[#88a0e8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-xl text-[#88a0e8]">Még nincsenek rendelések ehhez a garázshoz.</p>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">A rendelések itt fognak megjelenni, amint az ügyfelek vásárolnak.</p>
+        </motion.div>
+    );
 
+    // In the GarageOrders.jsx file, update the renderOrderItems function:
     const renderOrderItems = () => (
         itemsLoading ? (
             <div className="flex justify-center py-4">
