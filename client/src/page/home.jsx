@@ -23,13 +23,20 @@ export default function TyreShopHomepage({
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { handleCartLogout, addToCart, cartItems } = useCart();
+  const { handleCartLogout, addToCart, cartItems, initializeCart } = useCart();
   const [garages, setGarages] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn && userData && garages.length > 0) {
+      const defaultGarageId = garages.length > 0 ? garages[0].id : 1;
+      initializeCart(userData.id, defaultGarageId);
+    }
+  }, [isLoggedIn, userData, garages, initializeCart]);
 
   useEffect(() => {
     const fetchData = async () => {

@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  app:
-    image: node:16
-    container_name: fastify-app
-    ports:
-      - "3000:3000"
-    environment:
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_USER=root 
-      - MYSQL_PASSWORD=root  
-      - MYSQL_DB=root
-    depends_on:
-      - mysql
-    volumes:
-      - .:/usr/src/app
-    working_dir: /usr/src/app
-    command: npm run dev
 
   mysql:
     image: mysql:8.0
