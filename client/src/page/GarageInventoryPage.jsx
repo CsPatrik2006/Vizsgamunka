@@ -5,7 +5,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useCart } from '../context/CartContext';
 import Header from "../components/ui/navbar";
 import { Button } from "../components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
 
@@ -38,6 +38,22 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [currentDragTarget, setCurrentDragTarget] = useState(null);
+
+  // Add error timeout effect
+  useEffect(() => {
+    // When error is set, scroll to top
+    if (error) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Set a timeout to clear the error after 5 seconds
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+
+      // Clean up the timer when component unmounts or error changes
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // Add the getImageUrl helper function
   const getImageUrl = (imagePath) => {
@@ -209,6 +225,23 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
 
   const handleAddItem = async (e) => {
     e.preventDefault();
+
+    // Validation checks
+    if (parseFloat(newItem.unit_price) <= 0) {
+      setError("Az egységár nagyobb kell legyen, mint 0 Ft!");
+      return;
+    }
+
+    if (!newItem.season) {
+      setError("Kérjük válasszon évszakot!");
+      return;
+    }
+
+    if (!coverImage) {
+      setError("A borítókép feltöltése kötelező!");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
 
@@ -315,7 +348,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const renderImageUpload = (imageType, image, setImage, label) => {
     return (
       <div className="mb-4">
-        <label className="block mb-2 text-sm font-medium">{label}</label>
+        <label className="block mb-2 text-sm font-medium" dangerouslySetInnerHTML={{ __html: label }}></label>
         <div
           className={`border-2 border-dashed rounded-lg p-4 transition-all 
           ${isDragging && currentDragTarget === imageType ? "border-[#4e77f4] bg-blue-50" : ""} 
@@ -452,15 +485,27 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
               </Button>
             </div>
 
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6"
-              >
-                {error}
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 flex justify-between items-center"
+                >
+                  <div>{error}</div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-red-700 hover:text-red-900"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {showAddItemForm && (
               <motion.div
@@ -474,7 +519,9 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                 <form onSubmit={handleAddItem}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Termék neve</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Termék neve <span className="text-red-500">*</span>
+                        </label>
                       <input
                         type="text"
                         name="item_name"
@@ -485,7 +532,9 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                       />
                     </div>
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Jármű típus</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Jármű típus <span className="text-red-500">*</span>
+                        </label>
                       <select
                         name="vehicle_type"
                         value={newItem.vehicle_type}
@@ -499,7 +548,9 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                       </select>
                     </div>
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Mennyiség</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Mennyiség <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="number"
                         name="quantity"
@@ -511,14 +562,16 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                       />
                     </div>
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Egységár (Ft)</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Egységár (Ft) <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="number"
                         name="unit_price"
                         value={newItem.unit_price}
                         onChange={handleInputChange}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
-                        min="0"
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all ${parseFloat(newItem.unit_price) <= 0 && "border-red-500"}`}
+                        min="1"
                         step="0.01"
                         required
                       />
@@ -526,12 +579,15 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
 
                     {/* Tyre-specific fields */}
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Évszak</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Évszak <span className="text-red-500">*</span>
+                      </label>
                       <select
                         name="season"
                         value={newItem.season}
                         onChange={handleInputChange}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all ${!newItem.season && "border-red-500"}`}
+                        required
                       >
                         <option value="">Válassz évszakot</option>
                         <option value="winter">Téli</option>
@@ -541,7 +597,9 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     </div>
 
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Szélesség (mm)</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Szélesség (mm) <span className="text-red-500">*</span>
+                        </label>
                       <input
                         type="number"
                         name="width"
@@ -549,11 +607,14 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         onChange={handleInputChange}
                         className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
                         min="0"
+                        required
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Profil (%)</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Profil (%) <span className="text-red-500">*</span>
+                        </label>
                       <input
                         type="number"
                         name="profile"
@@ -561,11 +622,14 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         onChange={handleInputChange}
                         className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
                         min="0"
+                        required
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Átmérő (col)</label>
+                      <label className="block mb-2 text-sm font-medium">
+                        Átmérő (col) <span className="text-red-500">*</span>
+                        </label>
                       <input
                         type="number"
                         name="diameter"
@@ -573,6 +637,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                         onChange={handleInputChange}
                         className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
                         min="0"
+                        required
                       />
                     </div>
 
@@ -590,7 +655,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
 
                     {/* Image upload sections */}
                     <div className="md:col-span-2">
-                      {renderImageUpload('cover_img', coverImage, setCoverImage, 'Borítókép (kötelező)')}
+                      {renderImageUpload('cover_img', coverImage, setCoverImage, 'Borítókép <span class="text-red-500">*</span>')}
                     </div>
 
                     <div className="md:col-span-1">
