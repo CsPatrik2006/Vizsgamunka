@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import RegisterForm from "./page/register";
 import LoginForm from "./page/login";
 import TyreShopHomepage from "./page/home";
@@ -24,23 +25,62 @@ function App() {
   const [userData, setUserData] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Function to check if token is expired
+  const isTokenExpired = (token) => {
+    try {
+      // Get the payload part of the JWT
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      // Check if the expiration time is past
+      if (payload.exp) {
+        const currentTime = Math.floor(Date.now() / 1000);
+        return payload.exp < currentTime;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking token expiration:", error);
+      return true; // Assume expired if there's an error
+    }
+  };
+
   // Check if user is logged in on component mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUserData = localStorage.getItem('userData');
 
     if (token && storedUserData) {
-      setIsLoggedIn(true);
-      try {
-        setUserData(JSON.parse(storedUserData));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        // Clear invalid data
-        localStorage.removeItem('userData');
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        // Token is expired, log out the user
+        handleLogout();
+      } else {
+        setIsLoggedIn(true);
+        try {
+          setUserData(JSON.parse(storedUserData));
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+          // Clear invalid data
+          localStorage.removeItem('userData');
+        }
       }
     }
     setAuthLoading(false);
   }, []);
+
+  // Periodically check token expiration while the app is running
+  useEffect(() => {
+    if (isLoggedIn) {
+      const tokenCheckInterval = setInterval(() => {
+        const token = localStorage.getItem('token');
+        if (token && isTokenExpired(token)) {
+          console.log("Token expired during session, logging out...");
+          handleLogout();
+        }
+      }, 60000); // Check every minute
+
+      return () => clearInterval(tokenCheckInterval);
+    }
+  }, [isLoggedIn]);
 
   const handleLoginSuccess = (user, token) => {
     localStorage.setItem('token', token);
@@ -54,32 +94,6 @@ function App() {
     localStorage.removeItem('userData');
     setIsLoggedIn(false);
     setUserData(null);
-  };
-
-  // Protected route component
-  const ProtectedRoute = ({ children, requiredRole }) => {
-    if (authLoading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
-          <div className="text-xl">Betöltés...</div>
-        </div>
-      );
-    }
-
-    const isAuthenticated = localStorage.getItem('token') !== null;
-    const userDataString = localStorage.getItem('userData');
-    const userData = userDataString ? JSON.parse(userDataString) : {};
-
-    if (!isAuthenticated) {
-      return <Navigate to="/" replace />;
-    }
-
-    // If a specific role is required, check if user has that role
-    if (requiredRole && userData.role !== requiredRole) {
-      return <Navigate to="/" replace />;
-    }
-
-    return children;
   };
 
   return (
@@ -148,7 +162,11 @@ function App() {
             <Route
               path="/checkout"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <Checkout
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -161,7 +179,11 @@ function App() {
             <Route
               path="/checkout/success"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <CheckoutSuccess
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -174,7 +196,11 @@ function App() {
             <Route
               path="/profile"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <ProfilePage
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -188,7 +214,12 @@ function App() {
             <Route
               path="/my-garages"
               element={
-                <ProtectedRoute requiredRole="garage_owner">
+                <ProtectedRoute
+                  requiredRole="garage_owner"
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <MyGaragesPage
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -201,7 +232,12 @@ function App() {
             <Route
               path="/my-garages/:garageId/inventory"
               element={
-                <ProtectedRoute requiredRole="garage_owner">
+                <ProtectedRoute
+                  requiredRole="garage_owner"
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <GarageInventoryPage
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -214,7 +250,12 @@ function App() {
             <Route
               path="/my-garages/:garageId/edit"
               element={
-                <ProtectedRoute requiredRole="garage_owner">
+                <ProtectedRoute
+                  requiredRole="garage_owner"
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <EditGaragePage
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -227,7 +268,12 @@ function App() {
             <Route
               path="/my-garages/:garageId/inventory/:itemId/edit"
               element={
-                <ProtectedRoute requiredRole="garage_owner">
+                <ProtectedRoute
+                  requiredRole="garage_owner"
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
                   <EditInventoryItemPage
                     isLoggedIn={isLoggedIn}
                     userData={userData}
@@ -240,11 +286,16 @@ function App() {
             <Route
               path="/my-garages/:garageId/orders"
               element={
-                <ProtectedRoute requiredRole="garage_owner">
-                  <GarageOrdersPage 
-                    isLoggedIn={isLoggedIn} 
-                    userData={userData} 
-                    handleLogout={handleLogout} 
+                <ProtectedRoute
+                  requiredRole="garage_owner"
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
+                  <GarageOrdersPage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
                   />
                 </ProtectedRoute>
               }
@@ -254,11 +305,16 @@ function App() {
             <Route
               path="/my-garages/:garageId/appointments"
               element={
-                <ProtectedRoute requiredRole="garage_owner">
-                  <GarageAppointmentSchedulePage 
-                    isLoggedIn={isLoggedIn} 
-                    userData={userData} 
-                    handleLogout={handleLogout} 
+                <ProtectedRoute
+                  requiredRole="garage_owner"
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  authLoading={authLoading}
+                >
+                  <GarageAppointmentSchedulePage
+                    isLoggedIn={isLoggedIn}
+                    userData={userData}
+                    handleLogout={handleLogout}
                   />
                 </ProtectedRoute>
               }
