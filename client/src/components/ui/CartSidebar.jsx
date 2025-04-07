@@ -5,9 +5,9 @@ import { useTheme } from '../../context/ThemeContext';
 import { useCart } from '../../context/CartContext';
 import { Button } from "./button";
 
-const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
+const CartSidebar = ({ isOpen, onClose }) => {
   const { darkMode } = useTheme();
-  const { removeFromCart, updateCartItemQuantity } = useCart();
+  const { removeFromCart, updateCartItemQuantity, cartItems } = useCart();
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [animationClass, setAnimationClass] = useState("translate-x-full");
@@ -27,9 +27,6 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
       setTimeout(() => {
         setAnimationClass("translate-x-0");
       }, 10);
-
-      // Fetch inventory limits when cart opens
-      fetchInventoryLimits();
     } else {
       setAnimationClass("translate-x-full");
       const timer = setTimeout(() => {
@@ -38,6 +35,13 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  // New useEffect to watch for changes in cartItems and refetch inventory limits
+  useEffect(() => {
+    if (isOpen && cartItems.length > 0) {
+      fetchInventoryLimits();
+    }
+  }, [isOpen, cartItems]);
 
   // Fetch inventory limits for all items in cart
   const fetchInventoryLimits = async () => {
@@ -48,12 +52,17 @@ const CartSidebar = ({ isOpen, onClose, cartItems = [] }) => {
     setIsLoading(true);
     try {
       const limits = {};
+      const promises = inventoryItems.map(item =>
+        axios.get(`http://localhost:3000/inventory/${item.product_id}`)
+          .then(response => {
+            limits[item.product_id] = response.data.quantity;
+          })
+          .catch(error => {
+            console.error(`Error fetching inventory for item ${item.product_id}:`, error);
+          })
+      );
 
-      for (const item of inventoryItems) {
-        const response = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
-        limits[item.product_id] = response.data.quantity;
-      }
-
+      await Promise.all(promises);
       setInventoryLimits(limits);
     } catch (error) {
       console.error('Error fetching inventory limits:', error);

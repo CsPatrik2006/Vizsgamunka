@@ -200,7 +200,6 @@ export default function ItemDetailsPage({
       <CartSidebar
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        cartItems={cartItems}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -285,8 +284,8 @@ export default function ItemDetailsPage({
                         <div
                           key={index}
                           className={`w-16 h-16 border-2 rounded-md overflow-hidden cursor-pointer transition-all ${currentImageIndex === index
-                              ? `border-[#4e77f4] ${darkMode ? 'shadow-[0_0_10px_rgba(78,119,244,0.5)]' : 'shadow-[0_0_10px_rgba(78,119,244,0.3)]'}`
-                              : darkMode ? 'border-gray-700' : 'border-gray-200'
+                            ? `border-[#4e77f4] ${darkMode ? 'shadow-[0_0_10px_rgba(78,119,244,0.5)]' : 'shadow-[0_0_10px_rgba(78,119,244,0.3)]'}`
+                            : darkMode ? 'border-gray-700' : 'border-gray-200'
                             }`}
                           onClick={() => setCurrentImageIndex(index)}
                         >
@@ -415,10 +414,10 @@ export default function ItemDetailsPage({
                   {/* Season badge in details section */}
                   {item.season && (
                     <span className={`inline-block ml-2 text-xs px-2 py-1 rounded-full ${item.season === 'winter'
-                        ? 'bg-blue-500 text-white'
-                        : item.season === 'summer'
-                          ? 'bg-yellow-500 text-black'
-                          : 'bg-green-500 text-white'
+                      ? 'bg-blue-500 text-white'
+                      : item.season === 'summer'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-green-500 text-white'
                       }`}>
                       {getSeasonDisplayName(item.season)}
                     </span>
@@ -482,7 +481,7 @@ export default function ItemDetailsPage({
                         aria-label="Mennyiség"
                       />
                       <button
-                        onClick={() => setQuantity(Math.min(item.quantity, quantity + 1))}
+                        onClick={() => setQuantity(Math.min(item.quantity, Number(quantity) + 1))}
                         className={`h-full px-4 flex items-center justify-center rounded-r-md ${darkMode ? "bg-[#1e2129] text-white hover:bg-[#2a2f3a]" : "bg-gray-200 text-black hover:bg-gray-300"} transition-colors duration-200 focus:outline-none cursor-pointer`}
                         aria-label="Növelés"
                       >
@@ -502,13 +501,12 @@ export default function ItemDetailsPage({
                   {item.quantity > 0 ? 'Kosárba' : 'Nincs készleten'}
                 </Button>
 
-                {garage && (
-                  <div className="mt-8 p-4 rounded-lg border border-gray-700">
-                    <h3 className="text-lg font-semibold mb-2">Szervíz információ</h3>
-                    <p className="mb-1"><span className="font-medium">Név:</span> {garage.name}</p>
-                    <p className="mb-1"><span className="font-medium">Helyszín:</span> {garage.location}</p>
-                    {garage.contact_info && <p><span className="font-medium">Kapcsolat:</span> {garage.contact_info}</p>}
-                  </div>
+                {garage && (<div className="mt-8 p-4 rounded-lg border border-gray-700">
+                  <h3 className="text-lg font-semibold mb-2">Szervíz információ</h3>
+                  <p className="mb-1"><span className="font-medium">Név:</span> {garage.name}</p>
+                  <p className="mb-1"><span className="font-medium">Helyszín:</span> {garage.location}</p>
+                  {garage.contact_info && <p><span className="font-medium">Kapcsolat:</span> {garage.contact_info}</p>}
+                </div>
                 )}
               </div>
             </div>
