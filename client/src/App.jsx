@@ -18,6 +18,8 @@ import CheckoutSuccess from "./page/CheckoutSuccess";
 import GarageOrdersPage from "./page/GarageOrders";
 import GarageAppointmentSchedulePage from "./page/GarageAppointmentSchedulePage";
 import Impresszum from './page/Impresszum';
+import ASZF from './page/ASZF';
+import Adatvedelem from "./page/Adatvedelem";
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -163,6 +165,32 @@ function App() {
               path="/impresszum"
               element={
                 <Impresszum
+                  setIsLoginOpen={setIsLoginOpen}
+                  setIsRegisterOpen={setIsRegisterOpen}
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              }
+            />
+
+            <Route
+              path="/aszf"
+              element={
+                <ASZF
+                  setIsLoginOpen={setIsLoginOpen}
+                  setIsRegisterOpen={setIsRegisterOpen}
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              }
+            />
+
+            <Route
+              path="/adatvedelem"
+              element={
+                <Adatvedelem
                   setIsLoginOpen={setIsLoginOpen}
                   setIsRegisterOpen={setIsRegisterOpen}
                   isLoggedIn={isLoggedIn}
