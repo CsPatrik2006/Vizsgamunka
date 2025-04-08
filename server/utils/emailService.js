@@ -42,12 +42,12 @@ exports.sendRegistrationEmail = async (user) => {
     const textVersion = `
       Üdvözöljük a Gumizz Kft. oldalán!
       
-      Kedves ${user.first_name} ${user.last_name},
+      Kedves ${user.last_name} ${user.first_name},
       
       Köszönjük, hogy regisztrált oldalunkon! Fiókja sikeresen létrejött.
       
       Felhasználói adatok:
-      - Név: ${user.first_name} ${user.last_name}
+      - Név: ${user.last_name} ${user.first_name}
       - Email: ${user.email}
       
       Most már bejelentkezhet és böngészhet termékeink és szolgáltatásaink között.
@@ -73,11 +73,11 @@ exports.sendRegistrationEmail = async (user) => {
             ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
           </div>
           <h2 style="color: #4e77f4;">Üdvözöljük a Gumizz Kft. oldalán!</h2>
-          <p>Kedves ${user.first_name} ${user.last_name},</p>
+          <p>Kedves ${user.last_name} ${user.first_name},</p>
           <p>Köszönjük, hogy regisztrált oldalunkon! Fiókja sikeresen létrejött.</p>
           <p>Felhasználói adatok:</p>
           <ul>
-            <li>Név: ${user.first_name} ${user.last_name}</li>
+            <li>Név: ${user.last_name} ${user.first_name}</li>
             <li>Email: ${user.email}</li>
           </ul>
           <p>Most már bejelentkezhet és böngészhet termékeink és szolgáltatásaink között.</p>
@@ -259,19 +259,19 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
       case 'confirmed':
         statusTitle = 'Rendelés megerősítve';
         statusMessage = 'Rendelését megerősítettük és feldolgozás alatt áll. Hamarosan elkészítjük és értesítjük a további teendőkről.';
-        statusColor = '#4e77f4'; // Blue
+        statusColor = '#4e77f4';
         statusEmoji = '✅';
         break;
       case 'completed':
         statusTitle = 'Rendelés teljesítve';
-        statusMessage = 'Rendelését sikeresen teljesítettük. Köszönjük, hogy a Gumizz Kft. szolgáltatásait választotta!';
-        statusColor = '#10b981'; // Green
+        statusMessage = 'Rendelését sikeresen teljesítettük. A terméke megérkezett az Ön által kiválasztott szervízbe. Köszönjük, hogy a Gumizz Kft. szolgáltatásait választotta!';
+        statusColor = '#10b981';
         statusEmoji = '🎉';
         break;
       case 'canceled':
         statusTitle = 'Rendelés törölve';
         statusMessage = 'Rendelését törölték. Ha kérdése van ezzel kapcsolatban, kérjük, vegye fel a kapcsolatot ügyfélszolgálatunkkal.';
-        statusColor = '#ef4444'; // Red
+        statusColor = '#ef4444';
         statusEmoji = '❌';
         break;
       default:
@@ -281,7 +281,6 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
         statusEmoji = 'ℹ️';
     }
 
-    // Create plain text version for better deliverability
     const textVersion = `
       ${statusTitle}
       
@@ -346,7 +345,7 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
         {
           filename: 'Gumizz_logo.png',
           path: logoPath,
-          cid: 'logo' // Content ID referenced in the HTML
+          cid: 'logo'
         }
       ] : []
     };
@@ -356,6 +355,112 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
     return info;
   } catch (error) {
     console.error('Error sending order status update email:', error);
+    throw error;
+  }
+};
+
+// Function to send appointment confirmation email
+exports.sendAppointmentConfirmationEmail = async (user, appointment, garage, scheduleSlot) => {
+  try {
+    // Validate email first
+    if (!emailValidator.validate(user.email)) {
+      throw new Error(`Invalid email address: ${user.email}`);
+    }
+
+    // Format appointment date and time
+    const appointmentDate = new Date(appointment.appointment_time);
+    const formattedDate = appointmentDate.toLocaleDateString('hu-HU', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const formattedTime = appointmentDate.toLocaleTimeString('hu-HU', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    // Create plain text version for better deliverability
+    const textVersion = `
+      Időpontfoglalás megerősítve
+      
+      Kedves ${user.last_name} ${user.first_name},
+      
+      Az Ön által kért időpontot megerősítettük. Várjuk Önt a megadott időpontban!
+      
+      Időpontfoglalás részletei:
+      Azonosító: #${appointment.id}
+      Dátum: ${formattedDate}
+      Időpont: ${formattedTime}
+      Helyszín: ${garage?.name || 'Nem elérhető'}
+      Cím: ${garage?.location || 'Nem elérhető'}
+      
+      Időpontfoglalásával kapcsolatos kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:
+      Email: info.gumizzwebaruhaz@gmail.com
+      Telefon: +36 30 393 0594 / +36 20 443 5228
+      
+      © 2025 Gumizz Kft. Minden jog fenntartva.
+    `;
+
+    const mailOptions = {
+      from: `"Gumizz Webáruház" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: `✅ Időpontfoglalás megerősítve - #${appointment.id}`,
+      text: textVersion,
+      headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High',
+        'Importance': 'High'
+      },
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
+          </div>
+          
+          <div style="text-align: center; margin-bottom: 30px;">
+            <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background-color: #4e77f4; color: white; font-size: 40px; line-height: 80px; text-align: center; margin-bottom: 15px;">
+              ✅
+            </div>
+            <h2 style="color: #4e77f4; margin: 0;">Időpontfoglalás megerősítve</h2>
+          </div>
+          
+          <p>Kedves ${user.last_name} ${user.first_name},</p>
+          <p>Az Ön által kért időpontot megerősítettük. Várjuk Önt a megadott időpontban!</p>
+          
+          <div style="margin: 25px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px; border-left: 4px solid #4e77f4;">
+            <h3 style="color: #4e77f4; margin-top: 0;">Időpontfoglalás részletei</h3>
+            <p style="margin: 0 0 10px 0;"><strong>Azonosító:</strong> #${appointment.id}</p>
+            <p style="margin: 0 0 10px 0;"><strong>Dátum:</strong> ${formattedDate}</p>
+            <p style="margin: 0 0 10px 0;"><strong>Időpont:</strong> ${formattedTime}</p>
+            <p style="margin: 0 0 10px 0;"><strong>Helyszín:</strong> ${garage?.name || 'Nem elérhető'}</p>
+            <p style="margin: 0;"><strong>Cím:</strong> ${garage?.location || 'Nem elérhető'}</p>
+            ${scheduleSlot ? `
+            <p style="margin: 10px 0 0 0;"><strong>Időablak:</strong> ${scheduleSlot.day_of_week}, ${scheduleSlot.start_time} - ${scheduleSlot.end_time}</p>
+            ` : ''}
+          </div>
+          
+          <p style="margin-top: 30px;">Időpontfoglalásával kapcsolatos kérdéseivel forduljon ügyfélszolgálatunkhoz a következő elérhetőségeken:</p>
+          <p>Email: info.gumizzwebaruhaz@gmail.com<br>Telefon: +36 30 393 0594 / +36 20 443 5228</p>
+          
+          <p style="margin-top: 30px; font-size: 12px; color: #666; text-align: center;">
+            © 2025 Gumizz Kft. Minden jog fenntartva.
+          </p>
+        </div>
+      `,
+      attachments: logoExists ? [
+        {
+          filename: 'Gumizz_logo.png',
+          path: logoPath,
+          cid: 'logo'
+        }
+      ] : []
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Appointment confirmation email sent:`, info.messageId);
+    return info;
+  } catch (error) {
+    console.error('Error sending appointment confirmation email:', error);
     throw error;
   }
 };

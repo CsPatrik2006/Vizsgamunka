@@ -409,7 +409,7 @@ const Header = ({
                   <>
                     <div className={`px-4 py-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                       <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
-                        {userData.first_name} {userData.last_name || "User"}
+                        {userData.last_name} {userData.first_name || "User"}
                       </p>
                       <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} truncate`}>
                         {userData.email}
@@ -529,7 +529,7 @@ const Header = ({
                     </div>
                     <div>
                       <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
-                        {userData.first_name} {userData.last_name || "User"}
+                        {userData.last_name} {userData.first_name || "User"}
                       </p>
                       <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} truncate`}>
                         {userData.email}

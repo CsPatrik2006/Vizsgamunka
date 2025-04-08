@@ -472,7 +472,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
               {profileData.first_name ? profileData.first_name.charAt(0).toUpperCase() : "U"}
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{profileData.first_name} {profileData.last_name}</h1>
+              <h1 className="text-3xl font-bold">{profileData.last_name} {profileData.first_name}</h1>
               <p className="text-[#88a0e8]">{profileData.email}</p>
             </div>
           </div>
@@ -569,7 +569,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Teljes név</p>
-                    <p className="font-medium">{profileData.name}</p>
+                    <p className="font-medium">{profileData.last_name} {profileData.first_name}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Email cím</p>

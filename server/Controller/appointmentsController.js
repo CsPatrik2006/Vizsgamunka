@@ -111,6 +111,9 @@ exports.updateAppointment = async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
+    // Store the previous status to check if it changed
+    const previousStatus = appointment.status;
+
     // If changing the schedule_slot_id, validate it
     if (schedule_slot_id && schedule_slot_id !== appointment.schedule_slot_id) {
       const slot = await GarageScheduleSlot.findByPk(schedule_slot_id);
@@ -170,6 +173,33 @@ exports.updateAppointment = async (req, res) => {
       status, 
       order_id 
     });
+
+    // Only send email if status is changed to 'confirmed'
+    if (status === 'confirmed' && previousStatus !== 'confirmed') {
+      try {
+        // Get user data
+        const User = require("../model/users");
+        const user = await User.findByPk(appointment.user_id);
+        
+        // Get garage data
+        const Garage = require("../model/garages");
+        const garage = await Garage.findByPk(appointment.garage_id);
+        
+        // Get schedule slot data if available
+        let scheduleSlot = null;
+        if (appointment.schedule_slot_id) {
+          const GarageScheduleSlot = require("../model/garageSchedule");
+          scheduleSlot = await GarageScheduleSlot.findByPk(appointment.schedule_slot_id);
+        }
+        
+        // Send email notification
+        const emailService = require("../utils/emailService");
+        await emailService.sendAppointmentConfirmationEmail(user, appointment, garage, scheduleSlot);
+      } catch (emailError) {
+        console.error("Failed to send appointment confirmation email:", emailError);
+        // Don't fail the request if email sending fails
+      }
+    }
 
     res.json(appointment);
   } catch (error) {
