@@ -326,7 +326,8 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <h4 className="font-medium">Ügyfél információk</h4>
-                <p className="text-sm">{order.User?.name || "Ismeretlen"}</p>
+                <p className="text-sm">{order.User?.last_name || "Ismeretlen"}</p>
+                <p className="text-sm">{order.User?.first_name || "Ismeretlen"}</p>
                 <p className="text-sm">{order.User?.email || "Nincs email"}</p>
                 <p className="text-sm">{order.User?.phone || "Nincs telefonszám"}</p>
             </div>
@@ -415,7 +416,8 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                                         <div className="text-sm">#{order.id}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium">{order.User?.name || "Ismeretlen"}</div>
+                                        <div className="text-sm font-medium">{order.User?.last_name || "Ismeretlen"}</div>
+                                        <div className="text-sm font-medium">{order.User?.first_name || "Ismeretlen"}</div>
                                         <div className="text-sm text-gray-500 dark:text-gray-400">{order.User?.email || "Nincs email"}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

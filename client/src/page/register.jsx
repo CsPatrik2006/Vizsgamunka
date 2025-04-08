@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
@@ -6,7 +6,8 @@ import { useTheme } from '../context/ThemeContext';
 const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
   const { darkMode, themeLoaded } = useTheme();
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -29,9 +30,12 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Validation functions
-  const validateUsername = (username) => {
-    return username.length >= 4;
+  const validateFirstName = (firstName) => {
+    return firstName && firstName.length >= 2;
+  };
+
+  const validateLastName = (lastName) => {
+    return lastName && lastName.length >= 2;
   };
 
   const validatePasswordComplexity = (password) => {
@@ -52,11 +56,18 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Update validations when username or password changes
-    if (name === 'name') {
+    // Update validations when first_name, last_name or password changes
+    if (name === 'first_name') {
       setValidations({
         ...validations,
-        nameLength: validateUsername(value)
+        firstNameLength: validateFirstName(value)
+      });
+    }
+
+    if (name === 'last_name') {
+      setValidations({
+        ...validations,
+        lastNameLength: validateLastName(value)
       });
     }
 
@@ -82,9 +93,14 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     setError('');
     setSuccess('');
 
-    // Check username length
-    if (!validateUsername(formData.name)) {
-      setError('A felhasználónévnek legalább 4 karakter hosszúnak kell lennie!');
+    // Check first name and last name length
+    if (!validateFirstName(formData.first_name)) {
+      setError('A keresztnévnek legalább 2 karakter hosszúnak kell lennie!');
+      return;
+    }
+
+    if (!validateLastName(formData.last_name)) {
+      setError('A vezetéknévnek legalább 2 karakter hosszúnak kell lennie!');
       return;
     }
 
@@ -151,6 +167,35 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
   // Don't render until theme is loaded
   if (!themeLoaded) return null;
 
+  useEffect(() => {
+    if (isOpen) {
+      // Disable scrolling on the body when modal is open
+      document.body.style.overflow = 'hidden';
+
+      // Store the current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // Re-enable scrolling when modal is closed
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.overflow = '';
+      document.body.style.width = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.overflow = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
+
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
@@ -173,7 +218,11 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
             }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3 }}
-            className={`relative ${darkMode ? 'bg-[#252830]' : 'bg-[#f8fafc]'} p-8 rounded-lg shadow-xl w-full max-w-md`}
+            className={`relative ${darkMode ? 'bg-[#252830]' : 'bg-[#f8fafc]'} p-8 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto`}
+            style={{
+              marginTop: '2vh',
+              marginBottom: '2vh'
+            }}
           >
             <button
               onClick={handleClose}
@@ -189,11 +238,11 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Felhasználónév</label>
+                <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Vezetéknév</label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="last_name"
+                  value={formData.last_name}
                   onChange={handleChange}
                   className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
                   ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
@@ -204,9 +253,23 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                   required
                   disabled={!!success || !localIsOpen}
                 />
-                {formData.name && !validations.nameLength && (
-                  <p className="text-sm text-red-500 mt-1">A felhasználónévnek legalább 4 karakter hosszúnak kell lennie</p>
-                )}
+              </div>
+              <div>
+                <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Keresztnév</label>
+                <input
+                  type="text"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
+                  ${darkMode ? 'bg-gray-700 border-gray-600 text-white caret-white' : 'bg-white border-gray-300 text-black caret-black'}
+                  ${darkMode
+                      ? '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(255,255,255)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_rgb(55_65_81)_inset]'
+                      : '[&:-webkit-autofill]:[-webkit-text-fill-color:rgb(0,0,0)] [&:-webkit-autofill]:[box-shadow:0_0_0_50px_white_inset]'
+                    }`}
+                  required
+                  disabled={!!success || !localIsOpen}
+                />
               </div>
               <div>
                 <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Email</label>

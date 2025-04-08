@@ -16,7 +16,7 @@ exports.getAllOrders = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "name", "email"], // Include user details
+          attributes: ["id", "first_name", "last_name", "email"], // Include user details
         },
         {
           model: Garage,
@@ -38,7 +38,7 @@ exports.getOrderById = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "name", "email"], // Include user details
+          attributes: ["id", "first_name", "last_name", "email"], // Include user details
         },
         {
           model: Garage,
@@ -75,7 +75,7 @@ exports.getOrdersByGarageId = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "name", "email", "phone"],
+          attributes: ["id", "first_name", "last_name", "email", "phone"],
         },
         {
           model: Garage,
@@ -387,7 +387,7 @@ exports.getOrdersByUserId = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "name", "email"],
+          attributes: ["id", "first_name", "last_name", "email"],
         },
         {
           model: Garage,

@@ -18,7 +18,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
   });
@@ -113,7 +114,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       try {
         const parsedUserData = JSON.parse(storedUserData);
         setProfileData({
-          name: parsedUserData.name || '',
+          first_name: parsedUserData.first_name || '',
+          last_name: parsedUserData.last_name || '',
           email: parsedUserData.email || '',
           phone: parsedUserData.phone || '',
         });
@@ -154,7 +156,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
         // Update state with the latest user data
         setProfileData({
-          name: userData.name || '',
+          last_name: userData.last_name || '',
+          first_name: userData.first_name || '',
           email: userData.email || '',
           phone: userData.phone || '',
         });
@@ -466,10 +469,10 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
           <div className="flex items-center mb-8">
             <div className="w-20 h-20 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-3xl mr-6">
-              {profileData.name ? profileData.name.charAt(0).toUpperCase() : "U"}
+              {profileData.first_name ? profileData.first_name.charAt(0).toUpperCase() : "U"}
             </div>
             <div>
-              <h1 className="text-3xl font-bold">{profileData.name}</h1>
+              <h1 className="text-3xl font-bold">{profileData.first_name} {profileData.last_name}</h1>
               <p className="text-[#88a0e8]">{profileData.email}</p>
             </div>
           </div>
@@ -486,11 +489,22 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
               {editMode ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm text-gray-500 dark:text-gray-400">Teljes név</label>
+                    <label className="text-sm text-gray-500 dark:text-gray-400">Vezetéknév</label>
                     <input
                       type="text"
-                      name="name"
-                      value={profileData.name}
+                      name="last_name"
+                      value={profileData.last_name}
+                      onChange={handleInputChange}
+                      className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
+                        ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500 dark:text-gray-400">Keresztnév</label>
+                    <input
+                      type="text"
+                      name="first_name"
+                      value={profileData.first_name}
                       onChange={handleInputChange}
                       className={`w-full mt-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
                         ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
@@ -534,7 +548,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                           try {
                             const storedUserData = JSON.parse(storedUserDataString);
                             setProfileData({
-                              name: storedUserData.name || '',
+                              last_name: storedUserData.last_name || '',
+                              first_name: storedUserData.first_name || '',
                               email: storedUserData.email || '',
                               phone: storedUserData.phone || '',
                             });

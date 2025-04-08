@@ -42,12 +42,12 @@ exports.sendRegistrationEmail = async (user) => {
     const textVersion = `
       Üdvözöljük a Gumizz Kft. oldalán!
       
-      Kedves ${user.name},
+      Kedves ${user.first_name} ${user.last_name},
       
       Köszönjük, hogy regisztrált oldalunkon! Fiókja sikeresen létrejött.
       
       Felhasználói adatok:
-      - Név: ${user.name}
+      - Név: ${user.first_name} ${user.last_name}
       - Email: ${user.email}
       
       Most már bejelentkezhet és böngészhet termékeink és szolgáltatásaink között.
@@ -73,11 +73,11 @@ exports.sendRegistrationEmail = async (user) => {
             ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
           </div>
           <h2 style="color: #4e77f4;">Üdvözöljük a Gumizz Kft. oldalán!</h2>
-          <p>Kedves ${user.name},</p>
+          <p>Kedves ${user.first_name} ${user.last_name},</p>
           <p>Köszönjük, hogy regisztrált oldalunkon! Fiókja sikeresen létrejött.</p>
           <p>Felhasználói adatok:</p>
           <ul>
-            <li>Név: ${user.name}</li>
+            <li>Név: ${user.first_name} ${user.last_name}</li>
             <li>Email: ${user.email}</li>
           </ul>
           <p>Most már bejelentkezhet és böngészhet termékeink és szolgáltatásaink között.</p>
@@ -147,7 +147,7 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
     const textVersion = `
       Köszönjük a rendelését!
       
-      Kedves ${user.name},
+      Kedves ${user.last_name} ${user.first_name},
       
       Rendelését sikeresen rögzítettük. Az alábbiakban találja a rendelés részleteit:
       
@@ -186,7 +186,7 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
             ${logoExists ? '<img src="cid:logo" alt="Gumizz Kft. Logo" style="max-width: 150px;">' : '<h1 style="color: #4e77f4;">Gumizz Kft.</h1>'}
           </div>
           <h2 style="color: #4e77f4;">Köszönjük a rendelését!</h2>
-          <p>Kedves ${user.name},</p>
+          <p>Kedves ${user.last_name} ${user.first_name},</p>
           <p>Rendelését sikeresen rögzítettük. Az alábbiakban találja a rendelés részleteit:</p>
           
           <div style="margin: 20px 0; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
@@ -285,7 +285,7 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
     const textVersion = `
       ${statusTitle}
       
-      Kedves ${user.name},
+      Kedves ${user.last_name} ${user.first_name},
       
       ${statusMessage}
       
@@ -324,7 +324,7 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
             <h2 style="color: ${statusColor}; margin: 0;">${statusTitle}</h2>
           </div>
           
-          <p>Kedves ${user.name},</p>
+          <p>Kedves ${user.last_name} ${user.first_name},</p>
           <p>${statusMessage}</p>
           
           <div style="margin: 25px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px; border-left: 4px solid ${statusColor};">

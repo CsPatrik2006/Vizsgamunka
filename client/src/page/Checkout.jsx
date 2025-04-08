@@ -17,7 +17,8 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [formData, setFormData] = useState({
-    name: userData?.name || "",
+    first_name: userData?.first_name || "",
+    last_name: userData?.last_name || "",
     email: userData?.email || "",
     phone: userData?.phone || "",
     // Removed address field since we don't do shipping
@@ -348,11 +349,23 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                     </div>
 
                     <div>
-                      <label className="block mb-2 text-sm font-medium">Teljes név</label>
+                      <label className="block mb-2 text-sm font-medium">Vezetéknév</label>
                       <input
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        name="last_name"
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-2 text-sm font-medium">Keresztnév</label>
+                      <input
+                        type="text"
+                        name="first_name"
+                        value={formData.first_name}
                         onChange={handleInputChange}
                         required
                         className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}

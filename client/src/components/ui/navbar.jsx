@@ -382,7 +382,7 @@ const Header = ({
                 {isLoggedIn && userData ? (
                   <div className="relative flex items-center justify-center w-6 h-6 overflow-visible">
                     <div className="absolute w-7 h-7 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-sm transform scale-110">
-                      {userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
+                      {userData.first_name ? userData.first_name.charAt(0).toUpperCase() : "U"}
                     </div>
                   </div>
                 ) : (
@@ -409,7 +409,7 @@ const Header = ({
                   <>
                     <div className={`px-4 py-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                       <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
-                        {userData.name || "User"}
+                        {userData.first_name} {userData.last_name || "User"}
                       </p>
                       <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} truncate`}>
                         {userData.email}
@@ -525,11 +525,11 @@ const Header = ({
                 <div className={`px-4 py-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 rounded-full bg-[#4e77f4] flex items-center justify-center text-white">
-                      {userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
+                      {userData.first_name ? userData.first_name.charAt(0).toUpperCase() : "U"}
                     </div>
                     <div>
                       <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
-                        {userData.name || "User"}
+                        {userData.first_name} {userData.last_name || "User"}
                       </p>
                       <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} truncate`}>
                         {userData.email}

@@ -6,17 +6,18 @@ const { sendRegistrationEmail } = require("../utils/emailService");
 // Regisztráció (Felhasználó létrehozása)
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, phone, role, password } = req.body;
+    const { first_name, last_name, email, phone, role, password } = req.body;
 
-    if (!name || !email || !role || !password) {
-      return res.status(400).json({ message: "Hiányzó kötelező mezők (név, email, szerep, jelszó)!" });
+    if (!first_name || !last_name || !email || !role || !password) {
+      return res.status(400).json({ message: "Hiányzó kötelező mezők (vezetéknév, keresztnév, email, szerep, jelszó)!" });
     }
 
     // Jelszó titkosítása
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
-      name,
+      first_name,
+      last_name,
       email,
       phone,
       role,

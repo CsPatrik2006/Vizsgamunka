@@ -164,7 +164,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
 
       // Only check owner_id if userData exists and has userId
       if (userData && userData.userId) {
-        console.log(`Garage ${garageData.id} (${garageData.name}) - owner_id: ${garageData.owner_id} (${typeof garageData.owner_id}), comparing with userId: ${userData.userId} (${typeof userData.userId})`);
 
         if (!(garageData.owner_id === userData.userId ||
           garageData.owner_id === parseInt(userData.userId) ||
