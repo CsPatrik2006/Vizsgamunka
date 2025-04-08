@@ -20,8 +20,7 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
     name: userData?.name || "",
     email: userData?.email || "",
     phone: userData?.phone || "",
-    address: "",
-    paymentMethod: "card"
+    // Removed address field since we don't do shipping
   });
 
   const [appointmentData, setAppointmentData] = useState({
@@ -320,17 +319,14 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                 </div>
 
                 <div className={`pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-                  <div className="flex justify-between mb-2">
-                    <span>Részösszeg:</span>
-                    <span>{formatPrice(totalAmount)} Ft</span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span>Szállítási díj:</span>
-                    <span>0 Ft</span>
-                  </div>
                   <div className="flex justify-between font-bold text-lg mt-2">
                     <span>Összesen:</span>
                     <span>{formatPrice(totalAmount)} Ft</span>
+                  </div>
+                  <div className="mt-2 text-sm text-center">
+                    <p className={darkMode ? "text-gray-300" : "text-gray-600"}>
+                      Fizetés módja: Készpénz 
+                    </p>
                   </div>
                 </div>
               </div>
@@ -348,7 +344,7 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                 <form onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div className="md:col-span-2">
-                      <h2 className="text-xl font-semibold mb-4">Szállítási és fizetési adatok</h2>
+                      <h2 className="text-xl font-semibold mb-4">Fizetési adatok</h2>
                     </div>
 
                     <div>
@@ -387,29 +383,22 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                       />
                     </div>
 
-                    <div>
-                      <label className="block mb-2 text-sm font-medium">Szállítási cím</label>
-                      <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        required
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-2 text-sm font-medium">Fizetési mód</label>
-                      <select
-                        name="paymentMethod"
-                        value={formData.paymentMethod}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
-                      >
-                        <option value="card">Bankkártya</option>
-                        <option value="transfer">Banki átutalás</option>
-                        <option value="cash">Készpénz</option>
-                      </select>
+                    <div className="md:col-span-2">
+                      <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
+                        <div className="flex items-center">
+                          <div className="mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#4e77f4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium">Fizetési információ</p>
+                            <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                              A fizetés készpénzben történik a szervizben a szolgáltatás igénybevételekor vagy a termék átvételekor.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Appointment Selection Section - Improved UI */}
