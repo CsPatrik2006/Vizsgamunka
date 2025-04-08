@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "../components/ui/button";
 import Header from "../components/ui/navbar";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -10,6 +9,7 @@ import CartSidebar from '../components/ui/CartSidebar';
 import ProductCard from '../components/ui/ProductCard';
 import FilterSidebar from '../components/ui/FilterSidebar';
 import axios from 'axios';
+import Footer from "../components/ui/Footer";
 
 export default function ShopPage({
   setIsLoginOpen,
@@ -716,14 +716,7 @@ export default function ShopPage({
           </div>
         </div>
       </div>
-
-      <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">© 2025 Gumizz Kft. Minden jog fenntartva.</p>
-        <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

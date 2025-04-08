@@ -9,6 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
 import CartSidebar from '../components/ui/CartSidebar';
 import axios from 'axios';
+import Footer from "../components/ui/Footer";
 
 export default function ItemDetailsPage({
   setIsLoginOpen,
@@ -523,14 +524,7 @@ export default function ItemDetailsPage({
           </div>
         )}
       </div>
-
-      <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">© 2025 Gumizz Kft. Minden jog fenntartva.</p>
-        <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

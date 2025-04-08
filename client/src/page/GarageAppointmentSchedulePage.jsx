@@ -6,21 +6,16 @@ import { useCart } from '../context/CartContext';
 import { motion } from "framer-motion";
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { hu } from 'date-fns/locale';
-
-// Import UI components
 import Header from "../components/ui/navbar";
 import { Button } from "../components/ui/button";
 import { Tooltip } from "../components/ui/tooltip";
-
-// Import our new components
 import ScheduleView from "../components/garage/ScheduleView";
 import WeeklyCalendarView from "../components/garage/WeeklyCalendarView";
 import BookingsView from "../components/garage/BookingsView";
 import SlotBookingsModal from "../components/garage/SlotBookingsModal";
-
-// Import assets
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import Footer from "../components/ui/Footer";
 
 const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) => {
     const { darkMode, themeLoaded } = useTheme();
@@ -594,14 +589,7 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                     />
                 </motion.div>
             </section>
-
-            <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-                <p className="text-sm">© 2025 Gumizz Kft. Minden jog fenntartva.</p>
-                <div className="mt-2">
-                    <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-                    <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

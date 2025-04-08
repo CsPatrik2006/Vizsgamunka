@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import Footer from "../components/ui/Footer";
 
 const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
     const { darkMode, themeLoaded } = useTheme();
@@ -94,12 +95,12 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Don't submit if the garage has been deleted
         if (isDeletedRef.current) {
             return;
         }
-        
+
         setIsSubmitting(true);
         setError(null);
         setSuccess(null);
@@ -159,7 +160,7 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
 
             // Mark the garage as deleted to prevent further operations
             isDeletedRef.current = true;
-            
+
             // Set success message
             setSuccess("A garázs sikeresen törölve!");
 
@@ -306,15 +307,15 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                                     </div>
                                 </div>
                                 <div className="mt-8 flex justify-between">
-                                    <Button 
-                                        type="button" 
+                                    <Button
+                                        type="button"
                                         onClick={handleDelete}
                                         className="bg-red-600 hover:bg-red-700 text-white"
                                         disabled={isSubmitting || isDeletedRef.current}
                                     >
                                         {isSubmitting ? "Feldolgozás..." : "Garázs törlése"}
                                     </Button>
-                                    <Button 
+                                    <Button
                                         type="submit"
                                         disabled={isSubmitting || isDeletedRef.current}
                                     >
@@ -326,14 +327,7 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                     )}
                 </motion.div>
             </section>
-
-            <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-                <p className="text-sm">© 2025 Gumizz Kft. Minden jog fenntartva.</p>
-                <div className="mt-2">
-                    <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-                    <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-                </div>
-            </footer>
+        <Footer />
         </div>
     );
 };

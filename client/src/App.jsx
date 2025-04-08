@@ -17,6 +17,7 @@ import Checkout from "./page/Checkout";
 import CheckoutSuccess from "./page/CheckoutSuccess";
 import GarageOrdersPage from "./page/GarageOrders";
 import GarageAppointmentSchedulePage from "./page/GarageAppointmentSchedulePage";
+import Impresszum from './page/Impresszum';
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -149,6 +150,19 @@ function App() {
               path="/item/:itemId"
               element={
                 <ItemDetailsPage
+                  setIsLoginOpen={setIsLoginOpen}
+                  setIsRegisterOpen={setIsRegisterOpen}
+                  isLoggedIn={isLoggedIn}
+                  userData={userData}
+                  handleLogout={handleLogout}
+                />
+              }
+            />
+
+            <Route
+              path="/impresszum"
+              element={
+                <Impresszum
                   setIsLoginOpen={setIsLoginOpen}
                   setIsRegisterOpen={setIsRegisterOpen}
                   isLoggedIn={isLoggedIn}

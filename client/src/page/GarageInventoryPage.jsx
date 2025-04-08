@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import Footer from "../components/ui/Footer";
 
 const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const { garageId } = useParams();
@@ -521,7 +522,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <div>
                       <label className="block mb-2 text-sm font-medium">
                         Termék neve <span className="text-red-500">*</span>
-                        </label>
+                      </label>
                       <input
                         type="text"
                         name="item_name"
@@ -534,7 +535,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <div>
                       <label className="block mb-2 text-sm font-medium">
                         Jármű típus <span className="text-red-500">*</span>
-                        </label>
+                      </label>
                       <select
                         name="vehicle_type"
                         value={newItem.vehicle_type}
@@ -599,7 +600,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <div>
                       <label className="block mb-2 text-sm font-medium">
                         Szélesség (mm) <span className="text-red-500">*</span>
-                        </label>
+                      </label>
                       <input
                         type="number"
                         name="width"
@@ -614,7 +615,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <div>
                       <label className="block mb-2 text-sm font-medium">
                         Profil (%) <span className="text-red-500">*</span>
-                        </label>
+                      </label>
                       <input
                         type="number"
                         name="profile"
@@ -629,7 +630,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <div>
                       <label className="block mb-2 text-sm font-medium">
                         Átmérő (col) <span className="text-red-500">*</span>
-                        </label>
+                      </label>
                       <input
                         type="number"
                         name="diameter"
@@ -821,14 +822,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
           </motion.div>
         )}
       </section>
-
-      <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
-        <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

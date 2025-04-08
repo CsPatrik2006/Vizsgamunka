@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
 import Header from "../components/ui/navbar";
+import Footer from "../components/ui/Footer";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -124,8 +125,8 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
               <Link
                 to="/profile"
                 className={`px-6 py-3 rounded-lg transition-colors flex items-center justify-center ${darkMode
-                    ? "bg-[#252830] hover:bg-[#1e2129] text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  ? "bg-[#252830] hover:bg-[#1e2129] text-white"
+                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
                   }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,14 +138,7 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
           </div>
         </motion.div>
       </section>
-
-      <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
-        <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

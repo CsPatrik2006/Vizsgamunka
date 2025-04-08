@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
 import axios from 'axios';
 import Header from "../components/ui/navbar";
+import Footer from "../components/ui/Footer";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
@@ -435,14 +436,14 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                                 setAvailableTimes([]); // Clear available times when changing garage
                               }}
                               className={`p-3 rounded-lg cursor-pointer transition-all border-2 ${appointmentData.garageId === garage.id
-                                  ? `${darkMode ? "border-[#4e77f4] bg-[#1e2129]" : "border-[#4e77f4] bg-white"}`
-                                  : `${darkMode ? "border-transparent" : "border-transparent"}`
+                                ? `${darkMode ? "border-[#4e77f4] bg-[#1e2129]" : "border-[#4e77f4] bg-white"}`
+                                : `${darkMode ? "border-transparent" : "border-transparent"}`
                                 }`}
                             >
                               <div className="flex items-start">
                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-3 mt-1 ${appointmentData.garageId === garage.id
-                                    ? "bg-[#4e77f4]"
-                                    : `${darkMode ? "bg-[#3a3f4b]" : "bg-gray-300"}`
+                                  ? "bg-[#4e77f4]"
+                                  : `${darkMode ? "bg-[#3a3f4b]" : "bg-gray-300"}`
                                   }`}>
                                   {appointmentData.garageId === garage.id && (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -532,8 +533,8 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                                         key={time}
                                         onClick={() => setAppointmentData(prev => ({ ...prev, time }))}
                                         className={`p-2 rounded-lg text-center cursor-pointer transition-all ${appointmentData.time === time
-                                            ? `bg-[#4e77f4] text-white`
-                                            : `${darkMode ? "bg-[#1e2129] hover:bg-[#2a2f3a]" : "bg-white hover:bg-gray-100"}`
+                                          ? `bg-[#4e77f4] text-white`
+                                          : `${darkMode ? "bg-[#1e2129] hover:bg-[#2a2f3a]" : "bg-white hover:bg-gray-100"}`
                                           }`}
                                       >
                                         {time}
@@ -623,14 +624,7 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
           </div>
         </motion.div>
       </section>
-
-      <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
-        <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

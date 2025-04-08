@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
+import Footer from "../components/ui/Footer";
 
 const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
     const { garageId } = useParams();
@@ -496,14 +497,7 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                             renderOrdersTable()}
                 </motion.div>
             </section>
-
-            <footer className={`py-6 mt-12 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-                <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
-                <div className="mt-2">
-                    <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-                    <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

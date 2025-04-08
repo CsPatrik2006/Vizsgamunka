@@ -7,6 +7,7 @@ import logo_light from '../assets/logo_lightMode.png';
 import logo_dark from '../assets/logo_darkMode.png';
 import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
+import Footer from "../components/ui/Footer";
 
 const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const { darkMode, themeLoaded } = useTheme();
@@ -30,13 +31,13 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
   const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
-  
+
   // New state variables for orders and appointments
   const [userOrders, setUserOrders] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  
+
   const navigate = useNavigate();
 
   // Format date helper function
@@ -72,7 +73,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
   // Helper function to get human-readable status
   const getStatusText = (status) => {
-    switch(status) {
+    switch (status) {
       case 'pending': return 'Függőben';
       case 'confirmed': return 'Megerősítve';
       case 'completed': return 'Teljesítve';
@@ -83,7 +84,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
   // Helper function to get status color class
   const getStatusColorClass = (status) => {
-    switch(status) {
+    switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-blue-100 text-blue-800';
@@ -119,7 +120,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
         // Fetch the latest user data
         fetchUserData(parsedUserData.id, token);
-        
+
         // Fetch orders and appointments
         fetchUserOrders(parsedUserData.id, token);
         fetchUserAppointments(parsedUserData.id, token);
@@ -635,7 +636,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     <h3 className="font-medium">Időpontfoglalások</h3>
                   </div>
                 </div>
-                
+
                 {appointmentsLoading ? (
                   <div className="py-4 text-center">
                     <p className="text-sm text-[#88a0e8]">Betöltés...</p>
@@ -643,8 +644,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                 ) : userAppointments.length > 0 ? (
                   <div className="space-y-3">
                     {userAppointments.slice(0, 3).map((appointment) => (
-                      <div 
-                        key={appointment.id} 
+                      <div
+                        key={appointment.id}
                         className={`p-3 rounded-md ${darkMode ? "bg-[#1e2129]" : "bg-white"} border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
                       >
                         <div className="flex justify-between items-start">
@@ -680,7 +681,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     <h3 className="font-medium">Rendelések</h3>
                   </div>
                 </div>
-                
+
                 {ordersLoading ? (
                   <div className="py-4 text-center">
                     <p className="text-sm text-[#88a0e8]">Betöltés...</p>
@@ -688,8 +689,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                 ) : userOrders.length > 0 ? (
                   <div className="space-y-3">
                     {userOrders.slice(0, 3).map((order) => (
-                      <div 
-                        key={order.id} 
+                      <div
+                        key={order.id}
                         className={`p-3 rounded-md ${darkMode ? "bg-[#1e2129]" : "bg-white"} border ${darkMode ? "border-gray-700" : "border-gray-200"}`}
                       >
                         <div className="flex justify-between items-start">
@@ -911,13 +912,7 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      <footer className={`py-6 ${darkMode ? "bg-[#070708] text-[#f9fafc]" : "bg-[#f9fafc] text-black"} text-center`}>
-        <p className="text-sm">&copy; 2025 Gumizz Kft. Minden jog fenntartva.</p>
-        <div className="mt-2">
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]">Adatvédelem</a> |
-          <a href="#" className="text-sm text-[#4e77f4] hover:text-[#5570c2]"> Általános Szerződési Feltételek</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
