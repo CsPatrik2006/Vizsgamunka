@@ -71,7 +71,7 @@ export default function Adatvedelem({
             <p className="mb-1">Székhely: 1234 Budapest, Példa utca 123.</p>
             <p className="mb-1">Adószám: 12345678-1-42</p>
             <p className="mb-1">Cégjegyzékszám: 01-09-123456</p>
-            <p className="mb-1">Email: info@gumizz.hu</p>
+            <p className="mb-1">Email: info.gumizzwebaruhaz@gmail.com</p>
             <p className="mb-1">Telefonszám: +36 1 234 5678</p>
             <p className="mb-4">Adatvédelmi tisztviselő: Példa János (adatvedelem@gumizz.hu)</p>
           </section>

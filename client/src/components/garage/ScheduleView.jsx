@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "../ui/button";
 import { Tooltip } from "../ui/tooltip";
 import TimeSlotForm from "./TimeSlotForm";
+import { format } from "date-fns";
 
 const ScheduleView = ({
     darkMode,
@@ -31,8 +32,8 @@ const ScheduleView = ({
                         <button
                             onClick={() => setSelectedDay(day)}
                             className={`px-4 py-2 rounded-lg transition-colors relative ${selectedDay === day
-                                    ? "bg-[#4e77f4] text-white"
-                                    : getDayButtonColor(day)
+                                ? "bg-[#4e77f4] text-white"
+                                : getDayButtonColor(day)
                                 }`}
                         >
                             {getDayLabel(day)}
@@ -66,7 +67,14 @@ const ScheduleView = ({
                             >
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <span className="font-medium text-lg">{slot.start_time} - {slot.end_time}</span>
+                                        <span className="font-medium text-lg">
+                                            {typeof slot.start_time === 'string'
+                                                ? slot.start_time
+                                                : format(slot.start_time, "HH:mm")} - {
+                                                typeof slot.end_time === 'string'
+                                                    ? slot.end_time
+                                                    : format(slot.end_time, "HH:mm")}
+                                        </span>
                                         <div className="flex items-center mt-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />

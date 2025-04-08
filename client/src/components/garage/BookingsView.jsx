@@ -53,6 +53,15 @@ const BookingsView = ({
         }
     });
 
+    const handleStatusChange = (booking, status) => {
+        const token = localStorage.getItem("token");
+        axios.put(
+            `http://localhost:3000/appointments/${booking.id}`,
+            { ...booking, status },
+            { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
+        ).then(() => fetchBookings());
+    };
+
     return (
         <div className={`rounded-xl ${darkMode ? "bg-[#1e2129]" : "bg-white"} shadow-lg overflow-hidden`}>
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -88,8 +97,6 @@ const BookingsView = ({
                         <option value="all">Minden állapot</option>
                         <option value="pending">Függőben</option>
                         <option value="confirmed">Megerősítve</option>
-                        <option value="completed">Teljesítve</option>
-                        <option value="canceled">Lemondva</option>
                     </select>
 
                     {/* Sort options */}
@@ -141,7 +148,6 @@ const BookingsView = ({
                                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Felhasználó</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Időpont</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Állapot</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Rendelés</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Műveletek</th>
                             </tr>
                         </thead>
@@ -157,99 +163,39 @@ const BookingsView = ({
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <Tooltip content="Rendelés részleteinek megtekintése">
-                                            <Button
-                                                onClick={() => navigate(`/orders/${booking.order_id}`)}
-                                                className="text-xs py-1 px-2 bg-[#4e77f4] hover:bg-[#3a5fd0] flex items-center gap-1"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fillRule="evenodd" d="M10 12a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                                                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                                                </svg>
-                                                Megtekintés
-                                            </Button>
-                                        </Tooltip>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <div className="flex space-x-2">
-                                            <div className="relative group">
-                                                <Tooltip content="Foglalás állapotának módosítása">
-                                                    <Button
-                                                        className="text-xs py-1 px-2 bg-gray-600 hover:bg-gray-700 flex items-center gap-1"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                        </svg>
-                                                        Állapot
-                                                    </Button>
-                                                </Tooltip>
-                                                <div className="absolute z-10 hidden group-hover:block mt-1 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden">
-                                                    <div className="py-1">
+                                        <div className="flex flex-wrap gap-2">
+                                            <Tooltip content="Rendelés megtekintése">
+                                                <Button
+                                                    onClick={() => navigate(`/my-garages/${booking.garage_id}/orders`)}
+                                                    className="text-xs py-1 px-2 bg-[#4e77f4] hover:bg-[#3a5fd0] flex items-center gap-1"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                                    </svg>
+                                                    Rendelés
+                                                </Button>
+                                            </Tooltip>
+
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium">Állapot:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {[
+                                                        { value: 'pending', label: 'Függőben', color: 'bg-yellow-500' },
+                                                        { value: 'confirmed', label: 'Megerősítve', color: 'bg-blue-500' }
+                                                    ].map(status => (
                                                         <button
-                                                            onClick={() => {
-                                                                const token = localStorage.getItem("token");
-                                                                axios.put(
-                                                                    `http://localhost:3000/appointments/${booking.id}`,
-                                                                    { ...booking, status: 'pending' },
-                                                                    { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
-                                                                ).then(() => fetchBookings());
-                                                            }}
-                                                            className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left ${booking.status === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
+                                                            key={status.value}
+                                                            onClick={() => handleStatusChange(booking, status.value)}
+                                                            className={`px-2 py-1 text-xs rounded-md flex items-center gap-1 transition-colors
+                                                                ${booking.status === status.value
+                                                                    ? (darkMode ? 'bg-gray-700 ring-2 ring-blue-500' : 'bg-blue-100 ring-2 ring-blue-500')
+                                                                    : (darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}`}
                                                         >
-                                                            <div className="flex items-center">
-                                                                <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
-                                                                Függőben
-                                                            </div>
+                                                            <div className={`w-2 h-2 rounded-full ${status.color}`}></div>
+                                                            {status.label}
                                                         </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                const token = localStorage.getItem("token");
-                                                                axios.put(
-                                                                    `http://localhost:3000/appointments/${booking.id}`,
-                                                                    { ...booking, status: 'confirmed' },
-                                                                    { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
-                                                                ).then(() => fetchBookings());
-                                                            }}
-                                                            className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left ${booking.status === 'confirmed' ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                                                        >
-                                                            <div className="flex items-center">
-                                                                <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
-                                                                Megerősítve
-                                                            </div>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                const token = localStorage.getItem("token");
-                                                                axios.put(
-                                                                    `http://localhost:3000/appointments/${booking.id}`,
-                                                                    { ...booking, status: 'completed' },
-                                                                    { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
-                                                                ).then(() => fetchBookings());
-                                                            }}
-                                                            className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left ${booking.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20' : ''}`}
-                                                        >
-                                                            <div className="flex items-center">
-                                                                <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                                                                Teljesítve
-                                                            </div>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                const token = localStorage.getItem("token");
-                                                                axios.put(
-                                                                    `http://localhost:3000/appointments/${booking.id}`,
-                                                                    { ...booking, status: 'canceled' },
-                                                                    { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
-                                                                ).then(() => fetchBookings());
-                                                            }}
-                                                            className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left ${booking.status === 'canceled' ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
-                                                        >
-                                                            <div className="flex items-center">
-                                                                <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
-                                                                Lemondva
-                                                            </div>
-                                                        </button>
-                                                    </div>
+                                                    ))}
                                                 </div>
                                             </div>
 
@@ -294,14 +240,6 @@ const BookingsView = ({
                         <div className="flex items-center">
                             <div className="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
                             <span className="text-xs">Megerősítve</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-                            <span className="text-xs">Teljesítve</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-                            <span className="text-xs">Lemondva</span>
                         </div>
                     </div>
                 </div>

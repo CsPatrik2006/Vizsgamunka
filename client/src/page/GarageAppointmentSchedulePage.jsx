@@ -5,7 +5,6 @@ import { useTheme } from "../context/ThemeContext";
 import { useCart } from '../context/CartContext';
 import { motion } from "framer-motion";
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
-import { hu } from 'date-fns/locale';
 import Header from "../components/ui/navbar";
 import { Button } from "../components/ui/button";
 import { Tooltip } from "../components/ui/tooltip";
@@ -108,7 +107,20 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             });
 
             if (response.data) {
-                setSchedule(response.data);
+                // Format the time values to ensure consistent HH:mm format
+                const formattedSchedule = {};
+                Object.keys(response.data).forEach(day => {
+                    formattedSchedule[day] = response.data[day].map(slot => ({
+                        ...slot,
+                        start_time: typeof slot.start_time === 'string'
+                            ? slot.start_time.substring(0, 5) // Take only HH:mm part
+                            : format(new Date(slot.start_time), "HH:mm"),
+                        end_time: typeof slot.end_time === 'string'
+                            ? slot.end_time.substring(0, 5) // Take only HH:mm part
+                            : format(new Date(slot.end_time), "HH:mm")
+                    }));
+                });
+                setSchedule(formattedSchedule);
             }
 
             setLoading(false);

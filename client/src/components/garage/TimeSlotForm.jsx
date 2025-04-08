@@ -1,9 +1,14 @@
 import React from "react";
 import { Button } from "../ui/button";
-import { Tooltip } from "../ui/tooltip"; // Create this component if not available
-import DatePicker from "react-datepicker"; // You'll need to install this package
+import { Tooltip } from "../ui/tooltip";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { format, parse, setHours, setMinutes } from "date-fns";
+import { format, parse, setHours, setMinutes, getHours, getMinutes } from "date-fns";
+import { registerLocale } from "react-datepicker";
+import hu from 'date-fns/locale/hu'; // Import Hungarian locale
+
+// Register Hungarian locale
+registerLocale('hu', hu);
 
 const TimeSlotForm = ({
     darkMode,
@@ -23,6 +28,19 @@ const TimeSlotForm = ({
         setNewTimeSlot({ ...newTimeSlot, [field]: formattedTime });
     };
 
+    // Filter function to only show times between 8:00 and 20:00 (inclusive)
+    const filterTime = (time) => {
+        const hours = getHours(time);
+        const minutes = getMinutes(time);
+        
+        // Include 8:00 to 20:00 with 30-minute intervals
+        if (hours < 8 || hours > 20) return false;
+        if (hours === 20 && minutes > 0) return false;
+        
+        // Only allow times at 0 or 30 minutes past the hour
+        return minutes === 0 || minutes === 30;
+    };
+
     return (
         <div className={`p-6 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-200"} mb-6`}>
             <h3 className="text-lg font-medium mb-4">Új időpont hozzáadása</h3>
@@ -36,9 +54,12 @@ const TimeSlotForm = ({
                                 onChange={(time) => handleTimeChange(time, "start_time")}
                                 showTimeSelect
                                 showTimeSelectOnly
-                                timeIntervals={15}
+                                timeIntervals={30}
                                 timeCaption="Idő"
                                 dateFormat="HH:mm"
+                                timeFormat="HH:mm"
+                                locale="hu"
+                                filterTime={filterTime}
                                 className={`w-full p-3 rounded-lg outline-none ${darkMode ? "bg-[#252830] text-white" : "bg-white text-black"}`}
                             />
                         </div>
@@ -53,9 +74,12 @@ const TimeSlotForm = ({
                                 onChange={(time) => handleTimeChange(time, "end_time")}
                                 showTimeSelect
                                 showTimeSelectOnly
-                                timeIntervals={15}
+                                timeIntervals={30}
                                 timeCaption="Idő"
                                 dateFormat="HH:mm"
+                                timeFormat="HH:mm"
+                                locale="hu"
+                                filterTime={filterTime}
                                 className={`w-full p-3 rounded-lg outline-none ${darkMode ? "bg-[#252830] text-white" : "bg-white text-black"}`}
                             />
                         </div>

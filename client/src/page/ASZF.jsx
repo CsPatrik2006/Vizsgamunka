@@ -78,7 +78,7 @@ export default function ASZF({
               <li>Székhely: 1234 Budapest, Példa utca 123.</li>
               <li>Adószám: 12345678-1-42</li>
               <li>Cégjegyzékszám: 01-09-123456</li>
-              <li>Email: info@gumizz.hu</li>
+              <li>Email: info.gumizzwebaruhaz@gmail.com</li>
               <li>Telefonszám: +36 1 234 5678</li>
             </ul>
           </section>
