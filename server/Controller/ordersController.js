@@ -4,7 +4,6 @@ const Garage = require("../model/garages");
 const OrderItem = require("../model/orderItems");
 const Appointment = require("../model/appointments");
 const Inventory = require("../model/inventory");
-const Service = require("../model/services");
 const sequelize = require("../config/config");
 const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require("../utils/emailService");
 
@@ -129,7 +128,7 @@ exports.createOrder = async (req, res) => {
           // Create order item
           const orderItem = await OrderItem.create({
             order_id: newOrder.id,
-            product_type: item.product_type,
+            product_type: "inventory", // Only inventory type is supported now
             product_id: item.product_id,
             quantity: item.quantity,
             unit_price: item.unit_price
@@ -137,36 +136,32 @@ exports.createOrder = async (req, res) => {
 
           console.log(`Created order item with ID: ${orderItem.id}`);
 
-          // Update inventory if the item is an inventory product
-          if (item.product_type === 'inventory') {
-            console.log(`Item ${item.product_id} is inventory type, updating stock...`);
+          // Update inventory
+          console.log(`Item ${item.product_id} is inventory type, updating stock...`);
 
-            const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
+          const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
 
-            if (!inventoryItem) {
-              console.error(`Inventory item with ID ${item.product_id} not found`);
-              throw new Error(`Inventory item with ID ${item.product_id} not found`);
-            }
-
-            console.log(`Found inventory item: ${inventoryItem.item_name}, current quantity: ${inventoryItem.quantity}`);
-
-            if (inventoryItem.quantity < item.quantity) {
-              console.error(`Not enough stock for item ${inventoryItem.item_name}. Available: ${inventoryItem.quantity}, Requested: ${item.quantity}`);
-              throw new Error(`Not enough stock for item ${inventoryItem.item_name}. Available: ${inventoryItem.quantity}, Requested: ${item.quantity}`);
-            }
-
-            const newQuantity = inventoryItem.quantity - item.quantity;
-            console.log(`Updating quantity from ${inventoryItem.quantity} to ${newQuantity}`);
-
-            // Subtract the ordered quantity from inventory
-            await inventoryItem.update({
-              quantity: newQuantity
-            }, { transaction: t });
-
-            console.log(`Successfully updated inventory for item ${item.product_id}`);
-          } else {
-            console.log(`Item ${item.product_id} is type ${item.product_type}, no inventory update needed`);
+          if (!inventoryItem) {
+            console.error(`Inventory item with ID ${item.product_id} not found`);
+            throw new Error(`Inventory item with ID ${item.product_id} not found`);
           }
+
+          console.log(`Found inventory item: ${inventoryItem.item_name}, current quantity: ${inventoryItem.quantity}`);
+
+          if (inventoryItem.quantity < item.quantity) {
+            console.error(`Not enough stock for item ${inventoryItem.item_name}. Available: ${inventoryItem.quantity}, Requested: ${item.quantity}`);
+            throw new Error(`Not enough stock for item ${inventoryItem.item_name}. Available: ${inventoryItem.quantity}, Requested: ${item.quantity}`);
+          }
+
+          const newQuantity = inventoryItem.quantity - item.quantity;
+          console.log(`Updating quantity from ${inventoryItem.quantity} to ${newQuantity}`);
+
+          // Subtract the ordered quantity from inventory
+          await inventoryItem.update({
+            quantity: newQuantity
+          }, { transaction: t });
+
+          console.log(`Successfully updated inventory for item ${item.product_id}`);
         }
       } else {
         console.log(`No items provided for order ${newOrder.id}`);
@@ -198,19 +193,13 @@ exports.createOrder = async (req, res) => {
           const enhancedOrderItems = await Promise.all(orderItems.map(async (item) => {
             const itemData = item.toJSON();
 
-            // Get product details based on product_type
-            if (item.product_type === 'inventory') {
-              const product = await Inventory.findByPk(item.product_id);
-              if (product) {
-                // Use item_name from inventory
-                itemData.product_name = product.item_name;
-              }
-            } else if (item.product_type === 'service') {
-              const service = await Service.findByPk(item.product_id);
-              if (service) {
-                // Use name from services
-                itemData.product_name = service.name;
-              }
+            // Get product details
+            const product = await Inventory.findByPk(item.product_id);
+            if (product) {
+              // Use item_name from inventory
+              itemData.product_name = product.item_name;
+            } else {
+              itemData.product_name = 'Ismeretlen termék';
             }
 
             return itemData;
@@ -261,6 +250,7 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 // Update an existing order
 exports.updateOrder = async (req, res) => {
   try {
@@ -295,22 +285,19 @@ exports.updateOrder = async (req, res) => {
 
         // Process each order item
         for (const item of orderItems) {
-          // Only restore inventory for inventory items
-          if (item.product_type === 'inventory') {
-            const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
+          const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
 
-            if (inventoryItem) {
-              console.log(`Restoring ${item.quantity} units to inventory item #${item.product_id}`);
+          if (inventoryItem) {
+            console.log(`Restoring ${item.quantity} units to inventory item #${item.product_id}`);
 
-              // Add the ordered quantity back to inventory
-              await inventoryItem.update({
-                quantity: inventoryItem.quantity + item.quantity
-              }, { transaction: t });
+            // Add the ordered quantity back to inventory
+            await inventoryItem.update({
+              quantity: inventoryItem.quantity + item.quantity
+            }, { transaction: t });
 
-              console.log(`Inventory item #${item.product_id} updated. New quantity: ${inventoryItem.quantity + item.quantity}`);
-            } else {
-              console.warn(`Inventory item #${item.product_id} not found. Cannot restore quantity.`);
-            }
+            console.log(`Inventory item #${item.product_id} updated. New quantity: ${inventoryItem.quantity + item.quantity}`);
+          } else {
+            console.warn(`Inventory item #${item.product_id} not found. Cannot restore quantity.`);
           }
         }
       }

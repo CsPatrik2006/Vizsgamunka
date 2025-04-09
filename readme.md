@@ -143,7 +143,6 @@ A szerver több API végpontot biztosít:
 - `/users` - Felhasználók kezelése
 - `/garages` - Garázs/szervizközpont információk
 - `/appointments` - Szerviz időpontfoglalás
-- `/services` - Elérhető szolgáltatások
 - `/orders` - Rendelések feldolgozása
 - `/cart` - Bevásárlókosár kezelése
 

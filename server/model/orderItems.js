@@ -20,7 +20,7 @@ const OrderItem = sequelize.define(
       onDelete: "CASCADE",
     },
     product_type: {
-      type: DataTypes.ENUM("service", "inventory"),
+      type: DataTypes.ENUM("inventory"),
       allowNull: false,
     },
     product_id: {

@@ -1,10 +1,10 @@
 const { Sequelize } = require("sequelize");
 
 
-const sequelize = new Sequelize("root1", "root", "root", {
+const sequelize = new Sequelize("root", "root", "root", {
   host: "localhost",
   dialect: "mysql",
-  logging: false, 
+  logging: false,
 });
 
 async function testConnection() {

@@ -1,6 +1,5 @@
 const OrderItem = require("../model/orderItems");
 const Inventory = require("../model/inventory");
-const Service = require("../model/services");
 
 // Get all order items
 exports.getAllOrderItems = async (req, res) => {
@@ -39,28 +38,17 @@ exports.getOrderItemsByOrderId = async (req, res) => {
     // Enhance order items with product details
     const enhancedOrderItems = await Promise.all(orderItems.map(async (item) => {
       const itemData = item.toJSON();
-      
-      // Get product details based on product_type
-      if (item.product_type === 'inventory') {
-        const product = await Inventory.findByPk(item.product_id);
-        if (product) {
-          // Use item_name from inventory
-          itemData.product_name = product.item_name;
-          itemData.product_details = product;
-        } else {
-          itemData.product_name = 'Ismeretlen termék';
-        }
-      } else if (item.product_type === 'service') {
-        const service = await Service.findByPk(item.product_id);
-        if (service) {
-          // Use name from services
-          itemData.product_name = service.name;
-          itemData.product_details = service;
-        } else {
-          itemData.product_name = 'Ismeretlen szolgáltatás';
-        }
+
+      // Get product details
+      const product = await Inventory.findByPk(item.product_id);
+      if (product) {
+        // Use item_name from inventory
+        itemData.product_name = product.item_name;
+        itemData.product_details = product;
+      } else {
+        itemData.product_name = 'Ismeretlen termék';
       }
-      
+
       return itemData;
     }));
 
@@ -74,15 +62,15 @@ exports.getOrderItemsByOrderId = async (req, res) => {
 // Create a new order item
 exports.createOrderItem = async (req, res) => {
   try {
-    const { order_id, product_type, product_id, quantity, unit_price } = req.body;
+    const { order_id, product_id, quantity, unit_price } = req.body;
 
-    if (!order_id || !product_type || !product_id || !quantity || !unit_price) {
+    if (!order_id || !product_id || !quantity || !unit_price) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const newOrderItem = await OrderItem.create({
       order_id,
-      product_type,
+      product_type: "inventory", // Only inventory type is supported now
       product_id,
       quantity,
       unit_price,
@@ -98,14 +86,21 @@ exports.createOrderItem = async (req, res) => {
 // Update an existing order item
 exports.updateOrderItem = async (req, res) => {
   try {
-    const { order_id, product_type, product_id, quantity, unit_price } = req.body;
+    const { order_id, product_id, quantity, unit_price } = req.body;
     const orderItem = await OrderItem.findByPk(req.params.id);
 
     if (!orderItem) {
       return res.status(404).json({ message: "Order item not found" });
     }
 
-    await orderItem.update({ order_id, product_type, product_id, quantity, unit_price });
+    await orderItem.update({
+      order_id,
+      product_type: "inventory", // Only inventory type is supported now
+      product_id,
+      quantity,
+      unit_price
+    });
+
     res.json(orderItem);
   } catch (error) {
     console.error("Error updating order item:", error);
