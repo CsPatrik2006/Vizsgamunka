@@ -68,7 +68,12 @@ npm install
 
 3. Konfiguráld az adatbázist a `config/config.js` fájlban
 
-4. Indítsd el a szervert:
+4. Töltsd le a szükséges .env fájlt az email szolgáltatás működéséhez:
+[.env fájl letöltése](https://mega.nz/file/cqt1xTJC#tmE_6E1EV-OlVGgMorXGEUt67UgogYTcXs9jfor83Bg)
+
+5. Helyezd a letöltött .env fájlt a server könyvtárba
+
+6. Indítsd el a szervert:
 ```bash
 npm start
 ```
