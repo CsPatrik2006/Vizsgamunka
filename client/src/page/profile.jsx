@@ -33,6 +33,14 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
   const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
 
+  // Add validation state
+  const [validations, setValidations] = useState({
+    passwordLength: false,
+    passwordHasNumber: false,
+    passwordHasSpecial: false,
+    passwordHasUppercase: false,
+  });
+
   // New state variables for orders and appointments
   const [userOrders, setUserOrders] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
@@ -60,6 +68,21 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Password complexity validation function
+  const validatePasswordComplexity = (password) => {
+    const hasMinLength = password.length >= 8;
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+
+    return {
+      passwordLength: hasMinLength,
+      passwordHasNumber: hasNumber,
+      passwordHasSpecial: hasSpecialChar,
+      passwordHasUppercase: hasUppercase
+    };
   };
 
   // Check if today
@@ -237,6 +260,14 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       ...prev,
       [name]: value
     }));
+
+    // Update validations when newPassword changes
+    if (name === 'newPassword') {
+      setValidations({
+        ...validations,
+        ...validatePasswordComplexity(value)
+      });
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -300,8 +331,13 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setPasswordMessage({ type: 'error', text: 'Az új jelszónak legalább 6 karakter hosszúnak kell lennie!' });
+    // Check password complexity
+    const passwordChecks = validatePasswordComplexity(passwordData.newPassword);
+    if (!passwordChecks.passwordLength ||
+      !passwordChecks.passwordHasNumber ||
+      !passwordChecks.passwordHasSpecial ||
+      !passwordChecks.passwordHasUppercase) {
+      setPasswordMessage({ type: 'error', text: 'A jelszónak legalább 8 karakter hosszúnak kell lennie, és tartalmaznia kell számot, nagybetűt és speciális karaktert!' });
       return;
     }
 
@@ -804,6 +840,27 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                       ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
                     required
                   />
+
+                  {/* Password complexity indicators */}
+                  {passwordData.newPassword && (
+                    <div className="mt-2 text-sm">
+                      <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold mb-1`}>Jelszó követelmények:</p>
+                      <ul className="space-y-1">
+                        <li className={validations.passwordLength ? 'text-green-500' : 'text-red-500'}>
+                          {validations.passwordLength ? '✓' : '✗'} Legalább 8 karakter
+                        </li>
+                        <li className={validations.passwordHasNumber ? 'text-green-500' : 'text-red-500'}>
+                          {validations.passwordHasNumber ? '✓' : '✗'} Tartalmaz számot
+                        </li>
+                        <li className={validations.passwordHasUppercase ? 'text-green-500' : 'text-red-500'}>
+                          {validations.passwordHasUppercase ? '✓' : '✗'} Tartalmaz nagybetűt
+                        </li>
+                        <li className={validations.passwordHasSpecial ? 'text-green-500' : 'text-red-500'}>
+                          {validations.passwordHasSpecial ? '✓' : '✗'} Tartalmaz speciális karaktert (!@#$%^&*(),.?":{ }|&lt;&gt;)
+                        </li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -814,9 +871,23 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     value={passwordData.confirmPassword}
                     onChange={handlePasswordInputChange}
                     className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#4e77f4] 
+                      ${passwordData.newPassword && passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword
+                        ? 'border-red-500 ring-red-500'
+                        : passwordData.newPassword && passwordData.confirmPassword && passwordData.newPassword === passwordData.confirmPassword
+                          ? 'border-green-500 ring-green-500'
+                          : ''}
                       ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
                     required
                   />
+
+                  {/* Password match indicator */}
+                  {passwordData.newPassword && passwordData.confirmPassword && (
+                    <div className={`text-sm mt-1 ${passwordData.newPassword === passwordData.confirmPassword ? 'text-green-500' : 'text-red-500'}`}>
+                      {passwordData.newPassword === passwordData.confirmPassword
+                        ? 'A jelszavak megegyeznek ✓'
+                        : 'A jelszavak nem egyeznek ✗'}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end space-x-2 mt-6">
