@@ -96,7 +96,7 @@ export default function ItemDetailsPage({
 
     // Make sure we have a valid item and quantity
     if (item && quantity > 0) {
-      addToCart('inventory', item.id, quantity);
+      addToCart(item.id, quantity);
       setIsCartOpen(true); // Open cart sidebar when item is added
     } else {
       console.error('Invalid item or quantity');

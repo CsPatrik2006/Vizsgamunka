@@ -26,15 +26,15 @@ exports.getCartItemById = async (req, res) => {
 // Create a new cart item
 exports.createCartItem = async (req, res) => {
   try {
-    const { cart_id, product_type, product_id, quantity } = req.body;
+    const { cart_id, product_id, quantity } = req.body;
 
-    if (!cart_id || !product_type || !product_id || !quantity) {
+    if (!cart_id || !product_id || !quantity) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const newCartItem = await CartItem.create({
       cart_id,
-      product_type,
+      product_type: "inventory", // Always use inventory type
       product_id,
       quantity,
     });
@@ -48,14 +48,20 @@ exports.createCartItem = async (req, res) => {
 // Update an existing cart item
 exports.updateCartItem = async (req, res) => {
   try {
-    const { cart_id, product_type, product_id, quantity } = req.body;
+    const { cart_id, product_id, quantity } = req.body;
     const cartItem = await CartItem.findByPk(req.params.id);
 
     if (!cartItem) {
       return res.status(404).json({ message: "Cart item not found" });
     }
 
-    await cartItem.update({ cart_id, product_type, product_id, quantity });
+    await cartItem.update({ 
+      cart_id, 
+      product_type: "inventory", // Always use inventory type
+      product_id, 
+      quantity 
+    });
+    
     res.json(cartItem);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

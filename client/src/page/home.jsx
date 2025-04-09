@@ -72,7 +72,7 @@ export default function TyreShopHomepage({
     e.stopPropagation(); // Prevent navigation to product page
 
     // Try to add to cart
-    const success = await addToCart('inventory', item.id, 1);
+    const success = await addToCart(item.id, 1);
 
     // Only open cart if successfully added
     if (success) {

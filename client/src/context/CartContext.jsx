@@ -80,16 +80,12 @@ export const CartProvider = ({ children }) => {
       
       // Fetch product details for each cart item
       const itemsWithDetails = await Promise.all(items.map(async (item) => {
-        if (item.product_type === 'inventory') {
-          const productResponse = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
-          return {
-            ...item,
-            name: productResponse.data.item_name,
-            price: productResponse.data.unit_price,
-          };
-        }
-        // Handle service products if needed
-        return item;
+        const productResponse = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
+        return {
+          ...item,
+          name: productResponse.data.item_name,
+          price: productResponse.data.unit_price,
+        };
       }));
       
       setCartItems(itemsWithDetails);
@@ -101,36 +97,29 @@ export const CartProvider = ({ children }) => {
   };
 
   // Add item to cart with optimistic updates
-  const addToCart = async (productType, productId, quantity) => {
+  const addToCart = async (productId, quantity) => {
     if (!cart) return false;
     
     try {
-      // Check inventory limits for inventory items
-      if (productType === 'inventory') {
-        // Fetch current inventory status
-        const inventoryResponse = await axios.get(`http://localhost:3000/inventory/${productId}`);
-        const inventoryItem = inventoryResponse.data;
-        
-        // Check if item already exists in cart
-        const existingItem = cartItems.find(
-          item => item.product_type === productType && item.product_id === productId
-        );
-        
-        const currentCartQuantity = existingItem ? existingItem.quantity : 0;
-        const totalRequestedQuantity = currentCartQuantity + quantity;
-        
-        // Check if total requested quantity exceeds available inventory
-        if (totalRequestedQuantity > inventoryItem.quantity) {
-          // Show error message
-          alert(`Csak ${inventoryItem.quantity} darab áll rendelkezésre ebből a termékből.`);
-          return false;
-        }
-      }
+      // Check inventory limits
+      // Fetch current inventory status
+      const inventoryResponse = await axios.get(`http://localhost:3000/inventory/${productId}`);
+      const inventoryItem = inventoryResponse.data;
       
       // Check if item already exists in cart
       const existingItem = cartItems.find(
-        item => item.product_type === productType && item.product_id === productId
+        item => item.product_id === productId
       );
+      
+      const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+      const totalRequestedQuantity = currentCartQuantity + quantity;
+      
+      // Check if total requested quantity exceeds available inventory
+      if (totalRequestedQuantity > inventoryItem.quantity) {
+        // Show error message
+        alert(`Csak ${inventoryItem.quantity} darab áll rendelkezésre ebből a termékből.`);
+        return false;
+      }
       
       if (existingItem) {
         // Optimistically update quantity if item exists
@@ -148,7 +137,7 @@ export const CartProvider = ({ children }) => {
         setLoading(true);
         const updatedItem = await axios.put(`http://localhost:3000/cartItems/${existingItem.id}`, {
           cart_id: cart.id,
-          product_type: productType,
+          product_type: 'inventory',
           product_id: productId,
           quantity: newQuantity
         });
@@ -165,20 +154,17 @@ export const CartProvider = ({ children }) => {
         return true;
       } else {
         // For new items, first get product details
-        let productDetails = {};
-        if (productType === 'inventory') {
-          const productResponse = await axios.get(`http://localhost:3000/inventory/${productId}`);
-          productDetails = {
-            name: productResponse.data.item_name,
-            price: productResponse.data.unit_price
-          };
-        }
+        const productResponse = await axios.get(`http://localhost:3000/inventory/${productId}`);
+        const productDetails = {
+          name: productResponse.data.item_name,
+          price: productResponse.data.unit_price
+        };
         
         // Create a temporary item with a temporary ID
         const tempItem = {
           id: `temp-${Date.now()}`,
           cart_id: cart.id,
-          product_type: productType,
+          product_type: 'inventory',
           product_id: productId,
           quantity: quantity,
           ...productDetails
@@ -191,7 +177,7 @@ export const CartProvider = ({ children }) => {
         setLoading(true);
         const newItem = await axios.post('http://localhost:3000/cartItems', {
           cart_id: cart.id,
-          product_type: productType,
+          product_type: 'inventory',
           product_id: productId,
           quantity: quantity
         });
@@ -240,38 +226,30 @@ export const CartProvider = ({ children }) => {
     const item = cartItems.find(item => item.id === itemId);
     if (!item) return false;
     
-    // Check inventory limits for inventory items
-    if (item.product_type === 'inventory') {
-      try {
-        // Fetch current inventory status
-        const inventoryResponse = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
-        const inventoryItem = inventoryResponse.data;
-        
-        // Check if requested quantity exceeds available inventory
-        if (quantity > inventoryItem.quantity) {
-          // Show error message
-          alert(`Csak ${inventoryItem.quantity} darab áll rendelkezésre ebből a termékből.`);
-          return false;
-        }
-      } catch (error) {
-        console.error('Error checking inventory:', error);
+    try {
+      // Fetch current inventory status
+      const inventoryResponse = await axios.get(`http://localhost:3000/inventory/${item.product_id}`);
+      const inventoryItem = inventoryResponse.data;
+      
+      // Check if requested quantity exceeds available inventory
+      if (quantity > inventoryItem.quantity) {
+        // Show error message
+        alert(`Csak ${inventoryItem.quantity} darab áll rendelkezésre ebből a termékből.`);
         return false;
       }
-    }
-    
-    // Store original items for potential rollback
-    const originalItems = [...cartItems];
-    
-    // Update optimistically
-    setCartItems(cartItems.map(item => 
-      item.id === itemId ? { ...item, quantity } : item
-    ));
-    
-    try {
+      
+      // Store original items for potential rollback
+      const originalItems = [...cartItems];
+      
+      // Update optimistically
+      setCartItems(cartItems.map(item => 
+        item.id === itemId ? { ...item, quantity } : item
+      ));
+      
       setLoading(true);
       const updatedItem = await axios.put(`http://localhost:3000/cartItems/${itemId}`, {
         cart_id: item.cart_id,
-        product_type: item.product_type,
+        product_type: 'inventory',
         product_id: item.product_id,
         quantity: quantity
       });

@@ -32,9 +32,6 @@ export default function ShopPage({
   const [selectedSeasons, setSelectedSeasons] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [services, setServices] = useState([]);
-  const [isServiceFilter, setIsServiceFilter] = useState(false);
-  const [filteredServiceId, setFilteredServiceId] = useState(null);
 
   // State for tyre size filters
   const [widthOptions, setWidthOptions] = useState([]);
@@ -68,7 +65,6 @@ export default function ShopPage({
     const params = new URLSearchParams(location.search);
     const searchParam = params.get('search');
     const garageParams = params.getAll('garage');
-    const serviceParam = params.get('service');
     const vehicleTypeParams = params.getAll('type');
     const seasonParams = params.getAll('season');
     const widthParam = params.get('width');
@@ -107,23 +103,11 @@ export default function ShopPage({
     if (garageParams.length > 0) {
       const garageIds = garageParams.map(id => parseInt(id));
       setSelectedGarages(garageIds);
-      setIsServiceFilter(false);
-    } else if (serviceParam) {
-      // Handle service parameter - find the garage that offers this service
-      const serviceId = parseInt(serviceParam);
-      const service = services.find(s => s.id === serviceId);
-      if (service) {
-        setSelectedGarages([service.garage_id]);
-        setIsServiceFilter(true);
-        setFilteredServiceId(serviceId);
-      }
     } else {
       // Reset filters if no parameters
       setSelectedGarages([]);
-      setIsServiceFilter(false);
-      setFilteredServiceId(null);
     }
-  }, [location.search, services]);
+  }, [location.search]);
 
   // Initialize cart when user logs in
   useEffect(() => {
@@ -139,7 +123,7 @@ export default function ShopPage({
     e.stopPropagation(); // Prevent event bubbling
 
     // Try to add to cart
-    const success = await addToCart('inventory', item.id, 1);
+    const success = await addToCart(item.id, 1);
 
     // Only open cart if successfully added
     if (success) {
@@ -164,7 +148,7 @@ export default function ShopPage({
     setDiameterOptions(Array.from(diameters).sort((a, b) => parseInt(a) - parseInt(b)));
   };
 
-  // Fetch garages, inventory items, and services
+  // Fetch garages and inventory items
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -179,10 +163,6 @@ export default function ShopPage({
 
         // Extract size options for filters
         extractSizeOptions(inventoryResponse.data);
-
-        // Fetch services
-        const servicesResponse = await axios.get('http://localhost:3000/services');
-        setServices(servicesResponse.data);
 
         setLoading(false);
       } catch (error) {
@@ -238,26 +218,15 @@ export default function ShopPage({
         )
         .map(garage => garage.id);
 
-      // Find matching services
-      const matchingServiceGarageIds = services
-        .filter(service =>
-          service.name.toLowerCase().includes(query) ||
-          (service.description && service.description.toLowerCase().includes(query))
-        )
-        .map(service => service.garage_id);
-
-      // Combine matching garage IDs
-      const allMatchingGarageIds = [...new Set([...matchingGarageIds, ...matchingServiceGarageIds])];
-
       // Filter inventory items by matching garages or by item name
       filtered = filtered.filter(item =>
-        allMatchingGarageIds.includes(item.garage_id) ||
+        matchingGarageIds.includes(item.garage_id) ||
         item.item_name.toLowerCase().includes(query)
       );
     }
 
     setFilteredItems(filtered);
-  }, [shopSearchQuery, selectedGarages, selectedVehicleTypes, selectedSeasons, selectedWidth, selectedProfile, selectedDiameter, inventoryItems, garages, services]);
+  }, [shopSearchQuery, selectedGarages, selectedVehicleTypes, selectedSeasons, selectedWidth, selectedProfile, selectedDiameter, inventoryItems, garages]);
 
   // Toggle garage filter
   const toggleGarageFilter = (garageId) => {
@@ -404,8 +373,6 @@ export default function ShopPage({
     setSelectedProfile("");
     setSelectedDiameter("");
     setShopSearchQuery('');
-    setIsServiceFilter(false);
-    setFilteredServiceId(null);
     window.history.pushState({}, '', '/shop');
   };
 
@@ -641,14 +608,6 @@ export default function ShopPage({
               </div>
             )}
 
-            {isServiceFilter && filteredServiceId && !shopSearchQuery && (
-              <div className="mb-6">
-                <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                  Termékek a következő szolgáltatáshoz: <span className="font-semibold">"{services.find(s => s.id === filteredServiceId)?.name || 'Szolgáltatás'}"</span>
-                </p>
-              </div>
-            )}
-
             {/* Results count */}
             <div className="mb-4">
               <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
@@ -700,9 +659,7 @@ export default function ShopPage({
                         ? 'Nincs termék a kiválasztott szűrőknek megfelelően.'
                         : selectedGarages.length > 0
                           ? 'Nincs termék a kiválasztott szervízekben.'
-                          : isServiceFilter
-                            ? 'Nincs termék a kiválasztott szolgáltatáshoz.'
-                            : 'Nem található termék.'}
+                          : 'Nem található termék.'}
                   </p>
                   <button
                     onClick={clearAllFilters}

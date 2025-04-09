@@ -28,18 +28,14 @@ const Header = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [garages, setGarages] = useState([]);
-  const [services, setServices] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fetch garages and services for suggestions
+  // Fetch garages for suggestions
   useEffect(() => {
     const fetchSuggestionData = async () => {
       try {
         const garagesResponse = await axios.get('http://localhost:3000/garages');
-        const servicesResponse = await axios.get('http://localhost:3000/services');
-
         setGarages(garagesResponse.data);
-        setServices(servicesResponse.data);
       } catch (error) {
         console.error('Error fetching suggestion data:', error);
       }
@@ -48,7 +44,7 @@ const Header = ({
     fetchSuggestionData();
   }, []);
 
-  // Generate suggestions based on search query - only for garages and services
+  // Generate suggestions based on search query - only for garages
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
       setLoading(true);
@@ -67,24 +63,8 @@ const Header = ({
           subtext: garage.location
         }));
 
-      // Filter services
-      const matchingServices = services
-        .filter(service =>
-          service.name.toLowerCase().includes(query) ||
-          (service.description && service.description.toLowerCase().includes(query))
-        )
-        .map(service => {
-          const garage = garages.find(g => g.id === service.garage_id);
-          return {
-            id: service.id,
-            text: service.name,
-            type: 'service',
-            subtext: garage ? `${garage.name}` : 'Ismeretlen szervíz'
-          };
-        });
-
-      // Combine and limit results
-      const combinedSuggestions = [...matchingGarages, ...matchingServices].slice(0, 5);
+      // Limit results
+      const combinedSuggestions = matchingGarages.slice(0, 5);
       setSuggestions(combinedSuggestions);
       setShowSuggestions(true);
       setLoading(false);
@@ -92,7 +72,7 @@ const Header = ({
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [searchQuery, garages, services]);
+  }, [searchQuery, garages]);
 
   const handleDropdownToggle = () => {
     setDropdownOpen(!dropdownOpen);
@@ -155,8 +135,6 @@ const Header = ({
   const handleSuggestionClick = (suggestion) => {
     if (suggestion.type === 'garage') {
       navigate(`/shop?garage=${suggestion.id}`);
-    } else if (suggestion.type === 'service') {
-      navigate(`/shop?service=${suggestion.id}`);
     }
     setSearchQuery(''); // Clear search after navigating
     setShowSuggestions(false);
@@ -224,7 +202,7 @@ const Header = ({
               </div>
             </form>
 
-            {/* Suggestions dropdown - only for garages and services */}
+            {/* Suggestions dropdown - only for garages */}
             {showSuggestions && (
               <div
                 className={`absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg z-50 ${darkMode ? "bg-[#252830] border border-[#353b48]" : "bg-white border border-gray-200"}`}
@@ -243,23 +221,17 @@ const Header = ({
                         onClick={() => handleSuggestionClick(suggestion)}
                       >
                         <div className="flex items-center">
-                          <div className={`mr-2 ${suggestion.type === 'garage' ? 'text-blue-500' : 'text-green-500'}`}>
-                            {suggestion.type === 'garage' ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
-                              </svg>
-                            )}
+                          <div className={`mr-2 text-blue-500`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
+                            </svg>
                           </div>
                           <div>
                             <div className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
                               {suggestion.text}
                             </div>
                             <div className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                              {suggestion.type === 'garage' ? 'Szervíz' : 'Szolgáltatás'} • {suggestion.subtext}
+                              Szervíz • {suggestion.subtext}
                             </div>
                           </div>
                         </div>
@@ -337,23 +309,17 @@ const Header = ({
                         onClick={() => handleSuggestionClick(suggestion)}
                       >
                         <div className="flex items-center">
-                          <div className={`mr-2 ${suggestion.type === 'garage' ? 'text-blue-500' : 'text-green-500'}`}>
-                            {suggestion.type === 'garage' ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
-                              </svg>
-                            )}
+                          <div className={`mr-2 text-blue-500`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
+                            </svg>
                           </div>
                           <div>
                             <div className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
                               {suggestion.text}
                             </div>
                             <div className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                              {suggestion.type === 'garage' ? 'Szervíz' : 'Szolgáltatás'} • {suggestion.subtext}
+                              Szervíz • {suggestion.subtext}
                             </div>
                           </div>
                         </div>
@@ -392,9 +358,9 @@ const Header = ({
                   <div className="relative flex items-center justify-center w-6 h-6 overflow-visible">
                     <div className="absolute w-7 h-7 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-sm transform scale-110 overflow-hidden">
                       {userData.profile_picture ? (
-                        <img 
-                          src={`http://localhost:3000${userData.profile_picture}`} 
-                          alt="Profile" 
+                        <img
+                          src={`http://localhost:3000${userData.profile_picture}`}
+                          alt="Profile"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -546,9 +512,9 @@ const Header = ({
                       {/* Inner container for background color and content */}
                       <div className="w-full h-full bg-[#4e77f4] flex items-center justify-center text-white">
                         {userData.profile_picture ? (
-                          <img 
-                            src={`http://localhost:3000${userData.profile_picture}`} 
-                            alt="Profile" 
+                          <img
+                            src={`http://localhost:3000${userData.profile_picture}`}
+                            alt="Profile"
                             className="w-full h-full object-cover"
                           />
                         ) : (
