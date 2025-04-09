@@ -58,26 +58,26 @@ const FilterSidebar = ({
                 </button>
             </div>
 
-            {/* Clear all filters button */}
-            {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 ||
-                selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
-                    <button
-                        onClick={clearAllFilters}
-                        className={`w-full mb-4 py-2 px-4 rounded-md text-sm font-medium ${darkMode ? "bg-[#252830] text-white hover:bg-[#353b48]" : "bg-gray-200 text-black hover:bg-gray-300"
-                            } flex items-center justify-center`}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Összes szűrő törlése
-                    </button>
-                )}
-
             {/* Filter content - conditionally visible with animation */}
             <div
                 className={`space-y-6 overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
             >
+                {/* Clear all filters button - moved inside the collapsible div */}
+                {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 ||
+                    selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
+                        <button
+                            onClick={clearAllFilters}
+                            className={`w-full mb-4 py-2 px-4 rounded-md text-sm font-medium cursor-pointer ${darkMode ? "bg-[#252830] text-white hover:bg-[#353b48]" : "bg-gray-200 text-black hover:bg-gray-300"
+                                } flex items-center justify-center`}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Összes szűrő törlése
+                        </button>
+                    )}
+
                 {/* Garage filter section */}
                 <div className="border-b-2 border-[#4e77f4]/80 pb-4">
                     <div className="flex justify-between items-center mb-3">

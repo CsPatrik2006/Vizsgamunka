@@ -122,7 +122,7 @@ const ProductCard = ({
                     </div>
                 )}
             </div>
-            <div className="p-4">
+            <div className="p-4 cursor-pointer">
                 <h3 className="text-lg font-semibold mb-1">{item.item_name}</h3>
                 <p className="text-[#88a0e8] text-sm mb-2">
                     {garage?.name || 'Ismeretlen szervíz'}
