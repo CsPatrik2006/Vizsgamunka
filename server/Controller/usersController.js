@@ -180,3 +180,47 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: "Szerverhiba törlés közben!", error: error.message });
   }
 };
+
+// Upload profile picture
+exports.uploadProfilePicture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Ensure user can only update their own profile picture unless they're an admin
+    if (req.user.role !== 'admin' && req.user.userId != id) {
+      return res.status(403).json({ message: "Nincs jogosultsága más felhasználó profilképének módosításához!" });
+    }
+    
+    // Check if file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: "Nem található feltöltött fájl!" });
+    }
+    
+    // Get the file path to store in the database
+    const profilePicturePath = `/api/uploads/profile-pictures/${req.file.filename}`;
+    
+    // Update the user's profile picture in the database
+    const [updated] = await User.update(
+      { profile_picture: profilePicturePath }, 
+      { where: { id } }
+    );
+    
+    if (!updated) {
+      return res.status(404).json({ message: "Felhasználó nem található!" });
+    }
+    
+    // Get the updated user data
+    const updatedUser = await User.findByPk(id, {
+      attributes: { exclude: ["password_hash"] },
+    });
+    
+    res.json({ 
+      message: "Profilkép sikeresen frissítve!", 
+      user: updatedUser,
+      profilePicture: profilePicturePath
+    });
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    res.status(500).json({ message: "Szerverhiba a profilkép feltöltése közben!", error: error.message });
+  }
+};

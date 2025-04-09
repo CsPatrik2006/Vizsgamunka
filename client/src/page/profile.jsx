@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import Header from "../components/ui/navbar";
@@ -40,6 +40,11 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     passwordHasSpecial: false,
     passwordHasUppercase: false,
   });
+
+  // Profile picture state
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [isHoveringProfilePic, setIsHoveringProfilePic] = useState(false);
+  const fileInputRef = useRef(null);
 
   // New state variables for orders and appointments
   const [userOrders, setUserOrders] = useState([]);
@@ -122,6 +127,84 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     handleLogout();
   };
 
+  // Handle profile picture change
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      setMessage({ type: 'error', text: 'Csak JPG, PNG vagy GIF fájlok tölthetők fel!' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'A fájl mérete nem haladhatja meg az 5MB-ot!' });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const storedUserData = localStorage.getItem('userData');
+
+      if (!token || !storedUserData) {
+        setMessage({ type: 'error', text: 'Nincs bejelentkezve!' });
+        return;
+      }
+
+      let parsedUserData;
+      try {
+        parsedUserData = JSON.parse(storedUserData);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        setMessage({ type: 'error', text: 'Hibás felhasználói adatok!' });
+        return;
+      }
+
+      // Create form data
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      // Upload the profile picture
+      const response = await fetch(`http://localhost:3000/api/users/${parsedUserData.id}/profile-picture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        // Update local storage with updated user data
+        const updatedUserData = {
+          ...parsedUserData,
+          profile_picture: result.profilePicture
+        };
+        localStorage.setItem('userData', JSON.stringify(updatedUserData));
+
+        // Update profile picture in state
+        setProfilePicture(result.profilePicture);
+
+        setMessage({ type: 'success', text: 'Profilkép sikeresen frissítve!' });
+
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setMessage({ type: '', text: '' });
+        }, 3000);
+      } else {
+        const error = await response.json();
+        setMessage({ type: 'error', text: error.message || 'Hiba történt a profilkép feltöltésekor.' });
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      setMessage({ type: 'error', text: 'Hiba történt a profilkép feltöltésekor.' });
+    }
+  };
+
   // Add this useEffect after your existing useEffect
   useEffect(() => {
     // Scroll to top when component mounts
@@ -142,6 +225,11 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           email: parsedUserData.email || '',
           phone: parsedUserData.phone || '',
         });
+
+        // Set profile picture if it exists
+        if (parsedUserData.profile_picture) {
+          setProfilePicture(parsedUserData.profile_picture);
+        }
 
         // Fetch the latest user data
         fetchUserData(parsedUserData.id, token);
@@ -184,6 +272,11 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           email: userData.email || '',
           phone: userData.phone || '',
         });
+
+        // Update profile picture if it exists
+        if (userData.profile_picture) {
+          setProfilePicture(userData.profile_picture);
+        }
 
         setLoading(false);
       } else {
@@ -504,9 +597,45 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           )}
 
           <div className="flex items-center mb-8">
-            <div className="w-20 h-20 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-3xl mr-6">
-              {profileData.first_name ? profileData.first_name.charAt(0).toUpperCase() : "U"}
+            {/* Profile Picture with hover effect */}
+            <div
+              className="relative"
+              onMouseEnter={() => setIsHoveringProfilePic(true)}
+              onMouseLeave={() => setIsHoveringProfilePic(false)}
+            >
+              <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-[#4e77f4] text-white text-3xl mr-6">
+                {profilePicture ? (
+                  <img
+                    src={`http://localhost:3000${profilePicture}`}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profileData.first_name ? profileData.first_name.charAt(0).toUpperCase() : "U"
+                )}
+              </div>
+
+              {isHoveringProfilePic && (
+                <div
+                  className="absolute inset-0 w-20 h-20 rounded-full bg-black bg-opacity-50 flex items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+              )}
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleProfilePictureChange}
+                className="hidden"
+                accept="image/jpeg, image/png, image/gif"
+              />
             </div>
+
             <div>
               <h1 className="text-3xl font-bold">{profileData.last_name} {profileData.first_name}</h1>
               <p className="text-[#88a0e8]">{profileData.email}</p>

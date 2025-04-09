@@ -42,6 +42,11 @@ const User = sequelize.define(
     last_login: {
       type: DataTypes.DATE,
       allowNull: true,
+    },
+    profile_picture: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
     }
   },
   {
