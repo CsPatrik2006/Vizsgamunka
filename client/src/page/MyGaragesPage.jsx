@@ -113,7 +113,6 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
         {
           ...newGarage,
           owner_id: userId,
-          contact_info: newGarage.contact_info || newGarage.contact_phone
         },
         {
           headers: {
@@ -222,8 +221,8 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
                     <label className="block mb-2 text-sm font-medium">Telefonszám</label>
                     <input
                       type="text"
-                      name="contact_phone"
-                      value={newGarage.contact_phone}
+                      name="contact_info"
+                      value={newGarage.contact_info}
                       onChange={handleInputChange}
                       className={`w-full p-3 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-300"} focus:ring-2 focus:ring-[#4e77f4] outline-none transition-all`}
                     />

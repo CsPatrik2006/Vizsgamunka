@@ -98,6 +98,7 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
 
         // Don't submit if the garage has been deleted
         if (isDeletedRef.current) {
+            console.log("Garage has been deleted, skipping update");
             return;
         }
 
@@ -112,6 +113,12 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
             if (!userId) {
                 setError("Felhasználói azonosító hiányzik. Kérjük, jelentkezzen be újra.");
                 setIsSubmitting(false);
+                return;
+            }
+
+            // Check again if the garage has been deleted before making the API call
+            if (isDeletedRef.current) {
+                console.log("Garage has been deleted, skipping update");
                 return;
             }
 
@@ -133,8 +140,14 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                 navigate("/my-garages");
             }, 2000);
         } catch (err) {
-            setError("Hiba történt a garázs adatainak frissítése közben: " +
-                (err.response?.data?.message || err.message));
+            // Check if the error is because the garage was not found (already deleted)
+            if (err.response && err.response.status === 404) {
+                isDeletedRef.current = true; // Mark as deleted if we get a 404
+                setError("A garázs már nem létezik vagy törölve lett.");
+            } else {
+                setError("Hiba történt a garázs adatainak frissítése közben: " +
+                    (err.response?.data?.message || err.message));
+            }
             console.error(err);
             setIsSubmitting(false);
         }
@@ -160,6 +173,12 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
 
             // Mark the garage as deleted to prevent further operations
             isDeletedRef.current = true;
+
+            // Disable all form inputs
+            const formInputs = document.querySelectorAll('input, textarea, button[type="submit"]');
+            formInputs.forEach(input => {
+                input.disabled = true;
+            });
 
             // Set success message
             setSuccess("A garázs sikeresen törölve!");
@@ -327,7 +346,7 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                     )}
                 </motion.div>
             </section>
-        <Footer />
+            <Footer />
         </div>
     );
 };
