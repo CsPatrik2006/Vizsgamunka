@@ -143,17 +143,12 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      // Log user data for debugging
-      console.log("Current user data:", userData);
-
       // Fetch garage details
       const garageResponse = await axios.get(`http://localhost:3000/garages/${garageId}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
       });
-
-      console.log("Garage response:", garageResponse.data);
 
       // Handle different response formats
       const garageData = garageResponse.data && typeof garageResponse.data === 'object' && 'data' in garageResponse.data
@@ -173,25 +168,16 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
       }
 
-      // Fetch inventory items for this garage
-      console.log("Requesting inventory for garage_id:", garageId);
-
       const inventoryResponse = await axios.get(`http://localhost:3000/inventory?garage_id=${garageId}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
       });
 
-      console.log("Inventory API request URL:", `http://localhost:3000/inventory?garage_id=${garageId}`);
-      console.log("Inventory response status:", inventoryResponse.status);
-      console.log("Inventory response data:", inventoryResponse.data);
-
       // Filter the inventory items to ensure they match the current garage
       const inventoryData = Array.isArray(inventoryResponse.data)
         ? inventoryResponse.data.filter(item => item.garage_id === parseInt(garageId, 10))
         : [];
-
-      console.log("Filtered inventory data:", inventoryData);
 
       setInventory(inventoryData);
       setLoading(false);

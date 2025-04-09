@@ -46,15 +46,12 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
             setLoading(true);
             const token = localStorage.getItem("token");
 
-            console.log(`Fetching orders for garage ID: ${garageId}`);
-
             const response = await axios.get(`http://localhost:3000/orders/garage/${garageId}`, {
                 headers: {
                     ...(token && { Authorization: `Bearer ${token}` })
                 }
             });
 
-            console.log("Orders response:", response.data);
             setOrders(response.data);
             setError(null);
         } catch (err) {
@@ -87,15 +84,12 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
             setItemsLoading(true);
             const token = localStorage.getItem("token");
 
-            console.log(`Fetching order items for order ID: ${orderId}`);
-
             const response = await axios.get(`http://localhost:3000/orderItems/order/${orderId}`, {
                 headers: {
                     ...(token && { Authorization: `Bearer ${token}` })
                 }
             });
 
-            console.log("Order items response:", response.data);
             setOrderItems(response.data);
         } catch (err) {
             console.error("Error fetching order items:", err);
@@ -126,8 +120,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
             const order = orders.find(o => o.id === orderId);
 
             if (!order) return;
-
-            console.log(`Updating order ${orderId} status to: ${newStatus}`);
 
             // Show confirmation dialog for cancellation
             if (newStatus === 'canceled') {

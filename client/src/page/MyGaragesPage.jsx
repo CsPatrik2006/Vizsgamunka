@@ -47,20 +47,14 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      // Log user data for debugging
-      console.log("Current user data:", userData);
-
       const response = await axios.get('http://localhost:3000/garages', {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
       });
 
-      console.log("Garages response:", response.data);
-
       // Try to find the user ID from different possible properties
       const userId = userData?.userId || userData?.id;
-      console.log("Using userId:", userId);
 
       // Filter garages to only show those owned by the current user
       if (Array.isArray(response.data)) {
@@ -69,7 +63,6 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
           return garage.owner_id.toString() === userId.toString();
         });
 
-        console.log("Filtered garages:", userGarages);
         setGarages(userGarages);
       } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
         const userGarages = response.data.data.filter(garage => {

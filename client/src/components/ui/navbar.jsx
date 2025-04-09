@@ -103,6 +103,15 @@ const Header = ({
     setMobileMenuOpen(false);
   };
 
+  const getProfilePicture = () => {
+    if (isLoggedIn && userData && userData.profile_picture) {
+      return `http://localhost:3000${userData.profile_picture}`;
+    }
+    return null;
+  };
+
+  const profilePicture = getProfilePicture();
+
   const handleLoginClick = () => {
     setIsLoginOpen && setIsLoginOpen(true);
     setDropdownOpen(false);
@@ -381,8 +390,16 @@ const Header = ({
               <Button onClick={handleDropdownToggle} className={`${darkMode ? "text-white" : "text-black"} flex items-center relative`}>
                 {isLoggedIn && userData ? (
                   <div className="relative flex items-center justify-center w-6 h-6 overflow-visible">
-                    <div className="absolute w-7 h-7 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-sm transform scale-110">
-                      {userData.first_name ? userData.first_name.charAt(0).toUpperCase() : "U"}
+                    <div className="absolute w-7 h-7 rounded-full bg-[#4e77f4] flex items-center justify-center text-white text-sm transform scale-110 overflow-hidden">
+                      {userData.profile_picture ? (
+                        <img 
+                          src={`http://localhost:3000${userData.profile_picture}`} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        userData.first_name ? userData.first_name.charAt(0).toUpperCase() : "U"
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -524,8 +541,20 @@ const Header = ({
               {isLoggedIn && userData && (
                 <div className={`px-4 py-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-[#4e77f4] flex items-center justify-center text-white">
-                      {userData.first_name ? userData.first_name.charAt(0).toUpperCase() : "U"}
+                    {/* Make sure this outer container is also circular */}
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
+                      {/* Inner container for background color and content */}
+                      <div className="w-full h-full bg-[#4e77f4] flex items-center justify-center text-white">
+                        {userData.profile_picture ? (
+                          <img 
+                            src={`http://localhost:3000${userData.profile_picture}`} 
+                            alt="Profile" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          userData.first_name ? userData.first_name.charAt(0).toUpperCase() : "U"
+                        )}
+                      </div>
                     </div>
                     <div>
                       <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
