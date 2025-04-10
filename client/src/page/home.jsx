@@ -44,10 +44,8 @@ export default function TyreShopHomepage({
       try {
         setLoading(true);
 
-        // Fetch products
         const productsResponse = await axios.get('http://localhost:3000/inventory');
 
-        // Fetch garages for displaying garage names
         const garagesResponse = await axios.get('http://localhost:3000/garages');
         setGarages(garagesResponse.data);
 
@@ -67,14 +65,11 @@ export default function TyreShopHomepage({
     fetchData();
   }, []);
 
-  // Handle adding item to cart
   const handleAddToCart = async (e, item) => {
-    e.stopPropagation(); // Prevent navigation to product page
+    e.stopPropagation();
 
-    // Try to add to cart
     const success = await addToCart(item.id, 1);
 
-    // Only open cart if successfully added
     if (success) {
       setIsCartOpen(true);
     }
@@ -156,7 +151,6 @@ export default function TyreShopHomepage({
         <h2 className="text-3xl font-semibold text-center mb-8">Kiemelt ajánlatok</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {loading ? (
-            // Loading placeholders
             [1, 2, 3].map((_, index) => (
               <motion.div
                 key={index}
@@ -176,7 +170,6 @@ export default function TyreShopHomepage({
               </motion.div>
             ))
           ) : featuredProducts.length > 0 ? (
-            // Display featured products using the ProductCard component
             featuredProducts.map((product, index) => (
               <ProductCard
                 key={product.id}
@@ -189,7 +182,6 @@ export default function TyreShopHomepage({
               />
             ))
           ) : (
-            // Fallback if no products are available
             [1, 2, 3].map((_, index) => (
               <motion.div
                 key={index}

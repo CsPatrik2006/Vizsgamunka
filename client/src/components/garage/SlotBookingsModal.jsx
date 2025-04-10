@@ -5,12 +5,10 @@ import { format } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// Regular booking item component (no reschedule feature)
 const BookingItem = ({ booking, formatDate, getStatusBadgeClass, getStatusLabel, navigate, darkMode, onStatusChange, onDelete }) => {
     return (
         <div className={`p-4 rounded-lg border ${darkMode ? "bg-[#252830] border-[#3a3f4b]" : "bg-white border-gray-200"} hover:shadow-md transition-shadow`}>
             <div className="flex flex-col gap-4">
-                {/* Top section with status and ID */}
                 <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full ${getStatusBadgeClass(booking.status)}`}>
                         {getStatusLabel(booking.status)}
@@ -19,10 +17,8 @@ const BookingItem = ({ booking, formatDate, getStatusBadgeClass, getStatusLabel,
                         ID: {booking.id}
                     </span>
                 </div>
-                
-                {/* Main content section */}
+
                 <div className="flex justify-between items-start">
-                    {/* Left side - booking details */}
                     <div>
                         <p className="text-sm mb-1">
                             <span className="font-medium">Felhasználó:</span> {booking.user_id}
@@ -33,8 +29,7 @@ const BookingItem = ({ booking, formatDate, getStatusBadgeClass, getStatusLabel,
                         <p className="text-sm mb-3">
                             <span className="font-medium">Rendelés:</span> #{booking.order_id}
                         </p>
-                        
-                        {/* Action buttons - now on the left side */}
+
                         <div className="flex gap-2">
                             <Tooltip content="Rendelés megtekintése">
                                 <Button
@@ -48,7 +43,7 @@ const BookingItem = ({ booking, formatDate, getStatusBadgeClass, getStatusLabel,
                                     Rendelés
                                 </Button>
                             </Tooltip>
-                            
+
                             <Tooltip content="Foglalás törlése">
                                 <Button
                                     onClick={() => onDelete(booking.id)}
@@ -62,8 +57,7 @@ const BookingItem = ({ booking, formatDate, getStatusBadgeClass, getStatusLabel,
                             </Tooltip>
                         </div>
                     </div>
-                    
-                    {/* Right side - status selector */}
+
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-medium">Állapot:</span>
                         <div className="flex flex-wrap gap-1">
@@ -75,8 +69,8 @@ const BookingItem = ({ booking, formatDate, getStatusBadgeClass, getStatusLabel,
                                     key={status.value}
                                     onClick={() => onStatusChange(booking, status.value)}
                                     className={`px-2 py-1 text-xs rounded-md flex items-center gap-1 transition-colors
-                                        ${booking.status === status.value 
-                                            ? (darkMode ? 'bg-gray-700 ring-2 ring-blue-500' : 'bg-blue-100 ring-2 ring-blue-500') 
+                                        ${booking.status === status.value
+                                            ? (darkMode ? 'bg-gray-700 ring-2 ring-blue-500' : 'bg-blue-100 ring-2 ring-blue-500')
                                             : (darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}`}
                                 >
                                     <div className={`w-2 h-2 rounded-full ${status.color}`}></div>
@@ -114,7 +108,6 @@ const SlotBookingsModal = ({
             { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
         ).then(() => {
             fetchBookings();
-            // Update the slot bookings
             const updatedBooking = { ...booking, status };
             setSlotBookings(slotBookings.map(b =>
                 b.id === booking.id ? updatedBooking : b
@@ -130,7 +123,6 @@ const SlotBookingsModal = ({
                 { headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
             ).then(() => {
                 fetchBookings();
-                // Remove the booking from slot bookings
                 setSlotBookings(slotBookings.filter(b => b.id !== bookingId));
             });
         }

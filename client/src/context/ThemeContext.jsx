@@ -1,9 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
-// Create the context
 const ThemeContext = createContext(null);
 
-// Create the hook first as a named function
 function useTheme() {
   const context = useContext(ThemeContext);
   if (context === null) {
@@ -12,12 +10,10 @@ function useTheme() {
   return context;
 }
 
-// Create the provider component as a named function
 function ThemeProvider({ children }) {
   const [darkMode, setDarkMode] = useState(false);
   const [themeLoaded, setThemeLoaded] = useState(false);
   
-  // Load theme preference on initial render
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -26,7 +22,6 @@ function ThemeProvider({ children }) {
     setThemeLoaded(true);
   }, []);
 
-  // Save theme preference whenever it changes
   useEffect(() => {
     if (themeLoaded) {
       localStorage.setItem("theme", darkMode ? "dark" : "light");
@@ -50,5 +45,4 @@ function ThemeProvider({ children }) {
   );
 }
 
-// Export both as named exports
 export { ThemeProvider, useTheme };

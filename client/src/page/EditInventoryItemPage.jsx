@@ -48,13 +48,11 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
     const [removeAdditionalImg1, setRemoveAdditionalImg1] = useState(false);
     const [removeAdditionalImg2, setRemoveAdditionalImg2] = useState(false);
 
-    // Handle logout with cart clear
     const handleLogoutWithCartClear = () => {
         handleCartLogout();
         handleLogout();
     };
 
-    // Helper function to get image URL
     const getImageUrl = (imagePath) => {
         if (!imagePath) return null;
 
@@ -65,14 +63,11 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
         return `http://localhost:3000${imagePath}`;
     };
 
-    // Scroll to top when component mounts
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Check if user is authorized and fetch item data
     useEffect(() => {
-        // Don't fetch data if the item has been deleted
         if (isDeletedRef.current) {
             return;
         }
@@ -87,7 +82,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
                 setLoading(true);
                 const token = localStorage.getItem("token");
 
-                // First, check if the garage belongs to the user
                 const garageResponse = await axios.get(`http://localhost:3000/garages/${garageId}`, {
                     headers: {
                         ...(token && { Authorization: `Bearer ${token}` })
@@ -101,14 +95,12 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
                     return;
                 }
 
-                // Then fetch the inventory item
                 const itemResponse = await axios.get(`http://localhost:3000/inventory/${itemId}`, {
                     headers: {
                         ...(token && { Authorization: `Bearer ${token}` })
                     }
                 });
 
-                // Check if the item belongs to the garage
                 if (itemResponse.data.garage_id.toString() !== garageId.toString()) {
                     setError("Ez a termék nem ehhez a garázshoz tartozik.");
                     navigate(`/my-garages/${garageId}/inventory`);
@@ -173,7 +165,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
     };
 
-    // Add drag and drop event handlers
     const handleDragEnter = (e, target) => {
         e.preventDefault();
         e.stopPropagation();
@@ -185,7 +176,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
         e.preventDefault();
         e.stopPropagation();
 
-        // Check if we're leaving to a child element - if so, don't reset the dragging state
         const relatedTarget = e.relatedTarget;
         if (relatedTarget && e.currentTarget.contains(relatedTarget)) {
             return;
@@ -209,7 +199,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
 
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             const file = e.dataTransfer.files[0];
-            // Check if the file is an image
             if (file.type.match('image.*')) {
                 if (target === 'cover_img') {
                     setCoverImage(file);
@@ -227,7 +216,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Don't submit if the item has been deleted
         if (isDeletedRef.current) {
             return;
         }
@@ -252,13 +240,11 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
             formData.append('unit_price', itemData.unit_price);
             formData.append('description', itemData.description);
 
-            // Add tyre-specific fields
             if (itemData.season) formData.append('season', itemData.season);
             if (itemData.width !== "") formData.append('width', itemData.width);
             if (itemData.profile !== "") formData.append('profile', itemData.profile);
             if (itemData.diameter !== "") formData.append('diameter', itemData.diameter);
 
-            // Add images
             if (coverImage) {
                 formData.append('cover_img', coverImage);
             }
@@ -269,7 +255,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
                 formData.append('additional_img2', additionalImage2);
             }
 
-            // Handle image removal flags
             if (removeAdditionalImg1) {
                 formData.append('remove_additional_img1', 'true');
             }
@@ -301,7 +286,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
     };
 
     const handleDelete = async () => {
-        // Ask for confirmation
         if (!window.confirm("Biztosan törölni szeretné ezt a terméket? Ez a művelet nem visszavonható!")) {
             return;
         }
@@ -317,12 +301,10 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
                 }
             });
 
-            // Mark the item as deleted to prevent further operations
             isDeletedRef.current = true;
 
             setSuccess("A termék sikeresen törölve!");
 
-            // Immediately navigate away to prevent further API calls to the deleted item
             setTimeout(() => {
                 navigate(`/my-garages/${garageId}/inventory`);
             }, 1500);
@@ -344,7 +326,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
     };
 
-    // Helper function to render image upload area
     const renderImageUpload = (imageType, image, setImage, currentImage, label, removeImage, setRemoveImage) => {
         return (
             <div className="mb-4">
@@ -487,7 +468,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
         );
     };
 
-    // Don't render until theme is loaded
     if (!themeLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -619,7 +599,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
                                         />
                                     </div>
 
-                                    {/* Tyre-specific fields */}
                                     <div>
                                         <label className="block mb-2 text-sm font-medium">Évszak</label>
                                         <select
@@ -688,7 +667,6 @@ const EditInventoryItemPage = ({ isLoggedIn, userData, handleLogout }) => {
                                         ></textarea>
                                     </div>
 
-                                    {/* Image upload sections */}
                                     <div className="md:col-span-2">
                                         {renderImageUpload('cover_img', coverImage, setCoverImage, currentCoverImage, 'Borítókép (kötelező)', false, null)}
                                     </div>

@@ -16,7 +16,6 @@ const ScheduleView = ({
     handleCopySchedule,
     getDayLabel
 }) => {
-    // Get a color for the day button based on the number of slots
     const getDayButtonColor = (day) => {
         const slotCount = schedule[day].length;
         if (slotCount === 0) return darkMode ? "bg-[#252830] hover:bg-[#2d3039]" : "bg-gray-100 hover:bg-gray-200";

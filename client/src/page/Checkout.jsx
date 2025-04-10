@@ -21,13 +21,12 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
     last_name: userData?.last_name || "",
     email: userData?.email || "",
     phone: userData?.phone || "",
-    // Removed address field since we don't do shipping
   });
 
   const [appointmentData, setAppointmentData] = useState({
     date: "",
     time: "",
-    garageId: null, // Start with no garage selected
+    garageId: null,
   });
 
   const [availableTimes, setAvailableTimes] = useState([]);
@@ -36,31 +35,25 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
   const [error, setError] = useState(null);
   const [garages, setGarages] = useState([]);
 
-  // Format price with thousand separator
   const formatPrice = (price) => {
     return new Intl.NumberFormat('hu-HU').format(price);
   };
 
-  // Handle logout with cart clear
   const handleLogoutWithCartClear = () => {
     handleCartLogout();
     handleLogout();
   };
 
-  // Add this useEffect after your existing useEffects
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array means it only runs once when component mounts
+  }, []);
 
-  // Check if cart is empty and redirect if necessary
   useEffect(() => {
     if (cartItems.length === 0) {
       navigate('/shop');
     }
   }, [cartItems, navigate]);
 
-  // Load garages for selection
   useEffect(() => {
     const fetchGarages = async () => {
       try {
@@ -82,7 +75,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
     fetchGarages();
   }, []);
 
-  // Generate available time slots when date changes
   useEffect(() => {
     if (appointmentData.date && appointmentData.garageId) {
       generateTimeSlots(appointmentData.date);
@@ -99,23 +91,19 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
       setLoadingTimes(true);
       setAvailableTimes([]);
 
-      // Format the date for the API request
       const formattedDate = format(new Date(date), 'yyyy-MM-dd');
 
-      // Fetch available slots from the garage's schedule
       const response = await axios.get(
         `http://localhost:3000/garages/${appointmentData.garageId}/available-slots?date=${formattedDate}`
       );
 
       if (Array.isArray(response.data)) {
-        // Transform the available slots into the format we need
         const availableSlots = response.data
-          .filter(slot => !slot.is_full) // Only show slots that aren't full
-          .map(slot => slot.start_time.substring(0, 5)); // Format time as HH:MM
+          .filter(slot => !slot.is_full)
+          .map(slot => slot.start_time.substring(0, 5));
 
         setAvailableTimes(availableSlots);
 
-        // If no slots are available, show a message
         if (availableSlots.length === 0) {
         }
       } else {
@@ -139,7 +127,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
     const { name, value } = e.target;
 
     if (name === 'date') {
-      // Reset time when date changes
       setAppointmentData(prev => ({ ...prev, [name]: value, time: "" }));
     } else {
       setAppointmentData(prev => ({ ...prev, [name]: value }));
@@ -160,13 +147,10 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
         return;
       }
 
-      // Get the selected garage ID from the appointment data
       const selectedGarageId = appointmentData.garageId;
 
-      // Calculate total price
       const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-      // Prepare the items array from cart items
       const orderItems = cartItems.map(item => ({
         product_type: item.product_type,
         product_id: item.product_id,
@@ -174,20 +158,17 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
         unit_price: item.price
       }));
 
-      // 1. Create an order with items included
       const orderResponse = await axios.post('http://localhost:3000/orders', {
         user_id: userId,
         garage_id: selectedGarageId,
         total_price: totalPrice,
         status: 'pending',
-        items: orderItems // Include the items array here
+        items: orderItems
       });
 
       const orderId = orderResponse.data.id;
 
-      // No need to create order items separately since they're included in the order creation
 
-      // 3. Create appointment if time is selected
       let hasAppointment = false;
       if (appointmentData.date && appointmentData.time) {
         const appointmentDateTime = new Date(appointmentData.date);
@@ -205,10 +186,8 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
         hasAppointment = true;
       }
 
-      // 4. Clear the cart
       await clearCart();
 
-      // 5. Redirect to success page
       navigate('/checkout/success', {
         state: {
           orderId,
@@ -232,10 +211,8 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
 
   const totalAmount = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-  // Format date for min attribute of date input (today's date)
   const today = new Date().toISOString().split('T')[0];
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -275,7 +252,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Order Summary */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -323,7 +299,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
               </div>
             </motion.div>
 
-            {/* Checkout Form */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -404,14 +379,12 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                       </div>
                     </div>
 
-                    {/* Appointment Selection Section - Improved UI */}
                     <div className="md:col-span-2 border-t pt-6 mt-2">
                       <h2 className="text-xl font-semibold mb-4">Időpontfoglalás</h2>
                       <p className={`mb-4 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                         Ha szervizelést vagy beszerelést igénylő terméket rendelt, foglaljon időpontot az alábbi űrlapon.
                       </p>
 
-                      {/* Service Selection Card */}
                       <div className={`p-4 rounded-lg mb-6 ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
                         <label className="block mb-2 text-sm font-medium">Szerviz kiválasztása</label>
                         <div className="grid grid-cols-1 gap-3">
@@ -422,10 +395,10 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                                 setAppointmentData(prev => ({
                                   ...prev,
                                   garageId: garage.id,
-                                  date: "", // Reset date when changing garage
-                                  time: ""  // Reset time when changing garage
+                                  date: "",
+                                  time: ""
                                 }));
-                                setAvailableTimes([]); // Clear available times when changing garage
+                                setAvailableTimes([]);
                               }}
                               className={`p-3 rounded-lg cursor-pointer transition-all border-2 ${appointmentData.garageId === garage.id
                                 ? `${darkMode ? "border-[#4e77f4] bg-[#1e2129]" : "border-[#4e77f4] bg-white"}`
@@ -473,7 +446,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                         </div>
                       </div>
 
-                      {/* Date Selection */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label className="block mb-2 text-sm font-medium">Dátum kiválasztása</label>
@@ -508,7 +480,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                           </div>
                         </div>
 
-                        {/* Time Selection */}
                         <div>
                           <label className="block mb-2 text-sm font-medium">Időpont kiválasztása</label>
                           <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-gray-100"}`}>
@@ -559,7 +530,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
                         </div>
                       </div>
 
-                      {/* Appointment Summary */}
                       {appointmentData.date && appointmentData.time && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}

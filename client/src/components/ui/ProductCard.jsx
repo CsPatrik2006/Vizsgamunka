@@ -13,7 +13,6 @@ const ProductCard = ({
 }) => {
     const { darkMode } = useTheme();
 
-    // Helper functions
     const getImageUrl = (imagePath) => {
         if (!imagePath) return null;
 
@@ -46,17 +45,14 @@ const ProductCard = ({
         }
     };
 
-    // Handle add to cart with login check
     const handleAddToCart = (e) => {
-        e.stopPropagation(); // Prevent event bubbling
+        e.stopPropagation();
 
         if (!isLoggedIn) {
-            // Prompt user to login
             setIsLoginOpen(true);
             return;
         }
 
-        // Call the provided onAddToCart function
         onAddToCart(e, item);
     };
 
@@ -93,12 +89,10 @@ const ProductCard = ({
                         <p className="mt-2 text-gray-500 dark:text-gray-400">Nincs kép</p>
                     </div>
                 )}
-                {/* Vehicle type badge */}
                 <div className="absolute top-2 right-2 bg-[#4e77f4] text-white text-xs px-2 py-1 rounded-full">
                     {getVehicleTypeDisplayName(item.vehicle_type)}
                 </div>
 
-                {/* Season badge */}
                 {item.season && (
                     <div className={`absolute top-2 left-2 text-xs px-2 py-1 rounded-full ${item.season === 'winter'
                             ? 'bg-blue-500 text-white'
@@ -110,7 +104,6 @@ const ProductCard = ({
                     </div>
                 )}
 
-                {/* Multiple images indicator */}
                 {(item.additional_img1 || item.additional_img2) && (
                     <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
                         <div className="flex items-center">
@@ -128,7 +121,6 @@ const ProductCard = ({
                     {garage?.name || 'Ismeretlen szervíz'}
                 </p>
 
-                {/* Tyre size display */}
                 {item.width && item.profile && item.diameter && (
                     <p className="text-sm mb-2 font-medium">
                         Méret: <span className="font-bold">{item.width}/{item.profile}R{item.diameter}</span>

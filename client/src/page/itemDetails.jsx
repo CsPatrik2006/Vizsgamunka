@@ -32,13 +32,11 @@ export default function ItemDetailsPage({
   const { itemId } = useParams();
   const navigate = useNavigate();
 
-  // Handle logout with cart clear
   const handleLogoutWithCartClear = () => {
     handleCartLogout();
     handleLogout();
   };
 
-  // Helper function to get image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
 
@@ -49,12 +47,10 @@ export default function ItemDetailsPage({
     return `http://localhost:3000${imagePath}`;
   };
 
-  // Format price with thousand separator
   const formatPrice = (price) => {
     return new Intl.NumberFormat('hu-HU').format(price);
   };
 
-  // Get vehicle type display name
   const getVehicleTypeDisplayName = (type) => {
     switch (type) {
       case 'car': return 'Személygépkocsi';
@@ -64,7 +60,6 @@ export default function ItemDetailsPage({
     }
   };
 
-  // Get season display name
   const getSeasonDisplayName = (season) => {
     switch (season) {
       case 'winter': return 'Téli';
@@ -74,7 +69,6 @@ export default function ItemDetailsPage({
     }
   };
 
-  // Get all available images for the item
   const getItemImages = (item) => {
     if (!item) return [];
 
@@ -86,47 +80,37 @@ export default function ItemDetailsPage({
     return images;
   };
 
-  // Handle adding item to cart
   const handleAddToCart = () => {
     if (!isLoggedIn) {
-      // Prompt user to login
       setIsLoginOpen(true);
       return;
     }
 
-    // Make sure we have a valid item and quantity
     if (item && quantity > 0) {
       addToCart(item.id, quantity);
-      setIsCartOpen(true); // Open cart sidebar when item is added
+      setIsCartOpen(true);
     } else {
       console.error('Invalid item or quantity');
     }
   };
 
-  // Initialize cart when user is logged in and item data is available
   useEffect(() => {
     if (isLoggedIn && userData && item) {
       initializeCart(userData.id, item.garage_id);
     }
   }, [isLoggedIn, userData, item, initializeCart]);
 
-  // Add this useEffect to the itemDetails.jsx component
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-    // Reset current image index when item changes
     setCurrentImageIndex(0);
-  }, [itemId]); // Dependency on itemId ensures it runs when the product changes
+  }, [itemId]);
 
-  // Fetch item details
   useEffect(() => {
     const fetchItemDetails = async () => {
       try {
-        // Fetch item details
         const itemResponse = await axios.get(`http://localhost:3000/inventory/${itemId}`);
         setItem(itemResponse.data);
 
-        // Fetch garage details
         const garageResponse = await axios.get(`http://localhost:3000/garages/${itemResponse.data.garage_id}`);
         setGarage(garageResponse.data);
 
@@ -140,12 +124,10 @@ export default function ItemDetailsPage({
     fetchItemDetails();
   }, [itemId]);
 
-  // Reset image loaded state when item changes
   useEffect(() => {
     setImageLoaded(false);
   }, [item, currentImageIndex]);
 
-  // Close zoom view when escape key is pressed
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === 'Escape' && isZoomed) {
@@ -155,7 +137,6 @@ export default function ItemDetailsPage({
 
     window.addEventListener('keydown', handleEscKey);
 
-    // Prevent scrolling when zoomed
     if (isZoomed) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -168,7 +149,6 @@ export default function ItemDetailsPage({
     };
   }, [isZoomed]);
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -177,7 +157,6 @@ export default function ItemDetailsPage({
     );
   }
 
-  // Get all available images for the current item
   const itemImages = item ? getItemImages(item) : [];
   const currentImage = itemImages[currentImageIndex]?.url || null;
 
@@ -197,14 +176,12 @@ export default function ItemDetailsPage({
         cartItemsCount={cartItems.length}
       />
 
-      {/* Cart Sidebar */}
       <CartSidebar
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Back button */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -218,7 +195,6 @@ export default function ItemDetailsPage({
         </motion.button>
 
         {loading ? (
-          // Loading placeholder
           <div className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-[#252830]" : "bg-white"} p-6`}>
             <div className="flex flex-col md:flex-row gap-8 animate-pulse">
               <div className="w-full md:w-1/2 h-96 bg-gray-700 rounded-lg"></div>
@@ -241,15 +217,12 @@ export default function ItemDetailsPage({
             transition={{ duration: 0.5 }}
           >
             <div className="flex flex-col md:flex-row">
-              {/* Product Image Gallery */}
               <div className="w-full md:w-1/2 p-6">
                 <div className="flex flex-col">
-                  {/* Main Image Display */}
                   <div
                     className="h-80 flex items-center justify-center relative mb-4 overflow-hidden"
                     onClick={() => currentImage && setIsZoomed(true)}
                   >
-                    {/* Loading skeleton - only show when an image is expected but not yet loaded */}
                     {!imageLoaded && currentImage && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-10 h-10 border-4 border-[#4e77f4] border-t-transparent rounded-full animate-spin"></div>
@@ -278,7 +251,6 @@ export default function ItemDetailsPage({
                     )}
                   </div>
 
-                  {/* Thumbnail Gallery */}
                   {itemImages.length > 1 && (
                     <div className="flex justify-center space-x-2">
                       {itemImages.map((image, index) => (
@@ -306,7 +278,6 @@ export default function ItemDetailsPage({
                 </div>
               </div>
 
-              {/* Zoom overlay with blurred background and animation */}
               <AnimatePresence>
                 {isZoomed && currentImage && (
                   <motion.div
@@ -317,7 +288,6 @@ export default function ItemDetailsPage({
                     transition={{ duration: 0.3 }}
                     onClick={() => setIsZoomed(false)}
                   >
-                    {/* Close button positioned in the top right corner of the page */}
                     <motion.button
                       className={`absolute top-4 right-4 ${darkMode ? "bg-[#1e2129] text-[#f9fafc]" : "bg-white text-gray-700"} hover:bg-[#4e77f4] hover:text-white rounded-full p-3 shadow-md transition-colors duration-200 z-10 cursor-pointer`}
                       whileHover={{ scale: 1.1 }}
@@ -337,7 +307,6 @@ export default function ItemDetailsPage({
                       </svg>
                     </motion.button>
 
-                    {/* Navigation buttons for zoomed gallery */}
                     {itemImages.length > 1 && (
                       <>
                         <motion.button
@@ -405,14 +374,12 @@ export default function ItemDetailsPage({
                 )}
               </AnimatePresence>
 
-              {/* Product Details */}
               <div className="w-full md:w-1/2 p-6">
                 <div className="mb-2">
                   <span className="inline-block bg-[#4e77f4] text-white text-xs px-2 py-1 rounded-full mb-2">
                     {getVehicleTypeDisplayName(item.vehicle_type)}
                   </span>
 
-                  {/* Season badge in details section */}
                   {item.season && (
                     <span className={`inline-block ml-2 text-xs px-2 py-1 rounded-full ${item.season === 'winter'
                       ? 'bg-blue-500 text-white'
@@ -430,7 +397,6 @@ export default function ItemDetailsPage({
                   {garage?.name || 'Ismeretlen szervíz'}
                 </p>
 
-                {/* Tyre size display */}
                 {item.width && item.profile && item.diameter && (
                   <p className="text-lg mb-4 font-medium">
                     Méret: <span className="font-bold">{item.width}/{item.profile}R{item.diameter}</span>

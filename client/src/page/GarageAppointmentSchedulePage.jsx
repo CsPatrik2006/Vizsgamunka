@@ -41,14 +41,13 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         max_bookings: 1
     });
     const [bookings, setBookings] = useState([]);
-    const [viewMode, setViewMode] = useState("schedule"); // "schedule", "bookings", or "week"
+    const [viewMode, setViewMode] = useState("schedule");
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [slotBookings, setSlotBookings] = useState([]);
     const [weeklyAvailableSlots, setWeeklyAvailableSlots] = useState({});
 
     useEffect(() => {
-        // Scroll to top when component mounts
         window.scrollTo(0, 0);
     }, []);
 
@@ -63,7 +62,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         fetchBookings();
     }, [userData, navigate, garageId]);
 
-    // Fetch weekly available slots when currentDate changes
     useEffect(() => {
         if (viewMode === "week") {
             fetchWeeklyAvailableSlots();
@@ -79,7 +77,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                 }
             });
 
-            // Verify this garage belongs to the current user
             const userId = userData?.userId || userData?.id;
             if (response.data.owner_id.toString() !== userId.toString()) {
                 setError("Nincs jogosultsága ehhez a garázshoz");
@@ -99,7 +96,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             setLoading(true);
             const token = localStorage.getItem("token");
 
-            // Get the garage's appointment schedule
             const response = await axios.get(`http://localhost:3000/garages/${garageId}/schedule`, {
                 headers: {
                     ...(token && { Authorization: `Bearer ${token}` })
@@ -107,16 +103,15 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             });
 
             if (response.data) {
-                // Format the time values to ensure consistent HH:mm format
                 const formattedSchedule = {};
                 Object.keys(response.data).forEach(day => {
                     formattedSchedule[day] = response.data[day].map(slot => ({
                         ...slot,
                         start_time: typeof slot.start_time === 'string'
-                            ? slot.start_time.substring(0, 5) // Take only HH:mm part
+                            ? slot.start_time.substring(0, 5)
                             : format(new Date(slot.start_time), "HH:mm"),
                         end_time: typeof slot.end_time === 'string'
-                            ? slot.end_time.substring(0, 5) // Take only HH:mm part
+                            ? slot.end_time.substring(0, 5)
                             : format(new Date(slot.end_time), "HH:mm")
                     }));
                 });
@@ -126,7 +121,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             setLoading(false);
         } catch (err) {
             console.error("Error fetching schedule:", err);
-            // If the schedule doesn't exist yet, we'll just use the default empty one
             setLoading(false);
         }
     };
@@ -135,7 +129,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         try {
             const token = localStorage.getItem("token");
 
-            // Get all appointments for this garage
             const response = await axios.get('http://localhost:3000/appointments', {
                 headers: {
                     ...(token && { Authorization: `Bearer ${token}` })
@@ -147,7 +140,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                     appointment.garage_id.toString() === garageId.toString()
                 );
 
-                // Sort appointments by date (newest first)
                 garageAppointments.sort((a, b) =>
                     new Date(b.appointment_time) - new Date(a.appointment_time)
                 );
@@ -164,7 +156,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
             const availableSlotsMap = {};
 
-            // Fetch available slots for each day of the week
             for (let i = 0; i < 7; i++) {
                 const date = addDays(weekStart, i);
                 const formattedDate = format(date, 'yyyy-MM-dd');
@@ -206,7 +197,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
 
     const handleAddTimeSlot = async () => {
         try {
-            // Validate time slot
             const startTime = new Date(`2000-01-01T${newTimeSlot.start_time}`);
             const endTime = new Date(`2000-01-01T${newTimeSlot.end_time}`);
 
@@ -215,7 +205,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                 return;
             }
 
-            // Check for overlapping time slots
             const hasOverlap = schedule[selectedDay].some(slot => {
                 const slotStart = new Date(`2000-01-01T${slot.start_time}`);
                 const slotEnd = new Date(`2000-01-01T${slot.end_time}`);
@@ -228,21 +217,18 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                 return;
             }
 
-            // Add the new time slot
             const updatedSchedule = { ...schedule };
             updatedSchedule[selectedDay] = [
                 ...updatedSchedule[selectedDay],
                 { ...newTimeSlot }
             ];
 
-            // Sort time slots by start time
             updatedSchedule[selectedDay].sort((a, b) => {
                 const aTime = new Date(`2000-01-01T${a.start_time}`);
                 const bTime = new Date(`2000-01-01T${b.start_time}`);
                 return aTime - bTime;
             });
 
-            // Save the updated schedule
             const token = localStorage.getItem("token");
             await axios.put(
                 `http://localhost:3000/garages/${garageId}/schedule`,
@@ -272,7 +258,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             const updatedSchedule = { ...schedule };
             updatedSchedule[dayName] = updatedSchedule[dayName].filter((_, i) => i !== index);
 
-            // Save the updated schedule
             const token = localStorage.getItem("token");
             await axios.put(
                 `http://localhost:3000/garages/${garageId}/schedule`,
@@ -301,7 +286,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
             const updatedSchedule = { ...schedule };
             updatedSchedule[selectedDay] = [...schedule[fromDay]];
 
-            // Save the updated schedule
             const token = localStorage.getItem("token");
             await axios.put(
                 `http://localhost:3000/garages/${garageId}/schedule`,
@@ -322,7 +306,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
     };
 
     const handleSlotClick = (day, time) => {
-        // Find bookings for this time slot
         const dayStr = format(day, 'yyyy-MM-dd');
         const startTimeStr = `${dayStr}T${time}:00`;
         const [hours, minutes] = time.split(':');
@@ -342,7 +325,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
         const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-        // Generate time slots from 8:00 to 18:00
         const timeSlots = [];
         for (let hour = 8; hour < 18; hour++) {
             timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
@@ -355,10 +337,9 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][day.getDay()];
         const daySchedule = schedule[dayOfWeek] || [];
 
-        // Check if this time is within any scheduled slot
         return daySchedule.some(slot => {
-            const slotStart = slot.start_time.substring(0, 5); // HH:MM
-            const slotEnd = slot.end_time.substring(0, 5); // HH:MM
+            const slotStart = slot.start_time.substring(0, 5);
+            const slotEnd = slot.end_time.substring(0, 5);
             return time >= slotStart && time < slotEnd;
         });
     };
@@ -384,10 +365,9 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][day.getDay()];
         const daySchedule = schedule[dayOfWeek] || [];
 
-        // Find the slot that contains this time
         const slot = daySchedule.find(slot => {
-            const slotStart = slot.start_time.substring(0, 5); // HH:MM
-            const slotEnd = slot.end_time.substring(0, 5); // HH:MM
+            const slotStart = slot.start_time.substring(0, 5);
+            const slotEnd = slot.end_time.substring(0, 5);
             return time >= slotStart && time < slotEnd;
         });
 
@@ -443,7 +423,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
         }
     };
 
-    // Don't render until theme is loaded
     if (!themeLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -587,7 +566,6 @@ const GarageAppointmentSchedulePage = ({ isLoggedIn, userData, handleLogout }) =
                         />
                     )}
 
-                    {/* Modal for viewing bookings in a specific time slot */}
                     <SlotBookingsModal
                         darkMode={darkMode}
                         selectedSlot={selectedSlot}

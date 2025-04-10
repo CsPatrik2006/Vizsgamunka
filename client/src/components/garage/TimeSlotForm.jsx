@@ -5,9 +5,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parse, setHours, setMinutes, getHours, getMinutes } from "date-fns";
 import { registerLocale } from "react-datepicker";
-import hu from 'date-fns/locale/hu'; // Import Hungarian locale
+import hu from 'date-fns/locale/hu';
 
-// Register Hungarian locale
 registerLocale('hu', hu);
 
 const TimeSlotForm = ({
@@ -16,28 +15,23 @@ const TimeSlotForm = ({
     setNewTimeSlot,
     handleAddTimeSlot
 }) => {
-    // Convert string times to Date objects for the time picker
     const parseTime = (timeString) => {
         return parse(timeString, "HH:mm", new Date());
     };
 
-    // Handle time change from the time picker
     const handleTimeChange = (time, field) => {
         if (!time) return;
         const formattedTime = format(time, "HH:mm");
         setNewTimeSlot({ ...newTimeSlot, [field]: formattedTime });
     };
 
-    // Filter function to only show times between 8:00 and 20:00 (inclusive)
     const filterTime = (time) => {
         const hours = getHours(time);
         const minutes = getMinutes(time);
-        
-        // Include 8:00 to 20:00 with 30-minute intervals
+
         if (hours < 8 || hours > 20) return false;
         if (hours === 20 && minutes > 0) return false;
-        
-        // Only allow times at 0 or 30 minutes past the hour
+
         return minutes === 0 || minutes === 30;
     };
 

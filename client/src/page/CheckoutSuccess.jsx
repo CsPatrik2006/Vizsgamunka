@@ -15,19 +15,15 @@ const CheckoutSuccess = ({ isLoggedIn, userData, handleLogout }) => {
   const { orderId, hasAppointment } = location.state || { orderId: null, hasAppointment: false };
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Handle logout with cart clear
   const handleLogoutWithCartClear = () => {
     handleCartLogout();
     handleLogout();
   };
 
-  // Add this useEffect at the beginning of the component
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array means it only runs once when component mounts
+  }, []);
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">

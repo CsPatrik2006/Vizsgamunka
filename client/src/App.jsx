@@ -28,13 +28,10 @@ function App() {
   const [userData, setUserData] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Function to check if token is expired
   const isTokenExpired = (token) => {
     try {
-      // Get the payload part of the JWT
       const payload = JSON.parse(atob(token.split('.')[1]));
 
-      // Check if the expiration time is past
       if (payload.exp) {
         const currentTime = Math.floor(Date.now() / 1000);
         return payload.exp < currentTime;
@@ -42,19 +39,16 @@ function App() {
       return false;
     } catch (error) {
       console.error("Error checking token expiration:", error);
-      return true; // Assume expired if there's an error
+      return true;
     }
   };
 
-  // Check if user is logged in on component mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUserData = localStorage.getItem('userData');
 
     if (token && storedUserData) {
-      // Check if token is expired
       if (isTokenExpired(token)) {
-        // Token is expired, log out the user
         handleLogout();
       } else {
         setIsLoggedIn(true);
@@ -62,7 +56,6 @@ function App() {
           setUserData(JSON.parse(storedUserData));
         } catch (error) {
           console.error("Error parsing user data:", error);
-          // Clear invalid data
           localStorage.removeItem('userData');
         }
       }
@@ -70,7 +63,6 @@ function App() {
     setAuthLoading(false);
   }, []);
 
-  // Periodically check token expiration while the app is running
   useEffect(() => {
     if (isLoggedIn) {
       const tokenCheckInterval = setInterval(() => {
@@ -78,7 +70,7 @@ function App() {
         if (token && isTokenExpired(token)) {
           handleLogout();
         }
-      }, 60000); // Check every minute
+      }, 60000);
 
       return () => clearInterval(tokenCheckInterval);
     }
@@ -120,7 +112,6 @@ function App() {
           )}
 
           <Routes>
-            {/* Public Routes */}
             <Route
               path="/"
               element={
@@ -199,7 +190,6 @@ function App() {
               }
             />
 
-            {/* Protected Routes - Any authenticated user */}
             <Route
               path="/checkout"
               element={
@@ -251,7 +241,6 @@ function App() {
               }
             />
 
-            {/* Garage Owner Routes */}
             <Route
               path="/my-garages"
               element={
@@ -342,7 +331,6 @@ function App() {
               }
             />
 
-            {/* New route for appointment schedule management */}
             <Route
               path="/my-garages/:garageId/appointments"
               element={

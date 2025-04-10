@@ -33,7 +33,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
   const [deleteMessage, setDeleteMessage] = useState({ type: '', text: '' });
 
-  // Add validation state
   const [validations, setValidations] = useState({
     passwordLength: false,
     passwordHasNumber: false,
@@ -41,12 +40,10 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     passwordHasUppercase: false,
   });
 
-  // Profile picture state
   const [profilePicture, setProfilePicture] = useState(null);
   const [isHoveringProfilePic, setIsHoveringProfilePic] = useState(false);
   const fileInputRef = useRef(null);
 
-  // New state variables for orders and appointments
   const [userOrders, setUserOrders] = useState([]);
   const [userAppointments, setUserAppointments] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -54,7 +51,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
 
   const navigate = useNavigate();
 
-  // Format date helper function
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -65,7 +61,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     });
   };
 
-  // Format time helper function
   const formatTime = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -75,7 +70,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     });
   };
 
-  // Password complexity validation function
   const validatePasswordComplexity = (password) => {
     const hasMinLength = password.length >= 8;
     const hasNumber = /\d/.test(password);
@@ -90,7 +84,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     };
   };
 
-  // Check if today
   const isToday = (dateString) => {
     if (!dateString) return false;
     const date = new Date(dateString);
@@ -100,7 +93,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       date.getFullYear() === today.getFullYear();
   };
 
-  // Helper function to get human-readable status
   const getStatusText = (status) => {
     switch (status) {
       case 'pending': return 'Függőben';
@@ -111,7 +103,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // Helper function to get status color class
   const getStatusColorClass = (status) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
@@ -127,19 +118,16 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     handleLogout();
   };
 
-  // Handle profile picture change
   const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
       setMessage({ type: 'error', text: 'Csak JPG, PNG vagy GIF fájlok tölthetők fel!' });
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setMessage({ type: 'error', text: 'A fájl mérete nem haladhatja meg az 5MB-ot!' });
       return;
@@ -163,11 +151,9 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
         return;
       }
 
-      // Create form data
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      // Upload the profile picture
       const response = await fetch(`http://localhost:3000/api/users/${parsedUserData.id}/profile-picture`, {
         method: 'POST',
         headers: {
@@ -179,19 +165,16 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       if (response.ok) {
         const result = await response.json();
 
-        // Update local storage with updated user data
         const updatedUserData = {
           ...parsedUserData,
           profile_picture: result.profilePicture
         };
         localStorage.setItem('userData', JSON.stringify(updatedUserData));
 
-        // Update profile picture in state
         setProfilePicture(result.profilePicture);
 
         setMessage({ type: 'success', text: 'Profilkép sikeresen frissítve!' });
 
-        // Clear message after 3 seconds
         setTimeout(() => {
           setMessage({ type: '', text: '' });
         }, 3000);
@@ -205,13 +188,10 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // Add this useEffect after your existing useEffect
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array means it only runs once when component mounts
+  }, []);
 
-  // Check if user is logged in on component mount and fetch latest user data
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUserData = localStorage.getItem('userData');
@@ -226,25 +206,20 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           phone: parsedUserData.phone || '',
         });
 
-        // Set profile picture if it exists
         if (parsedUserData.profile_picture) {
           setProfilePicture(parsedUserData.profile_picture);
         }
 
-        // Fetch the latest user data
         fetchUserData(parsedUserData.id, token);
 
-        // Fetch orders and appointments
         fetchUserOrders(parsedUserData.id, token);
         fetchUserAppointments(parsedUserData.id, token);
       } catch (error) {
         console.error("Error parsing user data:", error);
-        // Clear invalid data and redirect
         localStorage.removeItem('userData');
         navigate('/');
       }
     } else {
-      // Redirect to home if not logged in
       navigate('/');
     }
   }, [navigate]);
@@ -262,10 +237,8 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       if (response.ok) {
         const userData = await response.json();
 
-        // Update local storage with the latest user data
         localStorage.setItem('userData', JSON.stringify(userData));
 
-        // Update state with the latest user data
         setProfileData({
           last_name: userData.last_name || '',
           first_name: userData.first_name || '',
@@ -273,7 +246,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           phone: userData.phone || '',
         });
 
-        // Update profile picture if it exists
         if (userData.profile_picture) {
           setProfilePicture(userData.profile_picture);
         }
@@ -289,7 +261,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // New function to fetch user orders
   const fetchUserOrders = async (userId, token) => {
     try {
       setOrdersLoading(true);
@@ -314,7 +285,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // New function to fetch user appointments
   const fetchUserAppointments = async (userId, token) => {
     try {
       setAppointmentsLoading(true);
@@ -354,7 +324,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       [name]: value
     }));
 
-    // Update validations when newPassword changes
     if (name === 'newPassword') {
       setValidations({
         ...validations,
@@ -394,13 +363,11 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       if (response.ok) {
         const result = await response.json();
 
-        // Update local storage with updated user data
         localStorage.setItem('userData', JSON.stringify(result.user));
 
         setMessage({ type: 'success', text: 'Profil sikeresen frissítve!' });
         setEditMode(false);
 
-        // Clear message after 3 seconds
         setTimeout(() => {
           setMessage({ type: '', text: '' });
         }, 3000);
@@ -415,16 +382,13 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
   };
 
   const handleChangePassword = async () => {
-    // Reset previous messages
     setPasswordMessage({ type: '', text: '' });
 
-    // Validate passwords
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordMessage({ type: 'error', text: 'Az új jelszavak nem egyeznek!' });
       return;
     }
 
-    // Check password complexity
     const passwordChecks = validatePasswordComplexity(passwordData.newPassword);
     if (!passwordChecks.passwordLength ||
       !passwordChecks.passwordHasNumber ||
@@ -467,14 +431,12 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       if (response.ok) {
         setPasswordMessage({ type: 'success', text: 'Jelszó sikeresen módosítva!' });
 
-        // Clear form
         setPasswordData({
           currentPassword: '',
           newPassword: '',
           confirmPassword: '',
         });
 
-        // Close modal after 2 seconds
         setTimeout(() => {
           setShowPasswordModal(false);
           setPasswordMessage({ type: '', text: '' });
@@ -489,12 +451,9 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // New function to handle profile deletion
   const handleDeleteProfile = async () => {
-    // Reset previous messages
     setDeleteMessage({ type: '', text: '' });
 
-    // Validate confirmation text
     if (deleteConfirmation !== 'TÖRLÉS') {
       setDeleteMessage({ type: 'error', text: 'Kérjük, írja be a "TÖRLÉS" szót a megerősítéshez!' });
       return;
@@ -529,12 +488,9 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
       if (response.ok) {
         setDeleteMessage({ type: 'success', text: 'Fiók sikeresen törölve!' });
 
-        // Clear form
         setDeleteConfirmation('');
 
-        // Log out and redirect after 2 seconds
         setTimeout(() => {
-          // Clear all local storage data
           localStorage.removeItem('token');
           localStorage.removeItem('userData');
           handleLogoutWithCartClear();
@@ -550,7 +506,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // Wait for both theme and user data to load
   if (!themeLoaded || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -559,7 +514,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
     );
   }
 
-  // Safely get stored user data
   const storedUserDataString = localStorage.getItem('userData');
   let storedUserData = {};
 
@@ -597,7 +551,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           )}
 
           <div className="flex items-center mb-8">
-            {/* Profile Picture with hover effect */}
             <div
               className="relative"
               onMouseEnter={() => setIsHoveringProfilePic(true)}
@@ -707,7 +660,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     </Button>
                     <Button
                       onClick={() => {
-                        // Reset form data to original values
                         const storedUserDataString = localStorage.getItem('userData');
                         if (storedUserDataString) {
                           try {
@@ -809,7 +761,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
           >
             <h2 className="text-xl font-semibold mb-4">Aktivitás</h2>
             <div className="space-y-4">
-              {/* Appointments Section */}
               <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-[#f8fafc]"}`}>
                 <div className="flex justify-between items-center mb-3">
                   <div>
@@ -854,7 +805,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                 )}
               </div>
 
-              {/* Orders Section */}
               <div className={`p-4 rounded-lg ${darkMode ? "bg-[#252830]" : "bg-[#f8fafc]"}`}>
                 <div className="flex justify-between items-center mb-3">
                   <div>
@@ -903,7 +853,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
         </motion.div>
       </section>
 
-      {/* Password Change Modal */}
       <AnimatePresence>
         {showPasswordModal && (
           <motion.div
@@ -970,7 +919,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     required
                   />
 
-                  {/* Password complexity indicators */}
                   {passwordData.newPassword && (
                     <div className="mt-2 text-sm">
                       <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold mb-1`}>Jelszó követelmények:</p>
@@ -1009,7 +957,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
                     required
                   />
 
-                  {/* Password match indicator */}
                   {passwordData.newPassword && passwordData.confirmPassword && (
                     <div className={`text-sm mt-1 ${passwordData.newPassword === passwordData.confirmPassword ? 'text-green-500' : 'text-red-500'}`}>
                       {passwordData.newPassword === passwordData.confirmPassword
@@ -1048,7 +995,6 @@ const ProfilePage = ({ isLoggedIn, userData, handleLogout }) => {
         )}
       </AnimatePresence>
 
-      {/* Delete Account Modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div

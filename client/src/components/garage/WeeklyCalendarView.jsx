@@ -16,7 +16,6 @@ const WeeklyCalendarView = ({
     const { weekDays, timeSlots } = generateWeekView();
     const [selectedDay, setSelectedDay] = useState(null);
 
-    // Get color based on availability and booking status
     const getSlotColor = (isAvailable, bookingCount, maxBookings) => {
         if (!isAvailable) return darkMode ? "bg-gray-800" : "bg-gray-100";
 
@@ -28,7 +27,6 @@ const WeeklyCalendarView = ({
         return darkMode ? "bg-green-900/30 border-green-800" : "bg-green-50 border-green-200";
     };
 
-    // Function to render tooltip content
     const getTooltipContent = (isAvailable, bookingCount, maxBookings) => {
         return isAvailable
             ? `${bookingCount}/${maxBookings} foglalás${bookingCount >= maxBookings ? ' - Betelt' : ''}`
@@ -66,7 +64,6 @@ const WeeklyCalendarView = ({
                 </Button>
             </div>
 
-            {/* Mobile day selector - only visible on small screens */}
             <div className={`md:hidden p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                 <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-white" : "text-gray-700"}`}>Válasszon napot:</label>
                 <select
@@ -82,7 +79,6 @@ const WeeklyCalendarView = ({
                 </select>
             </div>
 
-            {/* Desktop view - full calendar */}
             <div className="hidden md:block overflow-x-auto">
                 <table className={`min-w-full divide-y ${darkMode ? "divide-gray-700" : "divide-gray-200"}`}>
                     <thead>
@@ -147,7 +143,6 @@ const WeeklyCalendarView = ({
                 </table>
             </div>
 
-            {/* Mobile view - single day */}
             <div className="md:hidden overflow-x-auto">
                 <table className={`min-w-full divide-y ${darkMode ? "divide-gray-700" : "divide-gray-200"}`}>
                     <thead>

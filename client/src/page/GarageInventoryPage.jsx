@@ -32,7 +32,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     diameter: ""
   });
 
-  // Add states for the files
   const [coverImage, setCoverImage] = useState(null);
   const [additionalImage1, setAdditionalImage1] = useState(null);
   const [additionalImage2, setAdditionalImage2] = useState(null);
@@ -40,23 +39,18 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [currentDragTarget, setCurrentDragTarget] = useState(null);
 
-  // Add error timeout effect
   useEffect(() => {
-    // When error is set, scroll to top
     if (error) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Set a timeout to clear the error after 5 seconds
       const timer = setTimeout(() => {
         setError(null);
       }, 5000);
 
-      // Clean up the timer when component unmounts or error changes
       return () => clearTimeout(timer);
     }
   }, [error]);
 
-  // Add the getImageUrl helper function
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
 
@@ -67,7 +61,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     return `http://localhost:3000${imagePath}`;
   };
 
-  // Updated drag and drop event handlers
   const handleDragEnter = (e, target) => {
     e.preventDefault();
     e.stopPropagation();
@@ -79,7 +72,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Check if we're leaving to a child element - if so, don't reset the dragging state
     const relatedTarget = e.relatedTarget;
     if (relatedTarget && e.currentTarget.contains(relatedTarget)) {
       return;
@@ -103,9 +95,7 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      // Check if the file is an image
       if (file.type.match('image.*')) {
-        // Set the appropriate image based on the target
         if (target === 'cover_img') {
           setCoverImage(file);
         } else if (target === 'additional_img1') {
@@ -122,14 +112,11 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     handleLogout();
   };
 
-  // Add this useEffect after your existing useEffects
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, [garageId]); // Dependency on garageId ensures it runs when the garage changes
+  }, [garageId]);
 
   useEffect(() => {
-    // Check if user is logged in and is a garage owner
     if (!userData || userData.role !== "garage_owner") {
       navigate("/");
       return;
@@ -143,21 +130,18 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      // Fetch garage details
       const garageResponse = await axios.get(`http://localhost:3000/garages/${garageId}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` })
         }
       });
 
-      // Handle different response formats
       const garageData = garageResponse.data && typeof garageResponse.data === 'object' && 'data' in garageResponse.data
         ? garageResponse.data.data
         : garageResponse.data;
 
       setGarage(garageData);
 
-      // Only check owner_id if userData exists and has userId
       if (userData && userData.userId) {
 
         if (!(garageData.owner_id === userData.userId ||
@@ -174,7 +158,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
       });
 
-      // Filter the inventory items to ensure they match the current garage
       const inventoryData = Array.isArray(inventoryResponse.data)
         ? inventoryResponse.data.filter(item => item.garage_id === parseInt(garageId, 10))
         : [];
@@ -192,7 +175,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     const { name, value, type, files } = e.target;
 
     if (type === 'file') {
-      // Handle file inputs based on the input name
       if (name === 'cover_img') {
         setCoverImage(files[0]);
       } else if (name === 'additional_img1') {
@@ -201,7 +183,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         setAdditionalImage2(files[0]);
       }
     } else {
-      // Handle other inputs
       setNewItem({
         ...newItem,
         [name]: value
@@ -212,7 +193,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
   const handleAddItem = async (e) => {
     e.preventDefault();
 
-    // Validation checks
     if (parseFloat(newItem.unit_price) <= 0) {
       setError("Az egységár nagyobb kell legyen, mint 0 Ft!");
       return;
@@ -239,13 +219,11 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
       formData.append('unit_price', newItem.unit_price);
       formData.append('description', newItem.description);
 
-      // Add tyre-specific fields
       if (newItem.season) formData.append('season', newItem.season);
       if (newItem.width) formData.append('width', newItem.width);
       if (newItem.profile) formData.append('profile', newItem.profile);
       if (newItem.diameter) formData.append('diameter', newItem.diameter);
 
-      // Add images
       if (coverImage) {
         formData.append('cover_img', coverImage);
       }
@@ -267,7 +245,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
       );
 
-      // Reset form
       setNewItem({
         item_name: "",
         vehicle_type: "car",
@@ -330,7 +307,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     }
   };
 
-  // Helper function to render image upload area - Fixed version
   const renderImageUpload = (imageType, image, setImage, label) => {
     return (
       <div className="mb-4">
@@ -419,7 +395,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
     );
   };
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -563,7 +538,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                       />
                     </div>
 
-                    {/* Tyre-specific fields */}
                     <div>
                       <label className="block mb-2 text-sm font-medium">
                         Évszak <span className="text-red-500">*</span>
@@ -639,7 +613,6 @@ const GarageInventoryPage = ({ isLoggedIn, userData, handleLogout }) => {
                       ></textarea>
                     </div>
 
-                    {/* Image upload sections */}
                     <div className="md:col-span-2">
                       {renderImageUpload('cover_img', coverImage, setCoverImage, 'Borítókép <span class="text-red-500">*</span>')}
                     </div>

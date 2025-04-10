@@ -33,7 +33,6 @@ export default function ShopPage({
   const [filteredItems, setFilteredItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // State for tyre size filters
   const [widthOptions, setWidthOptions] = useState([]);
   const [profileOptions, setProfileOptions] = useState([]);
   const [diameterOptions, setDiameterOptions] = useState([]);
@@ -42,25 +41,20 @@ export default function ShopPage({
   const [selectedDiameter, setSelectedDiameter] = useState("");
   const [showSizeFilter, setShowSizeFilter] = useState(false);
 
-  // State for filter panel visibility
   const [showFilters, setShowFilters] = useState(true);
   const [showGarageFilter, setShowGarageFilter] = useState(true);
   const [showVehicleTypeFilter, setShowVehicleTypeFilter] = useState(true);
   const [showSeasonFilter, setShowSeasonFilter] = useState(true);
 
-  // Handle logout with cart clear
   const handleLogoutWithCartClear = () => {
     handleCartLogout();
     handleLogout();
   };
 
-  // Add this useEffect after your existing useEffects
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, [location.search]); // Dependency on location.search ensures it runs when filters change
+  }, [location.search]);
 
-  // Parse URL parameters
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const searchParam = params.get('search');
@@ -71,22 +65,18 @@ export default function ShopPage({
     const profileParam = params.get('profile');
     const diameterParam = params.get('diameter');
 
-    // Handle search parameter
     if (searchParam) {
       setShopSearchQuery(searchParam);
     }
 
-    // Handle vehicle type parameters
     if (vehicleTypeParams.length > 0) {
       setSelectedVehicleTypes(vehicleTypeParams);
     }
 
-    // Handle season parameters
     if (seasonParams.length > 0) {
       setSelectedSeasons(seasonParams);
     }
 
-    // Handle size parameters
     if (widthParam) {
       setSelectedWidth(widthParam);
     }
@@ -99,39 +89,31 @@ export default function ShopPage({
       setSelectedDiameter(diameterParam);
     }
 
-    // Handle garage parameters
     if (garageParams.length > 0) {
       const garageIds = garageParams.map(id => parseInt(id));
       setSelectedGarages(garageIds);
     } else {
-      // Reset filters if no parameters
       setSelectedGarages([]);
     }
   }, [location.search]);
 
-  // Initialize cart when user logs in
   useEffect(() => {
     if (isLoggedIn && userData) {
-      // Use the first garage as default if none selected
       const defaultGarageId = selectedGarages.length > 0 ? selectedGarages[0] : (garages.length > 0 ? garages[0].id : 1);
       initializeCart(userData.id, defaultGarageId);
     }
   }, [isLoggedIn, userData, garages, selectedGarages, initializeCart]);
 
-  // Handle adding item to cart
   const handleAddToCart = async (e, item) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
 
-    // Try to add to cart
     const success = await addToCart(item.id, 1);
 
-    // Only open cart if successfully added
     if (success) {
       setIsCartOpen(true);
     }
   };
 
-  // Extract unique values for size filters
   const extractSizeOptions = (items) => {
     const widths = new Set();
     const profiles = new Set();
@@ -148,20 +130,16 @@ export default function ShopPage({
     setDiameterOptions(Array.from(diameters).sort((a, b) => parseInt(a) - parseInt(b)));
   };
 
-  // Fetch garages and inventory items
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch garages
         const garagesResponse = await axios.get('http://localhost:3000/garages');
         setGarages(garagesResponse.data);
 
-        // Fetch inventory items
         const inventoryResponse = await axios.get('http://localhost:3000/inventory');
         setInventoryItems(inventoryResponse.data);
 
-        // Extract size options for filters
         extractSizeOptions(inventoryResponse.data);
 
         setLoading(false);
@@ -174,26 +152,21 @@ export default function ShopPage({
     fetchData();
   }, []);
 
-  // Filter items based on search query, selected garages, vehicle types, seasons, and sizes
   useEffect(() => {
     let filtered = inventoryItems;
 
-    // Filter by garages if selected
     if (selectedGarages.length > 0) {
       filtered = filtered.filter(item => selectedGarages.includes(item.garage_id));
     }
 
-    // Filter by vehicle types if selected
     if (selectedVehicleTypes.length > 0) {
       filtered = filtered.filter(item => selectedVehicleTypes.includes(item.vehicle_type));
     }
 
-    // Filter by seasons if selected
     if (selectedSeasons.length > 0) {
       filtered = filtered.filter(item => item.season && selectedSeasons.includes(item.season));
     }
 
-    // Filter by tyre size if selected
     if (selectedWidth) {
       filtered = filtered.filter(item => item.width && item.width.toString() === selectedWidth);
     }
@@ -206,11 +179,9 @@ export default function ShopPage({
       filtered = filtered.filter(item => item.diameter && item.diameter.toString() === selectedDiameter);
     }
 
-    // Filter by shop search query if present
     if (shopSearchQuery) {
       const query = shopSearchQuery.toLowerCase();
 
-      // Find matching garages
       const matchingGarageIds = garages
         .filter(garage =>
           garage.name.toLowerCase().includes(query) ||
@@ -218,7 +189,6 @@ export default function ShopPage({
         )
         .map(garage => garage.id);
 
-      // Filter inventory items by matching garages or by item name
       filtered = filtered.filter(item =>
         matchingGarageIds.includes(item.garage_id) ||
         item.item_name.toLowerCase().includes(query)
@@ -228,52 +198,39 @@ export default function ShopPage({
     setFilteredItems(filtered);
   }, [shopSearchQuery, selectedGarages, selectedVehicleTypes, selectedSeasons, selectedWidth, selectedProfile, selectedDiameter, inventoryItems, garages]);
 
-  // Toggle garage filter
   const toggleGarageFilter = (garageId) => {
     setSelectedGarages(prev => {
-      // If already selected, remove it
       if (prev.includes(garageId)) {
         return prev.filter(id => id !== garageId);
       }
-      // Otherwise add it
       return [...prev, garageId];
     });
 
-    // Update URL without redirecting
     updateURL();
   };
 
-  // Toggle vehicle type filter
   const toggleVehicleTypeFilter = (vehicleType) => {
     setSelectedVehicleTypes(prev => {
-      // If already selected, remove it
       if (prev.includes(vehicleType)) {
         return prev.filter(type => type !== vehicleType);
       }
-      // Otherwise add it
       return [...prev, vehicleType];
     });
 
-    // Update URL without redirecting
     updateURL();
   };
 
-  // Toggle season filter
   const toggleSeasonFilter = (season) => {
     setSelectedSeasons(prev => {
-      // If already selected, remove it
       if (prev.includes(season)) {
         return prev.filter(s => s !== season);
       }
-      // Otherwise add it
       return [...prev, season];
     });
 
-    // Update URL without redirecting
     updateURL();
   };
 
-  // Handle size filter change
   const handleSizeFilterChange = (type, value) => {
     switch (type) {
       case 'width':
@@ -289,30 +246,24 @@ export default function ShopPage({
         break;
     }
 
-    // Update URL without redirecting
     updateURL();
   };
 
-  // Helper function to update URL with all filters
   const updateURL = () => {
     const params = new URLSearchParams();
 
-    // Add all selected garages
     selectedGarages.forEach(garageId => {
       params.append('garage', garageId);
     });
 
-    // Add all selected vehicle types
     selectedVehicleTypes.forEach(vehicleType => {
       params.append('type', vehicleType);
     });
 
-    // Add all selected seasons
     selectedSeasons.forEach(season => {
       params.append('season', season);
     });
 
-    // Add size filters if present
     if (selectedWidth) {
       params.append('width', selectedWidth);
     }
@@ -325,7 +276,6 @@ export default function ShopPage({
       params.append('diameter', selectedDiameter);
     }
 
-    // Add search query if present
     if (shopSearchQuery) {
       params.append('search', shopSearchQuery);
     }
@@ -336,15 +286,12 @@ export default function ShopPage({
     window.history.pushState({}, '', url);
   };
 
-  // Handle shop search
   const handleShopSearch = (e) => {
     e.preventDefault();
 
-    // Update URL with all current filters
     updateURL();
   };
 
-  // Get season display name
   const getSeasonDisplayName = (season) => {
     switch (season) {
       case 'winter': return 'Téli';
@@ -354,7 +301,6 @@ export default function ShopPage({
     }
   };
 
-  // Get vehicle type display name
   const getVehicleTypeDisplayName = (type) => {
     switch (type) {
       case 'car': return 'Személygépkocsi';
@@ -364,7 +310,6 @@ export default function ShopPage({
     }
   };
 
-  // Clear all filters
   const clearAllFilters = () => {
     setSelectedGarages([]);
     setSelectedVehicleTypes([]);
@@ -376,7 +321,6 @@ export default function ShopPage({
     window.history.pushState({}, '', '/shop');
   };
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
@@ -401,7 +345,6 @@ export default function ShopPage({
         cartItemsCount={cartItems.length}
       />
 
-      {/* Cart Sidebar */}
       <CartSidebar
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -411,7 +354,6 @@ export default function ShopPage({
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Gumiszervíz Webshop</h1>
 
-        {/* Shop search bar */}
         <div className="mb-8">
           <form onSubmit={handleShopSearch} className="w-full max-w-xl">
             <div className={`flex items-center ${darkMode ? "bg-[#252830]" : "bg-gray-200"} rounded-lg overflow-hidden`}>
@@ -434,9 +376,7 @@ export default function ShopPage({
           </form>
         </div>
 
-        {/* Main content with filters and products */}
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters sidebar - now using the FilterSidebar component */}
           <FilterSidebar
             darkMode={darkMode}
             showFilters={showFilters}
@@ -472,9 +412,7 @@ export default function ShopPage({
             setSelectedSeasons={setSelectedSeasons}
           />
 
-          {/* Products section */}
           <div className="lg:w-3/4">
-            {/* Active filters display */}
             {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 ||
               selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
                 <div className="mb-6">
@@ -599,7 +537,6 @@ export default function ShopPage({
                 </div>
               )}
 
-            {/* Filter information messages */}
             {shopSearchQuery && (
               <div className="mb-6">
                 <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
@@ -608,17 +545,14 @@ export default function ShopPage({
               </div>
             )}
 
-            {/* Results count */}
             <div className="mb-4">
               <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
                 {filteredItems.length} termék található
               </p>
             </div>
 
-            {/* Inventory items grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {loading ? (
-                // Loading placeholders
                 Array(6).fill().map((_, index) => (
                   <div
                     key={index}
@@ -634,7 +568,6 @@ export default function ShopPage({
                   </div>
                 ))
               ) : filteredItems.length > 0 ? (
-                // Display inventory items using the ProductCard component
                 filteredItems.map(item => (
                   <ProductCard
                     key={item.id}
@@ -647,7 +580,6 @@ export default function ShopPage({
                   />
                 ))
               ) : (
-                // No items found
                 <div className="col-span-full text-center py-12">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

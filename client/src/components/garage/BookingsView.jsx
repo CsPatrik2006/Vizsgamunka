@@ -15,16 +15,13 @@ const BookingsView = ({
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [sortBy, setSortBy] = useState("date-desc"); // Default sort by date descending
+    const [sortBy, setSortBy] = useState("date-desc");
 
-    // Filter and sort bookings
     const filteredBookings = bookings.filter(booking => {
-        // Status filter
         if (statusFilter !== "all" && booking.status !== statusFilter) {
             return false;
         }
 
-        // Search filter
         if (searchTerm) {
             const searchLower = searchTerm.toLowerCase();
             return (
@@ -36,7 +33,6 @@ const BookingsView = ({
 
         return true;
     }).sort((a, b) => {
-        // Sort logic
         switch (sortBy) {
             case "date-asc":
                 return new Date(a.appointment_time) - new Date(b.appointment_time);
@@ -68,7 +64,6 @@ const BookingsView = ({
                 <h2 className="text-xl font-semibold">Foglalások</h2>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                    {/* Search input */}
                     <div className="relative">
                         <input
                             type="text"
@@ -85,7 +80,6 @@ const BookingsView = ({
                         </svg>
                     </div>
 
-                    {/* Status filter */}
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
@@ -99,7 +93,6 @@ const BookingsView = ({
                         <option value="confirmed">Megerősítve</option>
                     </select>
 
-                    {/* Sort options */}
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}

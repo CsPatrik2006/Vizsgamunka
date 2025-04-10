@@ -33,7 +33,6 @@ const FilterSidebar = ({
 }) => {
     return (
         <div className={`lg:w-1/4 ${darkMode ? "bg-[#0d1117]" : "bg-gray-50"} rounded-lg p-4 shadow-sm ${showFilters ? " " : "max-h-[60px]"}`}>
-            {/* Filters header with toggle */}
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Szűrők</h2>
                 <button
@@ -58,12 +57,10 @@ const FilterSidebar = ({
                 </button>
             </div>
 
-            {/* Filter content - conditionally visible with animation */}
             <div
                 className={`space-y-6 overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
             >
-                {/* Clear all filters button - moved inside the collapsible div */}
                 {(selectedGarages.length > 0 || selectedVehicleTypes.length > 0 || selectedSeasons.length > 0 ||
                     selectedWidth || selectedProfile || selectedDiameter || shopSearchQuery) && (
                         <button
@@ -78,7 +75,6 @@ const FilterSidebar = ({
                         </button>
                     )}
 
-                {/* Garage filter section */}
                 <div className="border-b-2 border-[#4e77f4]/80 pb-4">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-medium">Szervízek</h3>
@@ -131,7 +127,6 @@ const FilterSidebar = ({
                     )}
                 </div>
 
-                {/* Vehicle type filter section */}
                 <div className="border-b-2 border-[#4e77f4]/80 pb-4">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-medium">Jármű típus</h3>
@@ -184,7 +179,6 @@ const FilterSidebar = ({
                     )}
                 </div>
 
-                {/* Season filter section */}
                 <div className="border-b-2 border-[#4e77f4]/80 pb-4">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-medium">Évszak</h3>
@@ -237,7 +231,6 @@ const FilterSidebar = ({
                     )}
                 </div>
 
-                {/* Tyre size filter section */}
                 <div>
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="font-medium">Gumiméret</h3>
@@ -259,7 +252,6 @@ const FilterSidebar = ({
 
                     {showSizeFilter && (
                         <div className="space-y-4">
-                            {/* Width filter */}
                             <div>
                                 <h4 className="text-sm font-medium mb-2">Szélesség (mm)</h4>
                                 <div className="flex flex-wrap gap-2">
@@ -278,7 +270,6 @@ const FilterSidebar = ({
                                 </div>
                             </div>
 
-                            {/* Profile filter */}
                             <div>
                                 <h4 className="text-sm font-medium mb-2">Profil (%)</h4>
                                 <div className="flex flex-wrap gap-2">
@@ -297,7 +288,6 @@ const FilterSidebar = ({
                                 </div>
                             </div>
 
-                            {/* Diameter filter */}
                             <div>
                                 <h4 className="text-sm font-medium mb-2">Átmérő (col)</h4>
                                 <div className="flex flex-wrap gap-2">

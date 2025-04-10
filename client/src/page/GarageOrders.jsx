@@ -16,7 +16,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
     const { darkMode, themeLoaded } = useTheme();
     const { handleCartLogout } = useCart();
 
-    // State management
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -25,12 +24,10 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
     const [itemsLoading, setItemsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Scroll to top when component mounts
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Check if user is authorized and fetch orders
     useEffect(() => {
         if (!userData || userData.role !== "garage_owner") {
             navigate("/");
@@ -40,7 +37,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         fetchOrders();
     }, [userData, navigate, garageId]);
 
-    // API calls
     const fetchOrders = async () => {
         try {
             setLoading(true);
@@ -57,19 +53,14 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         } catch (err) {
             console.error("Error fetching orders:", err);
 
-            // More detailed error message
             let errorMessage = "Hiba történt a rendelések betöltése közben";
 
             if (err.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
                 errorMessage += `: ${err.response.status} - ${err.response.data?.message || err.message}`;
                 console.error("Error response data:", err.response.data);
             } else if (err.request) {
-                // The request was made but no response was received
                 errorMessage += ": Nincs válasz a szervertől";
             } else {
-                // Something happened in setting up the request that triggered an Error
                 errorMessage += `: ${err.message}`;
             }
 
@@ -94,7 +85,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         } catch (err) {
             console.error("Error fetching order items:", err);
 
-            // We don't set a global error here, but we could show a local error in the UI
             let errorMessage = "Hiba történt a rendelési tételek betöltése közben";
 
             if (err.response) {
@@ -106,14 +96,11 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                 errorMessage += `: ${err.message}`;
             }
 
-            // You could add a local error state for order items if needed
-            // setOrderItemsError(errorMessage);
         } finally {
             setItemsLoading(false);
         }
     };
 
-    // Update order status
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
             const token = localStorage.getItem("token");
@@ -121,7 +108,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
 
             if (!order) return;
 
-            // Show confirmation dialog for cancellation
             if (newStatus === 'canceled') {
                 if (!window.confirm("Biztosan törölni szeretné ezt a rendelést? A készlet visszakerül a raktárba.")) {
                     return;
@@ -139,7 +125,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                 }
             });
 
-            // Update the local state
             setOrders(orders.map(order =>
                 order.id === orderId ? { ...order, status: newStatus } : order
             ));
@@ -148,7 +133,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                 setSelectedOrder({ ...selectedOrder, status: newStatus });
             }
 
-            // Show success message for cancellation
             if (newStatus === 'canceled') {
                 alert("A rendelés sikeresen törölve lett, és a készlet visszakerült a raktárba.");
             }
@@ -167,15 +151,12 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
                 errorMessage += `: ${err.message}`;
             }
 
-            // Show error notification
             alert(errorMessage);
         }
     };
 
-    // Event handlers
     const handleOrderSelect = async (order) => {
         if (selectedOrder && selectedOrder.id === order.id) {
-            // Toggle selection off
             setSelectedOrder(null);
             setOrderItems([]);
             return;
@@ -194,7 +175,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         handleLogout();
     };
 
-    // Helper functions
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
         return new Date(dateString).toLocaleDateString('hu-HU', options);
@@ -230,14 +210,12 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
     };
 
-    // UI Components
     const renderLoading = () => (
         <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4e77f4]"></div>
         </div>
     );
 
-    // Add the missing renderEmptyState function
     const renderEmptyState = () => (
         <motion.div
             initial={{ opacity: 0 }}
@@ -253,7 +231,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         </motion.div>
     );
 
-    // In the GarageOrders.jsx file, update the renderOrderItems function:
     const renderOrderItems = () => (
         itemsLoading ? (
             <div className="flex justify-center py-4">
@@ -446,7 +423,6 @@ const GarageOrdersPage = ({ isLoggedIn, userData, handleLogout }) => {
         </div>
     );
 
-    // Don't render until theme is loaded
     if (!themeLoaded) {
         return null;
     }

@@ -14,16 +14,13 @@ const CartSidebar = ({ isOpen, onClose }) => {
   const [inventoryLimits, setInventoryLimits] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Format price with thousand separator
   const formatPrice = (price) => {
     return new Intl.NumberFormat('hu-HU').format(price);
   };
 
-  // Handle animation mounting
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      // Small delay to ensure DOM is ready before animation starts
       setTimeout(() => {
         setAnimationClass("translate-x-0");
       }, 10);
@@ -31,19 +28,17 @@ const CartSidebar = ({ isOpen, onClose }) => {
       setAnimationClass("translate-x-full");
       const timer = setTimeout(() => {
         setMounted(false);
-      }, 300); // Match transition duration
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  // New useEffect to watch for changes in cartItems and refetch inventory limits
   useEffect(() => {
     if (isOpen && cartItems.length > 0) {
       fetchInventoryLimits();
     }
   }, [isOpen, cartItems]);
 
-  // Fetch inventory limits for all items in cart
   const fetchInventoryLimits = async () => {
     const inventoryItems = cartItems.filter(item => item.product_type === 'inventory');
 
@@ -71,19 +66,15 @@ const CartSidebar = ({ isOpen, onClose }) => {
     }
   };
 
-  // Handle item removal
   const handleRemoveItem = (itemId) => {
     removeFromCart(itemId);
   };
 
-  // Handle quantity change
   const handleQuantityChange = async (item, change) => {
     const newQuantity = item.quantity + change;
 
-    // Don't allow quantity below 1
     if (newQuantity < 1) return;
 
-    // For inventory items, check against inventory limits
     if (item.product_type === 'inventory') {
       const limit = inventoryLimits[item.product_id] || 0;
 
@@ -93,35 +84,29 @@ const CartSidebar = ({ isOpen, onClose }) => {
       }
     }
 
-    // Update quantity
     await updateCartItemQuantity(item.id, newQuantity);
   };
 
-  // Handle checkout
   const handleCheckout = () => {
-    onClose(); // Close the cart sidebar
-    navigate('/checkout'); // Navigate to the checkout page
+    onClose();
+    navigate('/checkout');
   };
 
-  // Don't render anything if not mounted
   if (!mounted && !isOpen) return null;
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
           }`}
         onClick={onClose}
       />
 
-      {/* Cart Sidebar */}
       <div
         className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out ${animationClass} 
         ${darkMode ? "bg-[#252830] text-white" : "bg-white text-gray-800"} shadow-xl`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"} flex justify-between items-center`}>
             <h2 className="text-xl font-semibold">Kosár</h2>
             <Button onClick={onClose} className={darkMode ? "text-white" : "text-black"}>
@@ -131,7 +116,6 @@ const CartSidebar = ({ isOpen, onClose }) => {
             </Button>
           </div>
 
-          {/* Cart Items */}
           <div className="flex-grow overflow-y-auto p-4">
             {cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full">
@@ -159,7 +143,6 @@ const CartSidebar = ({ isOpen, onClose }) => {
                       </div>
                     </div>
 
-                    {/* Quantity controls */}
                     <div className="flex justify-between items-center mt-3">
                       <div className="flex items-center">
                         <button
@@ -185,7 +168,6 @@ const CartSidebar = ({ isOpen, onClose }) => {
                       <p className="font-medium">{formatPrice(item.price * item.quantity)} Ft</p>
                     </div>
 
-                    {/* Inventory limit warning */}
                     {item.product_type === 'inventory' &&
                       inventoryLimits[item.product_id] !== undefined &&
                       item.quantity >= inventoryLimits[item.product_id] && (
@@ -206,7 +188,6 @@ const CartSidebar = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* Footer */}
           <div className={`p-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
             <div className="flex justify-between mb-4">
               <span className="font-medium">Összesen:</span>

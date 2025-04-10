@@ -30,7 +30,6 @@ const Header = ({
   const [garages, setGarages] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fetch garages for suggestions
   useEffect(() => {
     const fetchSuggestionData = async () => {
       try {
@@ -44,13 +43,11 @@ const Header = ({
     fetchSuggestionData();
   }, []);
 
-  // Generate suggestions based on search query - only for garages
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
       setLoading(true);
       const query = searchQuery.toLowerCase();
 
-      // Filter garages
       const matchingGarages = garages
         .filter(garage =>
           garage.name.toLowerCase().includes(query) ||
@@ -63,7 +60,6 @@ const Header = ({
           subtext: garage.location
         }));
 
-      // Limit results
       const combinedSuggestions = matchingGarages.slice(0, 5);
       setSuggestions(combinedSuggestions);
       setShowSuggestions(true);
@@ -112,35 +108,29 @@ const Header = ({
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
-    // Close other dropdowns when opening mobile menu
     if (!mobileMenuOpen) {
       setDropdownOpen(false);
     }
   };
 
-  // Handle search submission - now just shows dropdown, doesn't redirect
   const handleSearch = (e) => {
     e.preventDefault();
 
     if (searchQuery.trim()) {
-      // Just show the suggestions dropdown with results
       setShowSuggestions(true);
     } else {
-      // Close the suggestions dropdown for empty searches
       setShowSuggestions(false);
     }
   };
 
-  // Handle suggestion click - navigate directly to the specific item
   const handleSuggestionClick = (suggestion) => {
     if (suggestion.type === 'garage') {
       navigate(`/shop?garage=${suggestion.id}`);
     }
-    setSearchQuery(''); // Clear search after navigating
+    setSearchQuery('');
     setShowSuggestions(false);
   };
 
-  // Handle click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.mobile-menu-container') && !e.target.closest('.hamburger-button')) {
@@ -155,7 +145,6 @@ const Header = ({
     };
   }, []);
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return null;
   }
@@ -166,7 +155,6 @@ const Header = ({
         className={`px-6 py-4 ${darkMode ? "bg-[#030507] text-white" : "bg-[#f8fafc] text-black"} shadow-md overflow-visible`}
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Logo */}
           <Link to="/" className="cursor-pointer">
             <img
               src={darkMode ? logo_dark : logo_light}
@@ -202,7 +190,6 @@ const Header = ({
               </div>
             </form>
 
-            {/* Suggestions dropdown - only for garages */}
             {showSuggestions && (
               <div
                 className={`absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg z-50 ${darkMode ? "bg-[#252830] border border-[#353b48]" : "bg-white border border-gray-200"}`}
@@ -245,7 +232,6 @@ const Header = ({
                     </li>
                   </ul>
                 ) : searchQuery.trim().length > 1 ? (
-                  // No results message
                   <div className={`p-4 text-center ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
                     Nincs találat a keresési feltételeknek megfelelően.
                     <div className="mt-2">
@@ -262,7 +248,6 @@ const Header = ({
             )}
           </div>
 
-          {/* Mobile search button */}
           <div className="md:hidden flex-grow mx-2">
             <form onSubmit={handleSearch} className="w-full">
               <div className={`flex items-center ${darkMode ? "bg-[#252830]" : "bg-gray-200"} rounded-full overflow-hidden`}>
@@ -290,7 +275,6 @@ const Header = ({
               </div>
             </form>
 
-            {/* Mobile suggestions dropdown */}
             {showSuggestions && (
               <div
                 className={`absolute left-6 right-6 mt-1 rounded-lg shadow-lg z-50 ${darkMode ? "bg-[#252830] border border-[#353b48]" : "bg-white border border-gray-200"}`}
@@ -349,9 +333,7 @@ const Header = ({
             )}
           </div>
 
-          {/* Desktop Icons (User, Cart, Dark Mode) */}
           <div className="hidden md:flex items-center space-x-6 relative">
-            {/* User Button */}
             <div className="relative">
               <Button onClick={handleDropdownToggle} className={`${darkMode ? "text-white" : "text-black"} flex items-center relative`}>
                 {isLoggedIn && userData ? (
@@ -375,7 +357,6 @@ const Header = ({
                 )}
               </Button>
 
-              {/* User Dropdown */}
               <div
                 className={`absolute transform -translate-x-1/2 left-1/2 top-12 shadow-lg rounded-lg border 
                 ${darkMode
@@ -453,7 +434,6 @@ const Header = ({
               </div>
             </div>
 
-            {/* Cart Button */}
             <div className="relative inline-block">
               <Button
                 onClick={handleCartToggle}
@@ -470,7 +450,6 @@ const Header = ({
               )}
             </div>
 
-            {/* Dark Mode Toggle */}
             <Button onClick={toggleTheme} className={`${darkMode ? "text-white" : "text-black"}`}>
               {darkMode ? (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -484,7 +463,6 @@ const Header = ({
             </Button>
           </div>
 
-          {/* Mobile Hamburger Menu Button */}
           <div className="md:hidden relative">
             <button
               onClick={toggleMobileMenu}
@@ -495,7 +473,6 @@ const Header = ({
               </svg>
             </button>
 
-            {/* Mobile Menu Dropdown */}
             <div
               className={`mobile-menu-container absolute right-0 top-12 w-56 shadow-lg rounded-lg border 
             ${darkMode ? "bg-[#252830] border-[#353b48] text-white" : "bg-white border-gray-200 text-gray-800"} 
@@ -503,13 +480,10 @@ const Header = ({
             ${mobileMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
             >
 
-              {/* User Info Section (if logged in) */}
               {isLoggedIn && userData && (
                 <div className={`px-4 py-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                   <div className="flex items-center space-x-3">
-                    {/* Make sure this outer container is also circular */}
                     <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
-                      {/* Inner container for background color and content */}
                       <div className="w-full h-full bg-[#4e77f4] flex items-center justify-center text-white">
                         {userData.profile_picture ? (
                           <img
@@ -534,9 +508,7 @@ const Header = ({
                 </div>
               )}
 
-              {/* Menu Items */}
               <div className="py-1">
-                {/* Cart Button */}
                 <button
                   onClick={handleCartToggle}
                   className={`flex items-center w-full cursor-pointer px-4 py-2 text-sm ${darkMode ? "text-white hover:bg-gray-700" : "text-gray-700 hover:bg-gray-100"}`}
@@ -552,7 +524,6 @@ const Header = ({
                   )}
                 </button>
 
-                {/* Theme Toggle */}
                 <button
                   onClick={toggleTheme}
                   className={`flex items-center w-full cursor-pointer px-4 py-2 text-sm ${darkMode ? "text-white hover:bg-gray-700" : "text-gray-700 hover:bg-gray-100"}`}
@@ -574,7 +545,6 @@ const Header = ({
                   )}
                 </button>
 
-                {/* User Account Options */}
                 {isLoggedIn && userData ? (
                   <>
                     <div className={`border-t ${darkMode ? "border-gray-700" : "border-gray-200"} my-1`}></div>
@@ -638,7 +608,6 @@ const Header = ({
       </header>
       <ColorStripe />
 
-      {/* Cart Sidebar - Pass cartItems from context */}
       <CartSidebar
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}

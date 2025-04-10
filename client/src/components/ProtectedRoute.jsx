@@ -13,7 +13,6 @@ const ProtectedRoute = ({ children, requiredRole, isLoggedIn, userData, authLoad
         return <Navigate to="/" replace />;
     }
 
-    // If a specific role is required, check if user has that role
     if (requiredRole && userData?.role !== requiredRole) {
         return <Navigate to="/" replace />;
     }

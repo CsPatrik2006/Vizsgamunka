@@ -27,11 +27,9 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Add this useEffect after your existing useEffect
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array means it only runs once when component mounts
+  }, []);
 
   useEffect(() => {
     if (!userData || userData.role !== "garage_owner") {
@@ -53,10 +51,8 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
         }
       });
 
-      // Try to find the user ID from different possible properties
       const userId = userData?.userId || userData?.id;
 
-      // Filter garages to only show those owned by the current user
       if (Array.isArray(response.data)) {
         const userGarages = response.data.filter(garage => {
           if (!garage.owner_id || !userId) return false;
@@ -140,7 +136,6 @@ const MyGaragesPage = ({ isLoggedIn, userData, handleLogout }) => {
     navigate(`/my-garages/${garageId}/inventory`);
   };
 
-  // Don't render until theme is loaded
   if (!themeLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">

@@ -23,7 +23,6 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
 
   const handleClose = () => {
     setLocalIsOpen(false);
-    // Wait for animation to complete before actually closing
     setTimeout(() => {
       onClose();
       setLocalIsOpen(true);
@@ -47,15 +46,12 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
       if (response.ok) {
         const data = await response.json();
 
-        // Set success message
         setSuccess('Sikeres bejelentkezés!');
 
-        // Call the onLoginSuccess function with user data and token
         if (onLoginSuccess && data.user && data.token) {
           onLoginSuccess(data.user, data.token);
         }
 
-        // Delay navigation and closing to show the success message
         setTimeout(() => {
           setLocalIsOpen(false);
           setTimeout(() => {
@@ -83,7 +79,6 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
     }, 300);
   };
 
-  // Don't render until theme is loaded
   if (!themeLoaded) return null;
 
   return (

@@ -15,7 +15,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     role: 'customer',
   });
 
-  // Add validation state
   const [validations, setValidations] = useState({
     nameLength: false,
     passwordLength: false,
@@ -56,7 +55,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Update validations when first_name, last_name or password changes
     if (name === 'first_name') {
       setValidations({
         ...validations,
@@ -81,7 +79,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
 
   const handleClose = () => {
     setLocalIsOpen(false);
-    // Wait for animation to complete before actually closing
     setTimeout(() => {
       onClose();
       setLocalIsOpen(true);
@@ -93,7 +90,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     setError('');
     setSuccess('');
 
-    // Check first name and last name length
     if (!validateFirstName(formData.first_name)) {
       setError('A keresztnévnek legalább 2 karakter hosszúnak kell lennie!');
       return;
@@ -104,7 +100,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
       return;
     }
 
-    // Check password complexity
     const passwordChecks = validatePasswordComplexity(formData.password);
     if (!passwordChecks.passwordLength ||
       !passwordChecks.passwordHasNumber ||
@@ -114,14 +109,12 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
       return;
     }
 
-    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('A jelszavak nem egyeznek!');
       return;
     }
 
     try {
-      // Create a copy of formData without confirmPassword
       const { confirmPassword, ...registerData } = formData;
 
       const response = await fetch('http://localhost:3000/api/register', {
@@ -133,10 +126,8 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
       });
 
       if (response.ok) {
-        // Set success message
         setSuccess('Sikeres regisztráció!');
 
-        // Delay switching to login modal to show the success message
         setTimeout(() => {
           setLocalIsOpen(false);
           setTimeout(() => {
@@ -164,21 +155,17 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
     }, 300);
   };
 
-  // Don't render until theme is loaded
   if (!themeLoaded) return null;
 
   useEffect(() => {
     if (isOpen) {
-      // Disable scrolling on the body when modal is open
       document.body.style.overflow = 'hidden';
 
-      // Store the current scroll position
       const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
     } else {
-      // Re-enable scrolling when modal is closed
       const scrollY = document.body.style.top;
       document.body.style.position = '';
       document.body.style.top = '';
@@ -187,7 +174,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
 
-    // Cleanup function
     return () => {
       document.body.style.position = '';
       document.body.style.top = '';
@@ -339,7 +325,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                   )}
                 </button>
 
-                {/* Password complexity indicators */}
                 {formData.password && (
                   <div className="mt-2 text-sm">
                     <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold mb-1`}>Jelszó követelmények:</p>
@@ -361,8 +346,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                 )}
               </div>
 
-
-              {/* New confirm password field */}
               <div className="relative mt-4">
                 <label className={`block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Jelszó megerősítése</label>
                 <input
@@ -402,7 +385,6 @@ const RegisterForm = ({ isOpen, onClose, setIsLoginOpen }) => {
                   )}
                 </button>
 
-                {/* Password match indicator */}
                 {formData.password && formData.confirmPassword && (
                   <div className={`text-sm mt-1 ${formData.password === formData.confirmPassword ? 'text-green-500' : 'text-red-500'}`}>
                     {formData.password === formData.confirmPassword

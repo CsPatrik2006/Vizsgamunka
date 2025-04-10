@@ -16,7 +16,7 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
     const navigate = useNavigate();
     const { garageId } = useParams();
     const [searchQuery, setSearchQuery] = useState("");
-    const isDeletedRef = useRef(false); // Use ref to track deletion state across renders
+    const isDeletedRef = useRef(false);
 
     const [garageData, setGarageData] = useState({
         name: "",
@@ -31,18 +31,15 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
     const [success, setSuccess] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Handle logout with cart clear
     const handleLogoutWithCartClear = () => {
         handleCartLogout();
         handleLogout();
     };
 
-    // Scroll to top when component mounts
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Check if user is authorized and fetch garage data
     useEffect(() => {
         if (!userData || userData.role !== "garage_owner") {
             navigate("/");
@@ -59,7 +56,6 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                     }
                 });
 
-                // Check if the garage belongs to the current user
                 const userId = userData?.userId || userData?.id;
                 if (response.data.owner_id.toString() !== userId.toString()) {
                     setError("Nincs jogosultsága ennek a garázsnak a szerkesztéséhez.");
@@ -96,7 +92,6 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Don't submit if the garage has been deleted
         if (isDeletedRef.current) {
             return;
         }
@@ -115,7 +110,6 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                 return;
             }
 
-            // Check again if the garage has been deleted before making the API call
             if (isDeletedRef.current) {
                 return;
             }
@@ -138,9 +132,8 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                 navigate("/my-garages");
             }, 2000);
         } catch (err) {
-            // Check if the error is because the garage was not found (already deleted)
             if (err.response && err.response.status === 404) {
-                isDeletedRef.current = true; // Mark as deleted if we get a 404
+                isDeletedRef.current = true;
                 setError("A garázs már nem létezik vagy törölve lett.");
             } else {
                 setError("Hiba történt a garázs adatainak frissítése közben: " +
@@ -152,15 +145,13 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
     };
 
     const handleDelete = async () => {
-        // Ask for confirmation
         if (!window.confirm("Biztosan törölni szeretné ezt a garázst? Ez a művelet nem visszavonható!")) {
-            // User cancelled - just return without showing any messages or redirecting
             return;
         }
 
         try {
             setIsSubmitting(true);
-            setError(null); // Clear any existing errors
+            setError(null);
             const token = localStorage.getItem("token");
 
             await axios.delete(`http://localhost:3000/garages/${garageId}`, {
@@ -169,19 +160,15 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
                 }
             });
 
-            // Mark the garage as deleted to prevent further operations
             isDeletedRef.current = true;
 
-            // Disable all form inputs
             const formInputs = document.querySelectorAll('input, textarea, button[type="submit"]');
             formInputs.forEach(input => {
                 input.disabled = true;
             });
 
-            // Set success message
             setSuccess("A garázs sikeresen törölve!");
 
-            // Redirect after a short delay to show the success message
             setTimeout(() => {
                 navigate("/my-garages");
             }, 1500);
@@ -190,12 +177,10 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
             setError("Hiba történt a garázs törlése közben: " +
                 (err.response?.data?.message || err.message));
 
-            // Don't redirect if there's an error
             setIsSubmitting(false);
         }
     };
 
-    // Don't render until theme is loaded
     if (!themeLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-800 text-white">
