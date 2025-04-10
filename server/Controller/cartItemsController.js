@@ -1,6 +1,5 @@
 const CartItem = require("../model/cartItems");
 
-// Get all cart items
 exports.getAllCartItems = async (req, res) => {
   try {
     const cartItems = await CartItem.findAll();
@@ -10,7 +9,6 @@ exports.getAllCartItems = async (req, res) => {
   }
 };
 
-// Get a cart item by ID
 exports.getCartItemById = async (req, res) => {
   try {
     const cartItem = await CartItem.findByPk(req.params.id);
@@ -23,7 +21,6 @@ exports.getCartItemById = async (req, res) => {
   }
 };
 
-// Create a new cart item
 exports.createCartItem = async (req, res) => {
   try {
     const { cart_id, product_id, quantity } = req.body;
@@ -34,7 +31,7 @@ exports.createCartItem = async (req, res) => {
 
     const newCartItem = await CartItem.create({
       cart_id,
-      product_type: "inventory", // Always use inventory type
+      product_type: "inventory",
       product_id,
       quantity,
     });
@@ -45,7 +42,6 @@ exports.createCartItem = async (req, res) => {
   }
 };
 
-// Update an existing cart item
 exports.updateCartItem = async (req, res) => {
   try {
     const { cart_id, product_id, quantity } = req.body;
@@ -57,7 +53,7 @@ exports.updateCartItem = async (req, res) => {
 
     await cartItem.update({ 
       cart_id, 
-      product_type: "inventory", // Always use inventory type
+      product_type: "inventory",
       product_id, 
       quantity 
     });
@@ -68,7 +64,6 @@ exports.updateCartItem = async (req, res) => {
   }
 };
 
-// Delete a cart item
 exports.deleteCartItem = async (req, res) => {
   try {
     const cartItem = await CartItem.findByPk(req.params.id);

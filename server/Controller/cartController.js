@@ -1,6 +1,5 @@
 const Cart = require("../model/cart");
 
-// Get all cart items
 exports.getAllCartItems = async (req, res) => {
   try {
     const cartItems = await Cart.findAll();
@@ -10,7 +9,6 @@ exports.getAllCartItems = async (req, res) => {
   }
 };
 
-// Get a cart item by ID
 exports.getCartItemById = async (req, res) => {
   try {
     const cartItem = await Cart.findByPk(req.params.id);
@@ -23,7 +21,6 @@ exports.getCartItemById = async (req, res) => {
   }
 };
 
-// Create a new cart item
 exports.createCartItem = async (req, res) => {
   try {
     const { user_id, garage_id } = req.body;
@@ -43,7 +40,6 @@ exports.createCartItem = async (req, res) => {
   }
 };
 
-// Update an existing cart item
 exports.updateCartItem = async (req, res) => {
   try {
     const { user_id, garage_id } = req.body;
@@ -60,7 +56,6 @@ exports.updateCartItem = async (req, res) => {
   }
 };
 
-// Delete a cart item
 exports.deleteCartItem = async (req, res) => {
   try {
     const cartItem = await Cart.findByPk(req.params.id);

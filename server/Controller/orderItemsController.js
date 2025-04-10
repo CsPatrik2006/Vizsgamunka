@@ -1,7 +1,6 @@
 const OrderItem = require("../model/orderItems");
 const Inventory = require("../model/inventory");
 
-// Get all order items
 exports.getAllOrderItems = async (req, res) => {
   try {
     const orderItems = await OrderItem.findAll();
@@ -12,7 +11,6 @@ exports.getAllOrderItems = async (req, res) => {
   }
 };
 
-// Get an order item by ID
 exports.getOrderItemById = async (req, res) => {
   try {
     const orderItem = await OrderItem.findByPk(req.params.id);
@@ -26,7 +24,6 @@ exports.getOrderItemById = async (req, res) => {
   }
 };
 
-// Get order items by order ID with product details
 exports.getOrderItemsByOrderId = async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -35,14 +32,11 @@ exports.getOrderItemsByOrderId = async (req, res) => {
       where: { order_id: orderId }
     });
 
-    // Enhance order items with product details
     const enhancedOrderItems = await Promise.all(orderItems.map(async (item) => {
       const itemData = item.toJSON();
 
-      // Get product details
       const product = await Inventory.findByPk(item.product_id);
       if (product) {
-        // Use item_name from inventory
         itemData.product_name = product.item_name;
         itemData.product_details = product;
       } else {
@@ -59,7 +53,6 @@ exports.getOrderItemsByOrderId = async (req, res) => {
   }
 };
 
-// Create a new order item
 exports.createOrderItem = async (req, res) => {
   try {
     const { order_id, product_id, quantity, unit_price } = req.body;
@@ -70,7 +63,7 @@ exports.createOrderItem = async (req, res) => {
 
     const newOrderItem = await OrderItem.create({
       order_id,
-      product_type: "inventory", // Only inventory type is supported now
+      product_type: "inventory",
       product_id,
       quantity,
       unit_price,
@@ -83,7 +76,6 @@ exports.createOrderItem = async (req, res) => {
   }
 };
 
-// Update an existing order item
 exports.updateOrderItem = async (req, res) => {
   try {
     const { order_id, product_id, quantity, unit_price } = req.body;
@@ -95,7 +87,7 @@ exports.updateOrderItem = async (req, res) => {
 
     await orderItem.update({
       order_id,
-      product_type: "inventory", // Only inventory type is supported now
+      product_type: "inventory",
       product_id,
       quantity,
       unit_price
@@ -108,7 +100,6 @@ exports.updateOrderItem = async (req, res) => {
   }
 };
 
-// Delete an order item
 exports.deleteOrderItem = async (req, res) => {
   try {
     const orderItem = await OrderItem.findByPk(req.params.id);

@@ -1,4 +1,3 @@
-// Mock the models before importing the controller
 jest.mock('../model/appointments', () => {
   return {
     findAll: jest.fn(),
@@ -34,7 +33,6 @@ jest.mock('../model/garages', () => {
   };
 });
 
-// Mock the database config
 jest.mock('../config/config', () => ({
   sequelize: {
     authenticate: jest.fn().mockResolvedValue(),
@@ -43,12 +41,10 @@ jest.mock('../config/config', () => ({
   testConnection: jest.fn().mockResolvedValue()
 }));
 
-// Mock the email service
 jest.mock('../utils/emailService', () => ({
   sendAppointmentConfirmationEmail: jest.fn().mockResolvedValue()
 }));
 
-// Now import the controller and mocked models
 const {
   getAllAppointments,
   getAppointmentById,
@@ -156,7 +152,7 @@ describe('Appointments Controller', () => {
     });
 
     it('should validate required fields', async () => {
-      req.body = { user_id: 1 }; // Missing required fields
+      req.body = { user_id: 1 };
 
       await createAppointment(req, res);
 
@@ -166,7 +162,7 @@ describe('Appointments Controller', () => {
     });
 
     it('should validate schedule slot when provided', async () => {
-      const appointmentDate = new Date('2023-01-02T10:30:00'); // Monday
+      const appointmentDate = new Date('2023-01-02T10:30:00');
       req.body = {
         user_id: 1,
         garage_id: 1,
@@ -185,7 +181,7 @@ describe('Appointments Controller', () => {
       };
 
       GarageScheduleSlot.findByPk.mockResolvedValue(slot);
-      Appointments.count.mockResolvedValue(2); // 2 existing appointments
+      Appointments.count.mockResolvedValue(2);
       Appointments.create.mockResolvedValue({ id: 1, ...req.body, status: 'pending' });
 
       await createAppointment(req, res);
@@ -197,7 +193,7 @@ describe('Appointments Controller', () => {
     });
 
     it('should reject when slot is fully booked', async () => {
-      const appointmentDate = new Date('2023-01-02T10:30:00'); // Monday
+      const appointmentDate = new Date('2023-01-02T10:30:00');
       req.body = {
         user_id: 1,
         garage_id: 1,
@@ -216,7 +212,7 @@ describe('Appointments Controller', () => {
       };
 
       GarageScheduleSlot.findByPk.mockResolvedValue(slot);
-      Appointments.count.mockResolvedValue(3); // Slot is fully booked
+      Appointments.count.mockResolvedValue(3);
 
       await createAppointment(req, res);
 
@@ -252,7 +248,6 @@ describe('Appointments Controller', () => {
       expect(appointment.update).toHaveBeenCalledWith({ status: 'confirmed' });
       expect(res.json).toHaveBeenCalledWith(appointment);
 
-      // If status is changed to confirmed, email should be sent
       if (req.body.status === 'confirmed') {
         expect(User.findByPk).toHaveBeenCalledWith(1);
         expect(Garage.findByPk).toHaveBeenCalledWith(1);
@@ -305,7 +300,7 @@ describe('Appointments Controller', () => {
   describe('getAppointmentsByUserId', () => {
     it('should return appointments for a valid user', async () => {
       req.params.userId = '1';
-      req.user = { id: 1 }; // Authenticated user is the same as requested
+      req.user = { id: 1 };
 
       const user = { id: 1, name: 'Test User' };
       const appointments = [
@@ -335,7 +330,7 @@ describe('Appointments Controller', () => {
 
     it('should return 403 when unauthorized user tries to access appointments', async () => {
       req.params.userId = '2';
-      req.user = { id: 1 }; // Authenticated user is different from requested
+      req.user = { id: 1 };
 
       const user = { id: 2, name: 'Another User' };
 

@@ -57,9 +57,7 @@ const GarageScheduleSlot = sequelize.define(
   }
 );
 
-// Add validation hook to prevent overlapping time slots
 GarageScheduleSlot.beforeCreate(async (slot) => {
-  // Check for overlapping slots
   const overlappingSlots = await GarageScheduleSlot.findOne({
     where: {
       garage_id: slot.garage_id,
@@ -67,21 +65,18 @@ GarageScheduleSlot.beforeCreate(async (slot) => {
       is_active: true,
       [Op.or]: [
         {
-          // New slot starts during an existing slot
           [Op.and]: [
             { start_time: { [Op.lte]: slot.start_time } },
             { end_time: { [Op.gt]: slot.start_time } }
           ]
         },
         {
-          // New slot ends during an existing slot
           [Op.and]: [
             { start_time: { [Op.lt]: slot.end_time } },
             { end_time: { [Op.gte]: slot.end_time } }
           ]
         },
         {
-          // New slot completely contains an existing slot
           [Op.and]: [
             { start_time: { [Op.gte]: slot.start_time } },
             { end_time: { [Op.lte]: slot.end_time } }

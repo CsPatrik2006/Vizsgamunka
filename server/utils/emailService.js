@@ -3,11 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const emailValidator = require('email-validator');
 
-// Define the logo path
 const logoPath = path.join(__dirname, '..', 'assets', 'Gumizz_logo.png');
 console.log('Logo path:', logoPath);
 
-// Verify the logo exists
 let logoExists = false;
 try {
   logoExists = fs.existsSync(logoPath);
@@ -16,11 +14,10 @@ try {
   console.error('Error checking if logo exists:', error);
 }
 
-// Create a transporter object
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
-  secure: true, // use SSL
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -30,15 +27,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Function to send registration confirmation email
 exports.sendRegistrationEmail = async (user) => {
   try {
-    // Validate email first
     if (!emailValidator.validate(user.email)) {
       throw new Error(`Invalid email address: ${user.email}`);
     }
 
-    // Create plain text version for better deliverability
     const textVersion = `
       Üdvözöljük a Gumizz Kft. oldalán!
       
@@ -95,7 +89,7 @@ exports.sendRegistrationEmail = async (user) => {
         {
           filename: 'Gumizz_logo.png',
           path: logoPath,
-          cid: 'logo' // Content ID referenced in the HTML
+          cid: 'logo'
         }
       ] : []
     };
@@ -109,15 +103,12 @@ exports.sendRegistrationEmail = async (user) => {
   }
 };
 
-// Function to send order confirmation email
 exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointment, appointmentDetails) => {
   try {
-    // Validate email first
     if (!emailValidator.validate(user.email)) {
       throw new Error(`Invalid email address: ${user.email}`);
     }
 
-    // Format items for email - UPDATED to show product name
     const itemsList = orderItems.map(item => `
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">
@@ -130,7 +121,6 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
       </tr>
     `).join('');
 
-    // Appointment section
     let appointmentSection = '';
     if (hasAppointment && appointmentDetails) {
       appointmentSection = `
@@ -143,7 +133,6 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
       `;
     }
 
-    // Create plain text version for better deliverability
     const textVersion = `
       Köszönjük a rendelését!
       
@@ -230,7 +219,7 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
         {
           filename: 'Gumizz_logo.png',
           path: logoPath,
-          cid: 'logo' // Content ID referenced in the HTML
+          cid: 'logo'
         }
       ] : []
     };
@@ -244,15 +233,12 @@ exports.sendOrderConfirmationEmail = async (user, order, orderItems, hasAppointm
   }
 };
 
-// Send order status update email
 exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => {
   try {
-    // Validate email first
     if (!emailValidator.validate(user.email)) {
       throw new Error(`Invalid email address: ${user.email}`);
     }
 
-    // Get status-specific content
     let statusTitle, statusMessage, statusColor, statusEmoji;
 
     switch (order.status) {
@@ -359,15 +345,12 @@ exports.sendOrderStatusUpdateEmail = async (user, order, garage, statusInfo) => 
   }
 };
 
-// Function to send appointment confirmation email
 exports.sendAppointmentConfirmationEmail = async (user, appointment, garage, scheduleSlot) => {
   try {
-    // Validate email first
     if (!emailValidator.validate(user.email)) {
       throw new Error(`Invalid email address: ${user.email}`);
     }
 
-    // Format appointment date and time
     const appointmentDate = new Date(appointment.appointment_time);
     const formattedDate = appointmentDate.toLocaleDateString('hu-HU', { 
       year: 'numeric', 
@@ -379,7 +362,6 @@ exports.sendAppointmentConfirmationEmail = async (user, appointment, garage, sch
       minute: '2-digit' 
     });
 
-    // Create plain text version for better deliverability
     const textVersion = `
       Időpontfoglalás megerősítve
       

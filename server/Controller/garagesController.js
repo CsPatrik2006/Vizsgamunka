@@ -3,7 +3,6 @@ const GarageScheduleSlot = require("../model/garageSchedule");
 const Appointments = require("../model/appointments");
 const { Op } = require("sequelize");
 
-// Get all garages
 exports.getAllGarages = async (req, res) => {
   try {
     const garages = await Garage.findAll({
@@ -15,7 +14,6 @@ exports.getAllGarages = async (req, res) => {
   }
 };
 
-// Get a garage by ID
 exports.getGarageById = async (req, res) => {
   try {
     const garage = await Garage.findByPk(req.params.id);
@@ -28,7 +26,6 @@ exports.getGarageById = async (req, res) => {
   }
 };
 
-// Create a new garage
 exports.createGarage = async (req, res) => {
   try {
     const { owner_id, name, location, contact_info, description, opening_hours } = req.body;
@@ -52,7 +49,6 @@ exports.createGarage = async (req, res) => {
   }
 };
 
-// Update an existing garage
 exports.updateGarage = async (req, res) => {
   try {
     const { owner_id, name, location, contact_info, description, opening_hours } = req.body;
@@ -77,7 +73,6 @@ exports.updateGarage = async (req, res) => {
   }
 };
 
-// Delete a garage
 exports.deleteGarage = async (req, res) => {
   try {
     const garage = await Garage.findByPk(req.params.id);
@@ -94,18 +89,15 @@ exports.deleteGarage = async (req, res) => {
   }
 };
 
-// Get a garage's appointment schedule
 exports.getGarageSchedule = async (req, res) => {
   try {
     const garageId = req.params.id;
-    
-    // Check if garage exists
+
     const garage = await Garage.findByPk(garageId);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
-    
-    // Get all active schedule slots for this garage
+
     const scheduleSlots = await GarageScheduleSlot.findAll({
       where: { 
         garage_id: garageId,
@@ -116,8 +108,7 @@ exports.getGarageSchedule = async (req, res) => {
         ['start_time', 'ASC']
       ]
     });
-    
-    // Transform into the expected format
+
     const schedule = {
       monday: [],
       tuesday: [],
@@ -143,29 +134,24 @@ exports.getGarageSchedule = async (req, res) => {
   }
 };
 
-// Update a garage's appointment schedule
 exports.updateGarageSchedule = async (req, res) => {
   try {
     const garageId = req.params.id;
     const scheduleData = req.body;
-    
-    // Check if garage exists
+
     const garage = await Garage.findByPk(garageId);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
-    
-    // Validate that the user owns this garage
+
     const userId = req.user?.id; 
     if (userId && garage.owner_id.toString() !== userId.toString()) {
       return res.status(403).json({ message: "You don't have permission to update this garage's schedule" });
     }
-    
-    // Process each day's schedule
+
     for (const [day, slots] of Object.entries(scheduleData)) {
       if (!Array.isArray(slots)) continue;
-      
-      // Mark all existing slots for this day as inactive
+
       await GarageScheduleSlot.update(
         { is_active: false },
         { 
@@ -175,11 +161,9 @@ exports.updateGarageSchedule = async (req, res) => {
           }
         }
       );
-      
-      // Add new slots
+
       for (const slot of slots) {
         try {
-          // Try to find an existing slot with the same time
           const existingSlot = await GarageScheduleSlot.findOne({
             where: {
               garage_id: garageId,
@@ -190,13 +174,11 @@ exports.updateGarageSchedule = async (req, res) => {
           });
           
           if (existingSlot) {
-            // Update existing slot
             await existingSlot.update({
               max_bookings: slot.max_bookings,
               is_active: true
             });
           } else {
-            // Create new slot
             await GarageScheduleSlot.create({
               garage_id: garageId,
               day_of_week: day,
@@ -208,7 +190,6 @@ exports.updateGarageSchedule = async (req, res) => {
           }
         } catch (err) {
           console.error(`Error processing slot for ${day}:`, err);
-          // Continue with other slots even if one fails
         }
       }
     }
@@ -219,7 +200,6 @@ exports.updateGarageSchedule = async (req, res) => {
   }
 };
 
-// Get available time slots for a specific date
 exports.getAvailableSlots = async (req, res) => {
   try {
     const { garageId } = req.params;
@@ -229,11 +209,9 @@ exports.getAvailableSlots = async (req, res) => {
       return res.status(400).json({ message: "Date parameter is required" });
     }
     
-    // Convert date string to Date object
     const requestedDate = new Date(date);
     const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][requestedDate.getDay()];
     
-    // Get all active slots for this day
     const slots = await GarageScheduleSlot.findAll({
       where: {
         garage_id: garageId,
@@ -243,16 +221,12 @@ exports.getAvailableSlots = async (req, res) => {
       order: [['start_time', 'ASC']]
     });
     
-    // Format the date string for SQL comparison
     const dateStr = requestedDate.toISOString().split('T')[0];
-    
-    // For each slot, check how many appointments already exist
+
     const availableSlots = await Promise.all(slots.map(async (slot) => {
-      // Create datetime strings for this slot on the requested date
       const startDateTime = `${dateStr}T${slot.start_time}`;
       const endDateTime = `${dateStr}T${slot.end_time}`;
-      
-      // Count existing appointments in this time slot
+
       const appointmentCount = await Appointments.count({
         where: {
           garage_id: garageId,

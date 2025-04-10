@@ -12,7 +12,6 @@ const cartRoutes = require("./routes/cartRoutes");
 const cartItemsRoutes = require("./routes/cartItemsRoutes");
 const orderItemsRoutes = require("./routes/orderItemsRoutes");
 
-// Check email configuration
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
   console.warn('Warning: Email credentials not configured. Email notifications will not work.');
 }

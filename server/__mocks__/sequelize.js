@@ -1,4 +1,3 @@
-// Mock Sequelize implementation
 class Model {
   static init() { return this; }
   static belongsTo() { return this; }

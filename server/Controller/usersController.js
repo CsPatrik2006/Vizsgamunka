@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/users");
 const { sendRegistrationEmail } = require("../utils/emailService");
 
-// Regisztráció (Felhasználó létrehozása)
 exports.createUser = async (req, res) => {
   try {
     const { first_name, last_name, email, phone, role, password } = req.body;
@@ -12,7 +11,6 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "Hiányzó kötelező mezők (vezetéknév, keresztnév, email, szerep, jelszó)!" });
     }
 
-    // Jelszó titkosítása
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
@@ -21,16 +19,14 @@ exports.createUser = async (req, res) => {
       email,
       phone,
       role,
-      password_hash: hashedPassword, // Mentjük a titkosított jelszót
-      last_login: new Date(), // Set initial login time
+      password_hash: hashedPassword,
+      last_login: new Date(),
     });
 
-    // Send registration confirmation email
     try {
       await sendRegistrationEmail(newUser);
     } catch (emailError) {
       console.error("Failed to send registration email:", emailError);
-      // Continue with registration even if email fails
     }
 
     res.status(201).json({ message: "Felhasználó sikeresen létrehozva!", user: newUser });
@@ -39,7 +35,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Bejelentkezés és JWT generálás
 exports.authenticateUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -51,15 +46,12 @@ exports.authenticateUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) return res.status(401).json({ message: "Hibás email vagy jelszó!" });
 
-    // Update last login time
     await User.update({ last_login: new Date() }, { where: { id: user.id } });
 
-    // Get the updated user data
     const updatedUser = await User.findByPk(user.id, {
       attributes: { exclude: ["password_hash"] },
     });
 
-    // JWT generálás
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       "secretkey",
@@ -72,7 +64,6 @@ exports.authenticateUser = async (req, res) => {
   }
 };
 
-// Összes felhasználó lekérése
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -84,7 +75,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Felhasználó lekérése ID alapján
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
@@ -98,13 +88,11 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Felhasználó frissítése
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
 
-    // Ensure user can only update their own profile unless they're an admin
     if (req.user.role !== 'admin' && req.user.userId != id) {
       return res.status(403).json({ message: "Nincs jogosultsága más felhasználó adatainak módosításához!" });
     }
@@ -117,7 +105,6 @@ exports.updateUser = async (req, res) => {
     const [updated] = await User.update(updates, { where: { id } });
     if (!updated) return res.status(404).json({ message: "Felhasználó nem található!" });
 
-    // Return the updated user data
     const updatedUser = await User.findByPk(id, {
       attributes: { exclude: ["password_hash"] },
     });
@@ -128,7 +115,6 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Jelszó módosítása
 exports.changePassword = async (req, res) => {
   try {
     const { id } = req.params;
@@ -138,20 +124,16 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({ message: "Hiányzó jelszó adatok!" });
     }
 
-    // Ensure user can only change their own password unless they're an admin
     if (req.user.role !== 'admin' && req.user.userId != id) {
       return res.status(403).json({ message: "Nincs jogosultsága más felhasználó jelszavának módosításához!" });
     }
 
-    // Get the user with password hash
     const user = await User.findByPk(id);
     if (!user) return res.status(404).json({ message: "Felhasználó nem található!" });
 
-    // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch) return res.status(401).json({ message: "Jelenlegi jelszó helytelen!" });
 
-    // Hash and update new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await User.update({ password_hash: hashedPassword }, { where: { id } });
 
@@ -161,12 +143,10 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// Felhasználó törlése
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Ensure user can only delete their own account unless they're an admin
+
     if (req.user.role !== 'admin' && req.user.userId != id) {
       return res.status(403).json({ message: "Nincs jogosultsága más felhasználó törlésére!" });
     }
@@ -181,25 +161,20 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// Upload profile picture
 exports.uploadProfilePicture = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Ensure user can only update their own profile picture unless they're an admin
+
     if (req.user.role !== 'admin' && req.user.userId != id) {
       return res.status(403).json({ message: "Nincs jogosultsága más felhasználó profilképének módosításához!" });
     }
-    
-    // Check if file was uploaded
+
     if (!req.file) {
       return res.status(400).json({ message: "Nem található feltöltött fájl!" });
     }
-    
-    // Get the file path to store in the database
+
     const profilePicturePath = `/api/uploads/profile-pictures/${req.file.filename}`;
-    
-    // Update the user's profile picture in the database
+
     const [updated] = await User.update(
       { profile_picture: profilePicturePath }, 
       { where: { id } }
@@ -208,8 +183,7 @@ exports.uploadProfilePicture = async (req, res) => {
     if (!updated) {
       return res.status(404).json({ message: "Felhasználó nem található!" });
     }
-    
-    // Get the updated user data
+
     const updatedUser = await User.findByPk(id, {
       attributes: { exclude: ["password_hash"] },
     });

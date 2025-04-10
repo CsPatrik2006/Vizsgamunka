@@ -4,7 +4,6 @@ const { Op } = require("sequelize");
 const fs = require('fs');
 const path = require('path');
 
-// Get all inventory items with filtering options
 exports.getAllItems = async (req, res) => {
   try {
     const {
@@ -21,10 +20,8 @@ exports.getAllItems = async (req, res) => {
       diameter
     } = req.query;
 
-    // Build query conditions
     let whereConditions = {};
 
-    // Filter by garage_id
     if (garage_id) {
       const parsedGarageId = parseInt(garage_id, 10);
       if (!isNaN(parsedGarageId)) {
@@ -32,17 +29,14 @@ exports.getAllItems = async (req, res) => {
       }
     }
 
-    // Filter by vehicle_type
     if (vehicle_type && ['car', 'motorcycle', 'truck'].includes(vehicle_type)) {
       whereConditions.vehicle_type = vehicle_type;
     }
 
-    // Filter by season
     if (season && ['winter', 'summer', 'all_season'].includes(season)) {
       whereConditions.season = season;
     }
 
-    // Filter by tyre dimensions
     if (width) {
       const parsedWidth = parseInt(width, 10);
       if (!isNaN(parsedWidth)) {
@@ -64,7 +58,6 @@ exports.getAllItems = async (req, res) => {
       }
     }
 
-    // Filter by price range
     if (min_price || max_price) {
       whereConditions.unit_price = {};
 
@@ -83,14 +76,12 @@ exports.getAllItems = async (req, res) => {
       }
     }
 
-    // Search by item name
     if (search) {
       whereConditions.item_name = {
         [Op.like]: `%${search}%`
       };
     }
 
-    // Build sort options
     let order = [];
     if (sort_by) {
       const validSortFields = ['item_name', 'unit_price', 'quantity', 'createdAt'];
@@ -105,7 +96,6 @@ exports.getAllItems = async (req, res) => {
       }
     }
 
-    // Execute query with all filters
     const items = await Inventory.findAll({
       where: whereConditions,
       order: order.length > 0 ? order : [['createdAt', 'DESC']],
@@ -129,7 +119,6 @@ exports.getAllItems = async (req, res) => {
   }
 };
 
-// Get inventory item by ID with garage details
 exports.getItemById = async (req, res) => {
   try {
     const item = await Inventory.findByPk(req.params.id, {
@@ -152,7 +141,6 @@ exports.getItemById = async (req, res) => {
   }
 };
 
-// Create a new inventory item
 exports.createItem = async (req, res) => {
   try {
     const {
@@ -168,7 +156,6 @@ exports.createItem = async (req, res) => {
       diameter
     } = req.body;
 
-    // Validate required fields
     if (!garage_id || !item_name || !vehicle_type || !unit_price) {
       return res.status(400).json({
         message: "Missing required fields",
@@ -177,7 +164,6 @@ exports.createItem = async (req, res) => {
       });
     }
 
-    // Validate vehicle type
     if (!['car', 'motorcycle', 'truck'].includes(vehicle_type)) {
       return res.status(400).json({
         message: "Invalid vehicle type. Must be one of: car, motorcycle, truck",
@@ -185,7 +171,6 @@ exports.createItem = async (req, res) => {
       });
     }
 
-    // Validate season if provided
     if (season && !['winter', 'summer', 'all_season'].includes(season)) {
       return res.status(400).json({
         message: "Invalid season. Must be one of: winter, summer, all_season",
@@ -193,7 +178,6 @@ exports.createItem = async (req, res) => {
       });
     }
 
-    // Validate numeric fields
     const parsedGarageId = parseInt(garage_id, 10);
     const parsedQuantity = parseInt(quantity || 0, 10);
     const parsedUnitPrice = parseFloat(unit_price);
@@ -212,24 +196,20 @@ exports.createItem = async (req, res) => {
       });
     }
 
-    // Check if garage exists
     const garage = await Garage.findByPk(parsedGarageId);
     if (!garage) {
       return res.status(404).json({ message: `Garage with ID ${parsedGarageId} not found` });
     }
 
-    // Handle the uploaded files
     let cover_img = null;
     let additional_img1 = null;
     let additional_img2 = null;
 
     if (req.files) {
-      // Handle cover image
       if (req.files.cover_img && req.files.cover_img[0]) {
         cover_img = `/uploads/inventory/${req.files.cover_img[0].filename}`;
       }
 
-      // Handle additional images
       if (req.files.additional_img1 && req.files.additional_img1[0]) {
         additional_img1 = `/uploads/inventory/${req.files.additional_img1[0].filename}`;
       }
@@ -239,7 +219,6 @@ exports.createItem = async (req, res) => {
       }
     }
 
-    // Create the item
     const newItem = await Inventory.create({
       garage_id: parsedGarageId,
       item_name,
@@ -256,7 +235,6 @@ exports.createItem = async (req, res) => {
       diameter: parsedDiameter
     });
 
-    // Return the created item with garage details
     const createdItemWithGarage = await Inventory.findByPk(newItem.id, {
       include: [
         {
@@ -270,7 +248,6 @@ exports.createItem = async (req, res) => {
   } catch (error) {
     console.error("Error in createItem:", error);
 
-    // Handle unique constraint violations
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({
         message: "Item already exists",
@@ -282,7 +259,6 @@ exports.createItem = async (req, res) => {
   }
 };
 
-// Update an existing inventory item
 exports.updateItem = async (req, res) => {
   try {
     const item = await Inventory.findByPk(req.params.id);
@@ -305,7 +281,6 @@ exports.updateItem = async (req, res) => {
       remove_additional_img2
     } = req.body;
 
-    // Validate vehicle type if provided
     if (vehicle_type && !['car', 'motorcycle', 'truck'].includes(vehicle_type)) {
       return res.status(400).json({
         message: "Invalid vehicle type. Must be one of: car, motorcycle, truck",
@@ -313,7 +288,6 @@ exports.updateItem = async (req, res) => {
       });
     }
 
-    // Validate season if provided
     if (season && !['winter', 'summer', 'all_season'].includes(season)) {
       return res.status(400).json({
         message: "Invalid season. Must be one of: winter, summer, all_season",
@@ -321,14 +295,12 @@ exports.updateItem = async (req, res) => {
       });
     }
 
-    // Validate numeric fields if provided
     if (garage_id) {
       const parsedGarageId = parseInt(garage_id, 10);
       if (isNaN(parsedGarageId)) {
         return res.status(400).json({ message: "garage_id must be a number" });
       }
 
-      // Check if garage exists
       const garage = await Garage.findByPk(parsedGarageId);
       if (!garage) {
         return res.status(404).json({ message: `Garage with ID ${parsedGarageId} not found` });
@@ -349,7 +321,6 @@ exports.updateItem = async (req, res) => {
       }
     }
 
-    // Validate tyre size fields if provided
     const parsedWidth = width !== undefined ? parseInt(width, 10) : null;
     const parsedProfile = profile !== undefined ? parseInt(profile, 10) : null;
     const parsedDiameter = diameter !== undefined ? parseInt(diameter, 10) : null;
@@ -369,15 +340,12 @@ exports.updateItem = async (req, res) => {
       });
     }
 
-    // Handle the uploaded files
     let cover_img = item.cover_img;
     let additional_img1 = item.additional_img1;
     let additional_img2 = item.additional_img2;
 
     if (req.files) {
-      // Handle cover image
       if (req.files.cover_img && req.files.cover_img[0]) {
-        // Delete old image if it exists
         if (item.cover_img) {
           const oldImagePath = path.join(__dirname, '..', item.cover_img);
           if (fs.existsSync(oldImagePath)) {
@@ -387,9 +355,7 @@ exports.updateItem = async (req, res) => {
         cover_img = `/uploads/inventory/${req.files.cover_img[0].filename}`;
       }
 
-      // Handle additional image 1
       if (req.files.additional_img1 && req.files.additional_img1[0]) {
-        // Delete old image if it exists
         if (item.additional_img1) {
           const oldImagePath = path.join(__dirname, '..', item.additional_img1);
           if (fs.existsSync(oldImagePath)) {
@@ -399,9 +365,7 @@ exports.updateItem = async (req, res) => {
         additional_img1 = `/uploads/inventory/${req.files.additional_img1[0].filename}`;
       }
 
-      // Handle additional image 2
       if (req.files.additional_img2 && req.files.additional_img2[0]) {
-        // Delete old image if it exists
         if (item.additional_img2) {
           const oldImagePath = path.join(__dirname, '..', item.additional_img2);
           if (fs.existsSync(oldImagePath)) {
@@ -412,7 +376,6 @@ exports.updateItem = async (req, res) => {
       }
     }
 
-    // Handle image removal requests
     if (remove_additional_img1 === 'true' && item.additional_img1) {
       const oldImagePath = path.join(__dirname, '..', item.additional_img1);
       if (fs.existsSync(oldImagePath)) {
@@ -429,7 +392,6 @@ exports.updateItem = async (req, res) => {
       additional_img2 = null;
     }
 
-    // Update the item
     await item.update({
       item_name: item_name || item.item_name,
       vehicle_type: vehicle_type || item.vehicle_type,
@@ -446,7 +408,6 @@ exports.updateItem = async (req, res) => {
       diameter: diameter !== undefined ? parsedDiameter : item.diameter
     });
 
-    // Return the updated item with garage details
     const updatedItemWithGarage = await Inventory.findByPk(item.id, {
       include: [
         {
@@ -463,7 +424,6 @@ exports.updateItem = async (req, res) => {
   }
 };
 
-// Delete an inventory item
 exports.deleteItem = async (req, res) => {
   try {
     const item = await Inventory.findByPk(req.params.id);
@@ -471,7 +431,6 @@ exports.deleteItem = async (req, res) => {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    // Delete all image files if they exist
     const imageFields = ['cover_img', 'additional_img1', 'additional_img2'];
 
     for (const field of imageFields) {
@@ -498,24 +457,20 @@ exports.deleteItem = async (req, res) => {
   }
 };
 
-// Get inventory items by garage ID
 exports.getItemsByGarageId = async (req, res) => {
   try {
     const { garageId } = req.params;
 
-    // Validate garage ID
     const parsedGarageId = parseInt(garageId, 10);
     if (isNaN(parsedGarageId)) {
       return res.status(400).json({ message: "Invalid garage ID" });
     }
 
-    // Check if garage exists
     const garage = await Garage.findByPk(parsedGarageId);
     if (!garage) {
       return res.status(404).json({ message: `Garage with ID ${parsedGarageId} not found` });
     }
 
-    // Get items for this garage
     const items = await Inventory.findAll({
       where: { garage_id: parsedGarageId },
       attributes: [
@@ -540,25 +495,21 @@ exports.getItemsByGarageId = async (req, res) => {
   }
 };
 
-// Update inventory item quantity
 exports.updateItemQuantity = async (req, res) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
 
-    // Validate quantity
     const parsedQuantity = parseInt(quantity, 10);
     if (isNaN(parsedQuantity)) {
       return res.status(400).json({ message: "quantity must be a number" });
     }
 
-    // Find the item
     const item = await Inventory.findByPk(id);
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    // Update quantity
     await item.update({ quantity: parsedQuantity });
 
     res.json({

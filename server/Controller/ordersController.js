@@ -7,7 +7,6 @@ const Inventory = require("../model/inventory");
 const sequelize = require("../config/config");
 const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require("../utils/emailService");
 
-// Get all orders
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
@@ -15,11 +14,11 @@ exports.getAllOrders = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["id", "first_name", "last_name", "email"], // Include user details
+          attributes: ["id", "first_name", "last_name", "email"],
         },
         {
           model: Garage,
-          attributes: ["id", "name", "location"], // Include garage details
+          attributes: ["id", "name", "location"],
         },
       ],
     });
@@ -30,18 +29,17 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// Get an order by ID
 exports.getOrderById = async (req, res) => {
   try {
     const order = await Order.findByPk(req.params.id, {
       include: [
         {
           model: User,
-          attributes: ["id", "first_name", "last_name", "email"], // Include user details
+          attributes: ["id", "first_name", "last_name", "email"],
         },
         {
           model: Garage,
-          attributes: ["id", "name", "location"], // Include garage details
+          attributes: ["id", "name", "location"],
         },
       ],
     });
@@ -57,18 +55,15 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
-// Get orders by garage ID
 exports.getOrdersByGarageId = async (req, res) => {
   try {
     const garageId = req.params.garageId;
 
-    // First check if the garage exists
     const garage = await Garage.findByPk(garageId);
     if (!garage) {
       return res.status(404).json({ message: "Garage not found" });
     }
 
-    // Try with a simpler query first
     const orders = await Order.findAll({
       where: { garage_id: garageId },
       include: [
@@ -95,7 +90,6 @@ exports.getOrdersByGarageId = async (req, res) => {
   }
 };
 
-// Create a new order
 exports.createOrder = async (req, res) => {
   try {
     const { user_id, garage_id, total_price, status, items } = req.body;
@@ -106,9 +100,7 @@ exports.createOrder = async (req, res) => {
 
     console.log("Creating order with items:", JSON.stringify(items, null, 2));
 
-    // Start a transaction to ensure data consistency
     const result = await sequelize.transaction(async (t) => {
-      // Create the order
       const newOrder = await Order.create({
         user_id,
         garage_id,
@@ -118,17 +110,15 @@ exports.createOrder = async (req, res) => {
 
       console.log(`Order created with ID: ${newOrder.id}`);
 
-      // If items are provided in the request, process them
       if (items && Array.isArray(items)) {
         console.log(`Processing ${items.length} items for order ${newOrder.id}`);
 
         for (const item of items) {
           console.log(`Processing item: ${JSON.stringify(item)}`);
 
-          // Create order item
           const orderItem = await OrderItem.create({
             order_id: newOrder.id,
-            product_type: "inventory", // Only inventory type is supported now
+            product_type: "inventory",
             product_id: item.product_id,
             quantity: item.quantity,
             unit_price: item.unit_price
@@ -136,7 +126,6 @@ exports.createOrder = async (req, res) => {
 
           console.log(`Created order item with ID: ${orderItem.id}`);
 
-          // Update inventory
           console.log(`Item ${item.product_id} is inventory type, updating stock...`);
 
           const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
@@ -156,7 +145,6 @@ exports.createOrder = async (req, res) => {
           const newQuantity = inventoryItem.quantity - item.quantity;
           console.log(`Updating quantity from ${inventoryItem.quantity} to ${newQuantity}`);
 
-          // Subtract the ordered quantity from inventory
           await inventoryItem.update({
             quantity: newQuantity
           }, { transaction: t });
@@ -172,31 +160,22 @@ exports.createOrder = async (req, res) => {
 
     console.log(`Order transaction completed successfully for order ID: ${result.id}`);
 
-    // Get user information for the email
     const user = await User.findByPk(user_id);
 
-    // Get garage information
     const garage = await Garage.findByPk(garage_id);
 
-    // Send order confirmation email (we'll get order items later)
-    // We'll store this promise to await it after responding to the client
     const emailPromise = (async () => {
       try {
-        // Wait a bit to allow order items to be created
         setTimeout(async () => {
-          // Get order items
           const orderItems = await OrderItem.findAll({
             where: { order_id: result.id }
           });
 
-          // Enhance order items with product details
           const enhancedOrderItems = await Promise.all(orderItems.map(async (item) => {
             const itemData = item.toJSON();
 
-            // Get product details
             const product = await Inventory.findByPk(item.product_id);
             if (product) {
-              // Use item_name from inventory
               itemData.product_name = product.item_name;
             } else {
               itemData.product_name = 'Ismeretlen termék';
@@ -205,14 +184,12 @@ exports.createOrder = async (req, res) => {
             return itemData;
           }));
 
-          // Check if there's an appointment for this order
           const appointment = await Appointment.findOne({
             where: { order_id: result.id }
           });
 
           let appointmentDetails = null;
           if (appointment) {
-            // Get garage name for the appointment
             const appointmentGarage = await Garage.findByPk(appointment.garage_id);
             appointmentDetails = {
               ...appointment.dataValues,
@@ -223,26 +200,23 @@ exports.createOrder = async (req, res) => {
           await sendOrderConfirmationEmail(
             user,
             result,
-            enhancedOrderItems, // Use enhanced items with product names
+            enhancedOrderItems,
             !!appointment,
             appointmentDetails
           );
-        }, 2000); // Wait 2 seconds to ensure order items are created
+        }, 2000);
       } catch (emailError) {
         console.error("Failed to send order confirmation email:", emailError);
-        // Continue with order creation even if email fails
       }
     })();
 
     res.status(201).json(result);
 
-    // No need to await this, let it run in the background
     emailPromise.catch(err => console.error("Background email sending failed:", err));
 
   } catch (error) {
     console.error("Error creating order:", error);
 
-    // Provide more specific error messages for inventory-related issues
     if (error.message.includes("Not enough stock")) {
       return res.status(400).json({ message: error.message });
     }
@@ -251,7 +225,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// Update an existing order
 exports.updateOrder = async (req, res) => {
   try {
     const { user_id, garage_id, total_price, status } = req.body;
@@ -261,36 +234,28 @@ exports.updateOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if status is changing to canceled
     const statusChangingToCanceled = order.status !== 'canceled' && status === 'canceled';
 
-    // Check if status is changing
     const statusChanged = order.status !== status;
     const oldStatus = order.status;
 
-    // Start a transaction to ensure data consistency
     const result = await sequelize.transaction(async (t) => {
-      // Update the order
       await order.update({ user_id, garage_id, total_price, status }, { transaction: t });
 
-      // If order is being canceled, restore inventory quantities
       if (statusChangingToCanceled) {
         console.log(`Order #${order.id} is being canceled. Restoring inventory...`);
 
-        // Get order items
         const orderItems = await OrderItem.findAll({
           where: { order_id: order.id },
           transaction: t
         });
 
-        // Process each order item
         for (const item of orderItems) {
           const inventoryItem = await Inventory.findByPk(item.product_id, { transaction: t });
 
           if (inventoryItem) {
             console.log(`Restoring ${item.quantity} units to inventory item #${item.product_id}`);
 
-            // Add the ordered quantity back to inventory
             await inventoryItem.update({
               quantity: inventoryItem.quantity + item.quantity
             }, { transaction: t });
@@ -305,16 +270,12 @@ exports.updateOrder = async (req, res) => {
       return order;
     });
 
-    // If status changed, send notification email
     if (statusChanged && ['confirmed', 'completed', 'canceled'].includes(status)) {
       try {
-        // Get user information
         const user = await User.findByPk(order.user_id);
 
-        // Get garage information
         const garage = await Garage.findByPk(order.garage_id);
 
-        // Send status update email
         await sendOrderStatusUpdateEmail(user, order, garage, {
           oldStatus,
           newStatus: status
@@ -323,7 +284,6 @@ exports.updateOrder = async (req, res) => {
         console.log(`Status update email sent for order #${order.id}: ${oldStatus} -> ${status}`);
       } catch (emailError) {
         console.error("Failed to send status update email:", emailError);
-        // Continue with order update even if email fails
       }
     }
 
@@ -334,7 +294,6 @@ exports.updateOrder = async (req, res) => {
   }
 };
 
-// Delete an order
 exports.deleteOrder = async (req, res) => {
   try {
     const order = await Order.findByPk(req.params.id);
@@ -352,23 +311,19 @@ exports.deleteOrder = async (req, res) => {
   }
 };
 
-// Get orders by user ID
 exports.getOrdersByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    // First check if the user exists
     const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the requesting user is authorized to access these orders
     if (req.user && req.user.id !== parseInt(userId)) {
       return res.status(403).json({ message: "Unauthorized access to another user's orders" });
     }
 
-    // Get orders for this user
     const orders = await Order.findAll({
       where: { user_id: userId },
       include: [

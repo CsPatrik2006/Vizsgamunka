@@ -46,7 +46,6 @@ const Inventory = sequelize.define(
       allowNull: true,
       comment: "URL to the cover image of the inventory item",
     },
-    // Additional image fields
     additional_img1: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -57,7 +56,6 @@ const Inventory = sequelize.define(
       allowNull: true,
       comment: "URL to the second additional image",
     },
-    // Fields for season and tyre size
     season: {
       type: DataTypes.ENUM('winter', 'summer', 'all_season'),
       allowNull: true,
@@ -85,7 +83,6 @@ const Inventory = sequelize.define(
   }
 );
 
-// Define associations
 Inventory.belongsTo(Garages, { foreignKey: 'garage_id' });
 Garages.hasMany(Inventory, { foreignKey: 'garage_id' });
 
