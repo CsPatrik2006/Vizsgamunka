@@ -98,7 +98,6 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
 
         // Don't submit if the garage has been deleted
         if (isDeletedRef.current) {
-            console.log("Garage has been deleted, skipping update");
             return;
         }
 
@@ -118,7 +117,6 @@ const EditGaragePage = ({ isLoggedIn, userData, handleLogout }) => {
 
             // Check again if the garage has been deleted before making the API call
             if (isDeletedRef.current) {
-                console.log("Garage has been deleted, skipping update");
                 return;
             }
 

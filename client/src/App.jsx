@@ -76,7 +76,6 @@ function App() {
       const tokenCheckInterval = setInterval(() => {
         const token = localStorage.getItem('token');
         if (token && isTokenExpired(token)) {
-          console.log("Token expired during session, logging out...");
           handleLogout();
         }
       }, 60000); // Check every minute

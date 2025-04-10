@@ -46,7 +46,6 @@ const LoginForm = ({ isOpen, onClose, setIsRegisterOpen, onLoginSuccess }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Login successful', data);
 
         // Set success message
         setSuccess('Sikeres bejelentkezés!');

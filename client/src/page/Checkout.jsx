@@ -117,7 +117,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
 
         // If no slots are available, show a message
         if (availableSlots.length === 0) {
-          console.log("No available slots for this date");
         }
       } else {
         console.error("Unexpected response format:", response.data);
@@ -174,15 +173,6 @@ const Checkout = ({ isLoggedIn, userData, handleLogout }) => {
         quantity: item.quantity,
         unit_price: item.price
       }));
-
-      // Debug logging
-      console.log('Creating order with data:', {
-        user_id: userId,
-        garage_id: selectedGarageId,
-        total_price: totalPrice,
-        status: 'pending',
-        items: orderItems // Include the items array
-      });
 
       // 1. Create an order with items included
       const orderResponse = await axios.post('http://localhost:3000/orders', {

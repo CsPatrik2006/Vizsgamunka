@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - mysql-network
+
+  app:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: app-container
+    ports:
+      - "3000:3000"
+    networks:
+      - mysql-network
+    depends_on:
+      - mysql
+      - frontend 
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile  
+    container_name: frontend-container
+    ports:
+      - "8081:8081"
+    networks:
+      - mysql-network
+    depends_on:
+      - mysql  
+volumes:
+  mysql-data:
+networks:
+  mysql-network:
+    driver: bridge
