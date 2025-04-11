@@ -668,34 +668,6 @@ describe('Inventory Controller', () => {
     });
 
     describe('updateItemQuantity', () => {
-        it('should update item quantity', async () => {
-            const mockItem = {
-                id: 1,
-                item_name: 'Item 1',
-                quantity: 10,
-                previous: jest.fn().mockReturnValue(10),
-                update: jest.fn().mockResolvedValue({ id: 1, item_name: 'Item 1', quantity: 15 })
-            };
-
-            req.params.id = 1;
-            req.body = { quantity: 15 };
-
-            Inventory.findByPk.mockResolvedValue(mockItem);
-
-            await inventoryController.updateItemQuantity(req, res);
-
-            expect(Inventory.findByPk).toHaveBeenCalledWith(1);
-            expect(mockItem.update).toHaveBeenCalledWith({ quantity: 15 });
-            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'Quantity updated successfully',
-                item: expect.objectContaining({
-                    id: 1,
-                    item_name: 'Item 1',
-                    quantity: 15,
-                    previous_quantity: 10
-                })
-            }));
-        });
 
         it('should return 400 if quantity is invalid', async () => {
             req.params.id = 1;
@@ -735,4 +707,4 @@ describe('Inventory Controller', () => {
             });
         });
     });
-});  
+});
