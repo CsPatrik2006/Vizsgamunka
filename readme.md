@@ -46,14 +46,45 @@ Az alkalmazás több kulcsfontosságú entitást kezel:
 - **Időpontok**: Szerviz foglalások
 - **Kosár és Rendelések**: Bevásárlókosár és befejezett rendelések
 
-## Kezdeti lépések
+## Telepítési lehetőségek
 
-### Előfeltételek
+Az alkalmazás telepíthető hagyományos módon vagy Docker segítségével.
+
+### 1. Docker-alapú telepítés (ajánlott)
+
+#### Előfeltételek
+- Docker és Docker Compose telepítve
+
+#### Telepítés és indítás
+1. Klónozd a repository-t:
+```bash
+git clone https://github.com/CsPatrik2006/Vizsgamunka.git
+cd Vizsgamunka
+```
+
+2. Töltsd le a szükséges .env fájlt az email szolgáltatás működéséhez:
+[.env fájl letöltése](https://mega.nz/file/cqt1xTJC#tmE_6E1EV-OlVGgMorXGEUt67UgogYTcXs9jfor83Bg)
+
+3. Helyezd a letöltött .env fájlt a server könyvtárba
+
+4. Indítsd el a konténereket:
+```bash
+docker-compose up -d
+```
+
+Ez elindítja:
+- MySQL adatbázist a 3306-os porton
+- Backend szervert a 3000-es porton
+- Frontend alkalmazást a 8081-es porton
+
+Az alkalmazás a `http://localhost:8081` címen lesz elérhető.
+
+### 2. Hagyományos telepítés
+
+#### Előfeltételek
 - Node.js (v14 vagy újabb)
 - npm vagy yarn
 - MySQL adatbázis
-
-### Telepítés
 
 #### Backend beállítása
 1. Navigálj a szerver könyvtárba:
@@ -96,7 +127,7 @@ npm install
 npm run dev
 ```
 
-Az alkalmazás a `http://localhost:5173` címen lesz elérhető
+Az alkalmazás a `http://localhost:5173` címen lesz elérhető fejlesztői módban.
 
 ## Projekt struktúra
 
@@ -117,6 +148,10 @@ gumizz/
 │   ├── routes/            # API útvonalak
 │   ├── uploads/           # Feltöltött termékképek
 │   └── server.js          # Szerver belépési pont
+│
+├── docker-compose.yml     # Docker Compose konfiguráció
+├── client/dockerfile      # Frontend Docker konfiguráció
+└── server/dockerfile      # Backend Docker konfiguráció
 ```
 
 ## Részletes funkciók

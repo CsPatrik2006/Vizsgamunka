@@ -21,7 +21,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `users` (
+  CREATE TABLE IF NOT EXISTS `users` (
     `id` int NOT NULL AUTO_INCREMENT,
     `first_name` varchar(128) NOT NULL,
     `last_name` varchar(128) NOT NULL,
@@ -56,7 +56,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `garage_schedule_slots` (
+  CREATE TABLE IF NOT EXISTS `garage_schedule_slots` (
     `id` int NOT NULL AUTO_INCREMENT,
     `garage_id` int NOT NULL,
     `day_of_week` enum('monday','tuesday','wednesday','thursday','friday','saturday','sunday') NOT NULL,
@@ -89,7 +89,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `orders` (
+  CREATE TABLE IF NOT EXISTS `orders` (
     `id` int NOT NULL AUTO_INCREMENT,
     `user_id` int NOT NULL,
     `garage_id` int NOT NULL,
@@ -121,7 +121,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `appointments` (
+  CREATE TABLE IF NOT EXISTS `appointments` (
     `id` int NOT NULL AUTO_INCREMENT,
     `user_id` int NOT NULL,
     `garage_id` int NOT NULL,
@@ -158,7 +158,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `cart` (
+  CREATE TABLE IF NOT EXISTS `cart` (
     `id` int NOT NULL AUTO_INCREMENT,
     `user_id` int NOT NULL,
     `garage_id` int NOT NULL,
@@ -188,7 +188,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `inventory` (
+  CREATE TABLE IF NOT EXISTS `inventory` (
     `id` int NOT NULL AUTO_INCREMENT,
     `garage_id` int NOT NULL,
     `item_name` varchar(255) NOT NULL,
@@ -227,7 +227,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `cart_items` (
+  CREATE TABLE IF NOT EXISTS `cart_items` (
     `id` int NOT NULL AUTO_INCREMENT,
     `cart_id` int NOT NULL,
     `product_type` enum('inventory') NOT NULL,
@@ -256,7 +256,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `order_items` (
+  CREATE TABLE IF NOT EXISTS `order_items` (
     `id` int NOT NULL AUTO_INCREMENT,
     `order_id` int NOT NULL,
     `product_type` enum('inventory') NOT NULL,
@@ -286,7 +286,7 @@
 
   /*!40101 SET @saved_cs_client     = @@character_set_client */;
   /*!50503 SET character_set_client = utf8mb4 */;
-  CREATE TABLE `garages` (
+  CREATE TABLE IF NOT EXISTS `garages` (
     `id` int NOT NULL AUTO_INCREMENT,
     `owner_id` int NOT NULL,
     `name` varchar(255) NOT NULL,
